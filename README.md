@@ -8,7 +8,7 @@ Process in standard in 7_5_1.
 cmsrel CMSSW_7_5_1
 cd CMSSW_7_5_1/src/
 cmsenv
-git clone https://gitlab.cern.ch/CSC-GIF/Gif
+git clone ssh://git@gitlab.cern.ch:7999/CSC-GIF/Gif.git 
 scram b
 cmsRun gif.py
 
