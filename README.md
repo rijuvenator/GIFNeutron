@@ -5,12 +5,12 @@ Original documentation is at https://twiki.cern.ch/twiki/bin/view/CMS/CSCTestBea
 
 Process in standard in 7_5_1.  
 
-cmsrel CMSSW_7_5_1
-cd CMSSW_7_5_1/src/
-cmsenv
-git clone ssh://git@gitlab.cern.ch:7999/CSC-GIF/Gif.git 
-scram b
-cmsRun gif.py
+    cmsrel CMSSW_7_5_1
+    cd CMSSW_7_5_1/src/
+    cmsenv
+    git clone ssh://git@gitlab.cern.ch:7999/CSC-GIF/Gif.git 
+    scram b
+    cmsRun gif.py
 
 In gif.py set input file name you obtained from readFile.py and set output name for the root file with the result histograms.
 The output is: root file and pdf file with plots. 
