@@ -10,6 +10,7 @@ Process in standard in 7_5_1.
     cmsenv
     git clone ssh://git@gitlab.cern.ch:7999/CSC-GIF/Gif.git 
     scram b
+    cd Gif/Gif/test 
     cmsRun gif.py
 
 In gif.py set input file name you obtained from readFile.py and set output name for the root file with the result histograms.
