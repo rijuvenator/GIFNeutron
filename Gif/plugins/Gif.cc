@@ -190,6 +190,7 @@ private:
   TH1F* nSeg;
   TH1F* hnRecHitsAll;
   TH1F* hnRecHitsMax;
+  TH2F* hSegPos2D; 
   //TH1I *hit_ctime;
   //TH1I *hit_atime;
 
@@ -248,6 +249,7 @@ Gif::Gif(const edm::ParameterSet& iConfig)
   nSeg = new TH1F("nSeg", ";number of segments in event;events", 21, -0.5, 20.5);
   hnRecHitsAll = new TH1F("hnRecHitsAll", ";number of rec hits on all segments;segments", 21, -0.5, 20.5); 
   hnRecHitsMax = new TH1F("hnRecHitsMax", ";max number of rec hits on any segment in event;events", 21, -0.5, 20.5); 
+  hSegPos2D = new TH2F("hSegPos2D", ";segment position X;segment position Y;events", 100, -100, 100, 100, -100, 100); 
 
   evW=new TH2I("evW","Wire groups in event;Wire group;Time bin",112,0.5,112.5,16,0.5,16.5);
   evS=new TH2I("evS","Strips in event;Strip;Time bin",112,0.5,112.5,8,0.5,8.5);
@@ -353,6 +355,7 @@ Gif::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     float segY     = localPos.y();
     int nRecHits = (*dSiter).nRecHits();  
     hnRecHitsAll->Fill(nRecHits);  
+    hSegPos2D->Fill(segX, segY);  
     if (nRecHits > nRecHitsMax) {
       nRecHitsMax = nRecHits;
     }
@@ -574,7 +577,7 @@ Gif::endJob()
   nSeg->Write();
   hnRecHitsAll->Write();
   hnRecHitsMax->Write();
-
+  hSegPos2D->Write(); 
 
   TCanvas *cc=new TCanvas();
   char t1[200],t2[200],t3[200];
