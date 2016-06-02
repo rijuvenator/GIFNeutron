@@ -157,7 +157,7 @@ edm::InputTag stripDigiTag;
 edm::InputTag wireDigiTag;
 //edm::InputTag compDigiTag;
 edm::InputTag cscRecHitTag;
-//edm::InputTag cscSegTag;
+edm::InputTag cscSegTag;
 //edm::InputTag saMuonTag;
 //edm::InputTag l1aTag;
 //edm::InputTag alctDigiTag;
@@ -187,6 +187,7 @@ TProfile *stime[7]; //time
 //TProfile2D *gg2d;
 TH2I *coordMM,*coordCH;
 TH1I *gg;
+TH1F* nSeg;
 //TH1I *hit_ctime;
 //TH1I *hit_atime;
 
@@ -242,6 +243,8 @@ gg=new TH1I("gg","Landau distribution of RecHit3x3 cluster charge for all layers
 //hit_ctime=new TH1I("hct","RecHit strip time;Time, ns");
 //hit_atime=new TH1I();
 
+nSeg = new TH1F("nSeg", "", 100, 0, 100);
+
 evW=new TH2I("evW","Wire groups in event;Wire group;Time bin",112,0.5,112.5,16,0.5,16.5);
 evS=new TH2I("evS","Strips in event;Strip;Time bin",112,0.5,112.5,8,0.5,8.5);
 
@@ -281,7 +284,9 @@ firedWG=new TH2I("firedWG","Number of fired wiregroups in layer;Wiregroups;Layer
 
 cscRecHitTag  = iConfig.getParameter<edm::InputTag>("cscRecHitTag");
 stripDigiTag  = iConfig.getParameter<edm::InputTag>("stripDigiTag");
-wireDigiTag  = iConfig.getParameter<edm::InputTag>("wireDigiTag");
+wireDigiTag   = iConfig.getParameter<edm::InputTag>("wireDigiTag");
+cscSegTag     = iConfig.getParameter<edm::InputTag>("cscSegTag");
+
 //template<typename T>
 //edm::EDGetTokenT<CSCRecHit2DCollection> consumes<CSCRecHit2DCollection>(cscRecHitTag)
 fev=2000000000,lev=0;
@@ -325,9 +330,20 @@ lf[6]++;
 //bool intW=false;//,intS=false;
 //char t1[250];
 
+
+//========================== SEGMENTS ========================
+edm::Handle<CSCSegmentCollection> cscSegments;
+iEvent.getByLabel(cscSegTag, cscSegments);
+
+
+int nSegments = cscSegments->size();
+nSeg->Fill(nSegments);
+
 //========================== HITS ========================
 edm::Handle<CSCRecHit2DCollection> recHits;
 iEvent.getByLabel(cscRecHitTag,recHits);
+
+
 //std::string s1="";
 //std::string s2="csc2DRecHits";
 //iEvent.getByLabel(s2,s1,recHits);
@@ -523,6 +539,7 @@ gg->Write();
 //hit_ctime->Write();
 //hit_atime->Write();
 
+nSeg->Write();
 
 TCanvas *cc=new TCanvas();
 char t1[200],t2[200],t3[200];
