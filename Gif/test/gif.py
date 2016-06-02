@@ -26,17 +26,19 @@ process.options = cms.untracked.PSet(
 )
 
 process.source = cms.Source("PoolSource",
-# fileNames = cms.untracked.vstring('file:../../CMSSW_6_2_12/src/output.root'	  
-fileNames = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/test.root')
-)
-
-maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+                            # fileNames = cms.untracked.vstring('file:../../CMSSW_6_2_12/src/output.root'	  
+                            fileNames = cms.untracked.vstring(
+        'file:../../CMSSW_6_2_12_patch1/src/test.root', 
+        )
+                            )
+                            
+process.maxEvents = cms.untracked.PSet(
+    input = cms.untracked.int32(1000)
     )
 
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 10000
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 
 process.demo = cms.EDAnalyzer('Gif',
@@ -48,22 +50,23 @@ wireDigiTag = cms.InputTag("muonCSCDigis","MuonCSCWireDigi"),
 cscRecHitTag = cms.InputTag("csc2DRecHits",""),
 )
 
-# process.source.fileNames  = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/outputRoot/STEP_27_000_160509_094700_UTC.root') 
-# process.demo.rootFileName = cms.untracked.string                                   ('outputPlots/STEP_27_000_160509_094700_UTC_analysis.root')
-# process.source.fileNames  = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/outputRoot/STEP_40_000_160509_111100_UTC.root') 
-# process.demo.rootFileName = cms.untracked.string                                   ('outputPlots/STEP_40_000_160509_111100_UTC_analysis.root')
-# process.source.fileNames  = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/outputRoot/STEP_27_000_160506_220324_UTC.root') 
-# process.demo.rootFileName = cms.untracked.string                                   ('outputPlots/STEP_27_000_160506_220324_UTC_analysis.root')
-# process.source.fileNames  = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/outputRoot/STEP_40_000_160506_222510_UTC.root') 
-# process.demo.rootFileName = cms.untracked.string                                   ('outputPlots/STEP_40_000_160506_222510_UTC_analysis.root')
-# process.source.fileNames  = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/outputRoot/STEP_27_000_160508_163702_UTC.root')   # problem
-# process.demo.rootFileName = cms.untracked.string                                   ('outputPlots/STEP_27_000_160508_163702_UTC_analysis.root')
-# process.source.fileNames  = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/outputRoot/STEP_40_000_160506_015143_UTC.root') 
-# process.demo.rootFileName = cms.untracked.string                                   ('outputPlots/STEP_40_000_160506_015143_UTC_analysis.root')
-# process.source.fileNames  = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/outputRoot/STEP_27_000_160506_025710_UTC.root') 
-# process.demo.rootFileName = cms.untracked.string                                   ('outputPlots/STEP_27_000_160506_025710_UTC_analysis.root')
-process.source.fileNames  = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/outputRoot/STEP_40_000_160506_125054_UTC.root') 
-process.demo.rootFileName = cms.untracked.string                                   ('outputPlots/STEP_40_000_160506_125054_UTC_analysis.root')
+baseDir = "/afs/cern.ch/user/w/wulsin/workspace/public/gif/CMSSW_6_2_12_patch1/src/outputRoot/"
+# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160509_094700_UTC.root') 
+# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160509_094700_UTC_analysis.root')
+# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160509_111100_UTC.root') 
+# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160509_111100_UTC_analysis.root')
+# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160506_220324_UTC.root') 
+# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160506_220324_UTC_analysis.root')
+process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_222510_UTC.root') 
+process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_222510_UTC_analysis.root')
+# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160508_163702_UTC.root')   # problem
+# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160508_163702_UTC_analysis.root')
+# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_015143_UTC.root') 
+# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_015143_UTC_analysis.root')
+# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160506_025710_UTC.root') 
+# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160506_025710_UTC_analysis.root')
+# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_125054_UTC.root') 
+# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_125054_UTC_analysis.root')
 
 
 #
