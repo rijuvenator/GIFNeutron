@@ -188,6 +188,8 @@ TProfile *stime[7]; //time
 TH2I *coordMM,*coordCH;
 TH1I *gg;
 TH1F* nSeg;
+  TH1F* hnRecHitsAll;
+  TH1F* hnRecHitsMax;
 //TH1I *hit_ctime;
 //TH1I *hit_atime;
 
@@ -243,7 +245,9 @@ gg=new TH1I("gg","Landau distribution of RecHit3x3 cluster charge for all layers
 //hit_ctime=new TH1I("hct","RecHit strip time;Time, ns");
 //hit_atime=new TH1I();
 
-nSeg = new TH1F("nSeg", "", 100, 0, 100);
+nSeg = new TH1F("nSeg", ";number of segments in event;events", 21, -0.5, 20.5);
+ hnRecHitsAll = new TH1F("hnRecHitsAll", ";number of rec hits on all segments;segments", 21, -0.5, 20.5); 
+ hnRecHitsMax = new TH1F("hnRecHitsMax", ";max number of rec hits on any segment in event;events", 21, -0.5, 20.5); 
 
 evW=new TH2I("evW","Wire groups in event;Wire group;Time bin",112,0.5,112.5,16,0.5,16.5);
 evS=new TH2I("evS","Strips in event;Strip;Time bin",112,0.5,112.5,8,0.5,8.5);
@@ -338,6 +342,34 @@ iEvent.getByLabel(cscSegTag, cscSegments);
 
 int nSegments = cscSegments->size();
 nSeg->Fill(nSegments);
+
+ int nRecHitsMax = -1;  
+
+ for(CSCSegmentCollection::const_iterator dSiter=cscSegments->begin(); dSiter != cscSegments->end(); dSiter++) {
+
+   //CSCDetId id  = (CSCDetId)(*dSiter).cscDetId();                                                                                                                                                       
+   LocalPoint localPos = (*dSiter).localPosition();
+   float segX     = localPos.x();
+   float segY     = localPos.y();
+   int nRecHits = (*dSiter).nRecHits();  
+   hnRecHitsAll->Fill(nRecHits);  
+   if (nRecHits > nRecHitsMax) {
+     nRecHitsMax = nRecHits;
+   }
+
+   for (CSCSegmentCollection::const_iterator dSiter2=dSiter+1; dSiter2 != cscSegments->end(); dSiter2++) {
+     LocalPoint localPos2 = (*dSiter2).localPosition();
+     float segX2     = localPos2.x();
+     float segY2     = localPos2.y();
+     float dSeg = (segX-segX2)*(segX-segX2)+(segY-segY2)*(segY-segY2);
+     dSeg = sqrt(dSeg);
+     //     distanceBetweenSegs->Fill(dSeg);
+   }
+
+ }
+
+ hnRecHitsMax->Fill(nRecHitsMax);  
+
 
 //========================== HITS ========================
 edm::Handle<CSCRecHit2DCollection> recHits;
@@ -540,6 +572,9 @@ gg->Write();
 //hit_atime->Write();
 
 nSeg->Write();
+ hnRecHitsAll->Write();
+ hnRecHitsMax->Write();
+
 
 TCanvas *cc=new TCanvas();
 char t1[200],t2[200],t3[200];
