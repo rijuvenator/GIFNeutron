@@ -9,6 +9,8 @@ Process in standard in 7_5_1.
     cd CMSSW_7_5_1/src/
     cmsenv
     git clone ssh://git@gitlab.cern.ch:7999/CSC-GIF/Gif.git 
+    git cms-addpkg EventFilter/CSCRawToDigi
+    sed -i 's$int ilayer = 0; /// layer=0 flags entire chamber$int ilayer = 0; /// layer=0 flags entire chamber\n    if (vmecrate == 1 && dmb == 4) {vmecrate = 13; dmb = 1;} // For GIF data, set to a ME2/1 chamber$' EventFilter/CSCRawToDigi/plugins/CSCDCCUnpacker.cc
     scram b
     cd Gif/Gif/test 
     cmsRun gif.py
