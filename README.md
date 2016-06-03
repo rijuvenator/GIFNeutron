@@ -15,6 +15,7 @@ Process in standard in 7_5_1.
     cd Gif/Gif/test 
     cmsRun gif.py
 
+Note that the vmecrate and dmb have to be modified to fool the reconstruction into knowing what is the appropriate chamber type to use.  
 In gif.py set input file name you obtained from readFile.py and set output name for the root file with the result histograms.
 The output is: root file and pdf file with plots. 
 
