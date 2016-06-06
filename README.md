@@ -14,6 +14,7 @@ Process in standard in 7_5_1.
     scram b
     cd Gif/Gif/test 
     cmsRun gif.py   # Make analysis plots.
+    cd ../../../Gif/GifDisplay/test
     cmsRun gifDisplay.py  # Make event displays.  
 
 Note that the vmecrate and dmb have to be modified to fool the reconstruction into knowing what is the appropriate chamber type to use.  
