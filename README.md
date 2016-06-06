@@ -17,7 +17,12 @@ Process in standard in 7_5_1.
     cd ../../../Gif/GifDisplay/test
     cmsRun gifDisplay.py  # Make event displays.  
 
-Note that the vmecrate and dmb have to be modified to fool the reconstruction into knowing what is the appropriate chamber type to use.  
+Note that at GIF++ the ME2/1 chamber DMB is in the slot (vmecrate = 1; dmb slot = 4) that corresponds to an ME1/2 chamber.  
+To get the correct geometry the vmecrate and dmb have to be modified so that the reconstruction thinks it is dealing with an ME2/1 chamber.  
+You can get the vmecrate and dmb for a given chamber from the local DQM page, which for a given chamber will list the PCrate and DMB Slot.  
+Local DQM page:  http://csc-dqm.cms:20550/urn:xdaq-application:lid=1450
+Instructions to access local DQM outside P5:  https://twiki.cern.ch/twiki/bin/view/CMS/CSCDOCshiftInformation#Looking_at_internal_web_pages_fr
+
 In gif.py set input file name you obtained from readFile.py and set output name for the root file with the result histograms.
 The output is: root file and pdf file with plots. 
 
