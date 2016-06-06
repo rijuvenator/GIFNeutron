@@ -13,7 +13,8 @@ Process in standard in 7_5_1.
     sed -i 's$int ilayer = 0; /// layer=0 flags entire chamber$int ilayer = 0; /// layer=0 flags entire chamber\n    if (vmecrate == 1 \&\& dmb == 4) {vmecrate = 13; dmb = 1;} // For GIF data, set to a ME2/1 chamber$' EventFilter/CSCRawToDigi/plugins/CSCDCCUnpacker.cc
     scram b
     cd Gif/Gif/test 
-    cmsRun gif.py
+    cmsRun gif.py   # Make analysis plots.
+    cmsRun gifDisplay.py  # Make event displays.  
 
 Note that the vmecrate and dmb have to be modified to fool the reconstruction into knowing what is the appropriate chamber type to use.  
 In gif.py set input file name you obtained from readFile.py and set output name for the root file with the result histograms.
@@ -31,4 +32,12 @@ The output is: root file and pdf file with plots.
 
     Fill your own or modify mine histograms in these parts
     In method Gif::endJob store histograms and other objects to root file (the output for gif.py) and plot pictures to pdf file. Do not forget to add the your new result histograms to output. 
+    
+In gifDisplay.py:
+
+    -Specify input file containing fedRawDataCollection produced by running unpacker in IORawData repository.
+    -Edit path (eventDisplayDir) to save eventdisplay.
+    -Change option "chamberType" to 11 or 21 when dealing with ME1/1 or ME2/1.
+    -Provide list of event number in eventList.txt.  
+
     
