@@ -62,41 +62,41 @@ chamberType = cms.untracked.string('21')
 )
 
 baseDir = "/afs/cern.ch/user/w/wulsin/workspace/public/gif/CMSSW_6_2_12_patch1/src/outputRoot/"
-process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160509_094700_UTC.root')             
-process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160509_094700_UTC_display.root')    
-process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME21Test27sourceOff/")  
+# process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160509_094700_UTC.root')             
+# process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160509_094700_UTC_display.root')    
+# process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME21Test27sourceOff/")  
 
 # process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160509_111100_UTC.root')             
 # process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160509_111100_UTC_display.root')    
 # process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME21Test40sourceOff/")  
 
-# process.source.fileNames        = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/STEP_27_000_160506_220324_UTC.root')             
-# process.GifDisplay.rootFileName = cms.untracked.string                        ('outputPlots/STEP_27_000_160506_220324_UTC_display.root')    
+# process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160506_220324_UTC.root')             
+# process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160506_220324_UTC_display.root')    
 # process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME21Test27sourceOn/")  
 
-# process.source.fileNames        = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/STEP_40_000_160506_222510_UTC.root')             
-# process.GifDisplay.rootFileName = cms.untracked.string                        ('outputPlots/STEP_40_000_160506_222510_UTC_display.root')    
+# process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_222510_UTC.root')             
+# process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_222510_UTC_display.root')    
 # process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME21Test40sourceOn/")
 
 
-# process.GifDisplay.chamberType = cms.untracked.string('11')  
-# process.source.fileNames        = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/STEP_27_000_160508_163702_UTC.root')  
-# process.GifDisplay.rootFileName = cms.untracked.string                        ('outputPlots/STEP_27_000_160508_163702_UTC_display.root')    
-# process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME11Test27sourceOff/")
+process.GifDisplay.chamberType = cms.untracked.string('11')  
+process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160508_163702_UTC.root')  
+process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160508_163702_UTC_display.root')    
+process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME11Test27sourceOff/")
 
 # process.GifDisplay.chamberType = cms.untracked.string('11')  
-# process.source.fileNames        = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/STEP_40_000_160506_015143_UTC.root')             
-# process.GifDisplay.rootFileName = cms.untracked.string                        ('outputPlots/STEP_40_000_160506_015143_UTC_display.root')    
+# process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_015143_UTC.root')             
+# process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_015143_UTC_display.root')    
 # process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME11Test40sourceOff/")
 
 # process.GifDisplay.chamberType = cms.untracked.string('11')  
-# process.source.fileNames        = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/STEP_27_000_160506_025710_UTC.root')             
-# process.GifDisplay.rootFileName = cms.untracked.string                        ('outputPlots/STEP_27_000_160506_025710_UTC_display.root')    
+# process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160506_025710_UTC.root')             
+# process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160506_025710_UTC_display.root')    
 # process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME11Test27sourceOn/")
 
 # process.GifDisplay.chamberType = cms.untracked.string('11')  
-# process.source.fileNames        = cms.untracked.vstring('file:../../CMSSW_6_2_12_patch1/src/STEP_40_000_160506_125054_UTC.root')
-# process.GifDisplay.rootFileName = cms.untracked.string                        ('outputPlots/STEP_40_000_160506_125054_UTC_display.root')
+# process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_125054_UTC.root')
+# process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_125054_UTC_display.root')
 # process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME11Test40sourceOn/")
 
 
