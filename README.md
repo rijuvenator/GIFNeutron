@@ -13,8 +13,12 @@ Process in standard in 7_5_1.
     sed -i 's$int ilayer = 0; /// layer=0 flags entire chamber$int ilayer = 0; /// layer=0 flags entire chamber\n    if (vmecrate == 1 \&\& dmb == 4) {vmecrate = 13; dmb = 1;} // For GIF data, set to a ME2/1 chamber$' EventFilter/CSCRawToDigi/plugins/CSCDCCUnpacker.cc
     scram b
     cd Gif/Gif/test 
-    cmsRun gif.py   # Make analysis plots.
-    cd ../../../Gif/GifDisplay/test
+    cmsRun gif.py          # Make analysis plots.
+    cmsRun gif.py input=1  # Specify a given input file.
+    source gif.src         # Process multiple input files.
+    makeComparisonPlots.py -i inputME21_Test40.py   # Make comparison plots.
+    mergeOutput.py   
+    cd ../../../Gif/GifDisplay/test  
     cmsRun gifDisplay.py  # Make event displays.  
 
 Note that at GIF++ the ME2/1 chamber DMB is in the slot (vmecrate = 1; dmb slot = 4) that corresponds to an ME1/2 chamber.  
