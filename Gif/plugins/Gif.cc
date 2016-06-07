@@ -191,6 +191,21 @@ private:
   TH1F* hnRecHitsAll;
   TH1F* hnRecHitsMax;
   TH2F* hSegPos2D; 
+  TH2F* hSegPos2DBeam; 
+  TH2F* hSegPos2DBkgd; 
+  TH1F* hNWireHits; 
+  TH1F* hNStripHits; 
+  TH1F* hNRecHits; 
+  TH1F* hSegInBeam; 
+  TH1F* hSegChi2Beam;
+  TH1F* hSegNHitsBeam;
+  TH2F* hSegSlopeBeam;
+  TH1F* hSegChi2Bkgd;
+  TH1F* hSegNHitsBkgd;
+  TH2F* hSegSlopeBkgd;
+  TH1F* hNSegGoodQuality;
+  
+
   //TH1I *hit_ctime;
   //TH1I *hit_atime;
 
@@ -249,7 +264,21 @@ Gif::Gif(const edm::ParameterSet& iConfig)
   nSeg = new TH1F("nSeg", ";number of segments in event;events", 21, -0.5, 20.5);
   hnRecHitsAll = new TH1F("hnRecHitsAll", ";number of rec hits on all segments;segments", 21, -0.5, 20.5); 
   hnRecHitsMax = new TH1F("hnRecHitsMax", ";max number of rec hits on any segment in event;events", 21, -0.5, 20.5); 
-  hSegPos2D = new TH2F("hSegPos2D", ";segment position X;segment position Y;events", 100, -100, 100, 100, -100, 100); 
+  hSegPos2D     = new TH2F("hSegPos2D",     ";segment position X all segments;segment position Y;events", 100, -100, 100, 100, -100, 100); 
+  hSegPos2DBeam = new TH2F("hSegPos2DBeam", ";segment position X in beam;segment position Y;events", 100, -100, 100, 100, -100, 100); 
+  hSegPos2DBkgd = new TH2F("hSegPos2DBkgd", ";segment position X outside beam;segment position Y;events", 100, -100, 100, 100, -100, 100); 
+  hNWireHits = new TH1F("hNWireHits", ";total number of wire hits in event;events", 150, 0, 150); 
+  hNStripHits = new TH1F("hNStripHits", ";total number of strip hits in event;events", 150, 0, 150); 
+  hNRecHits = new TH1F("hNRecHits", ";total number of rec hits in event;events", 150, 0, 150); 
+  hSegInBeam = new TH1F("hSegInBeam", ";segment is in muon beam;segments", 2, -0.5, 1.5);
+  hSegChi2Beam = new TH1F("hSegChi2Beam", ";#chi^{2}/ndof of segments in muon beam;events", 100, 0, 20);
+  hSegNHitsBeam = new TH1F("hSegNHitsBeam", ";number of hits on segments in muon beam;segments", 21, -0.5, 20.5); 
+  hSegSlopeBeam = new TH2F("hSegSlopeBeam", ";x slope of segment in muon beam;y slope of segment;segments", 100, -1, 1, 100, -1, 1);  
+  hSegChi2Bkgd = new TH1F("hSegChi2Bkgd", ";#chi^{2}/ndof of segment outside muon beam;events", 100, 0, 20);
+  hSegNHitsBkgd = new TH1F("hSegNHitsBkgd", ";number of hits on segments outside muon beam;segments", 21, -0.5, 20.5); 
+  hSegSlopeBkgd = new TH2F("hSegSlopeBkgd", ";x slope of segment outside muon beam;y slope of segment;segments", 100, -1, 1, 100, -1, 1);  
+  hNSegGoodQuality = new TH1F("hNSegGoodQuality", ";number of good quality segments;events", 11, -0.5, 10.5);  
+
 
   evW=new TH2I("evW","Wire groups in event;Wire group;Time bin",112,0.5,112.5,16,0.5,16.5);
   evS=new TH2I("evS","Strips in event;Strip;Time bin",112,0.5,112.5,8,0.5,8.5);
@@ -262,7 +291,7 @@ Gif::Gif(const edm::ParameterSet& iConfig)
       sprintf(t1,"wiresL%d",i+1);
       sprintf(t2,"Occupancy of wiregroups for layer %d;Wiregroup;N",i+1);
       wire[i]=new TH1D(t1,t2,112,0.5,112.5);
-	
+ 	
       sprintf(t1,"stimeL%d",i+1);
       sprintf(t2,"Average strip signal (>13 ADC) by time for layer %d (ADC[i]-ADC[0]);Time bin;N",i+1);
       stime[i]=new TProfile(t1,t2,8,0.5,8.5);
@@ -347,6 +376,8 @@ Gif::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   int nRecHitsMax = -1;  
 
+  int nSegGoodQuality = 0;  
+
   for(CSCSegmentCollection::const_iterator dSiter=cscSegments->begin(); dSiter != cscSegments->end(); dSiter++) {
 
     //CSCDetId id  = (CSCDetId)(*dSiter).cscDetId();                                                                                                                                                       
@@ -369,10 +400,45 @@ Gif::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       //     distanceBetweenSegs->Fill(dSeg);
     }
 
+    bool isInBeam = (segX > -39 && 
+		     segX < -24 && 
+		     segY > -3 && 
+		     segY < 12);  // beam is about 15 x 15 cm  
+    hSegInBeam->Fill(isInBeam);  
+
+    double chi2perDof = (*dSiter).chi2() / (*dSiter).degreesOfFreedom();  
+    LocalVector localVec = (*dSiter).localDirection();  
+
+
+    if (isInBeam) { 
+      hSegChi2Beam->Fill(chi2perDof); 
+      hSegNHitsBeam->Fill(nRecHits);  
+      hSegSlopeBeam->Fill(localVec.x(), localVec.y());  
+      if (nRecHits >= 5 && 
+	  chi2perDof < 9.5 &&
+	  fabs(localVec.x()) < 0.2 &&
+	  fabs(localVec.y()) < 0.2)
+	nSegGoodQuality++;  	  
+      hSegPos2DBeam->Fill(segX, segY);  
+
+    } else {        
+      hSegChi2Bkgd->Fill(chi2perDof); 
+      hSegNHitsBkgd->Fill(nRecHits);  
+      hSegSlopeBkgd->Fill(localVec.x(), localVec.y());  
+      hSegPos2DBkgd->Fill(segX, segY);  
+    }
+
   }
 
   hnRecHitsMax->Fill(nRecHitsMax);  
+  if (nRecHitsMax < 4) {
+    std::cout << "Found nRecHitsMax = " << nRecHitsMax 
+	      << ", nSegments = " << nSegments  
+	      << std::endl; 
+  }  
 
+  hNSegGoodQuality->Fill(nSegGoodQuality);  
+      
 
   //========================== HITS ========================
   edm::Handle<CSCRecHit2DCollection> recHits;
@@ -383,6 +449,8 @@ Gif::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //std::string s2="csc2DRecHits";
   //iEvent.getByLabel(s2,s1,recHits);
 
+  int nRecHits = recHits->size();  
+  hNRecHits->Fill(nRecHits);  
   CSCRecHit2DCollection::const_iterator dRHIter;
   for (dRHIter = recHits->begin(); dRHIter != recHits->end(); dRHIter++) {
     if((*dRHIter).nStrips()==3){
@@ -420,6 +488,7 @@ Gif::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<CSCWireDigiCollection> wires;
   iEvent.getByLabel(wireDigiTag,wires);
 
+  int nWireHits = 0;  
   for (CSCWireDigiCollection::DigiRangeIterator wi=wires->begin(); wi!=wires->end(); wi++) {
     CSCDetId id = (CSCDetId)(*wi).first;
     //std::cout<<id.layer()<<"    la\n";	
@@ -428,6 +497,7 @@ Gif::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     //int nn=0,pw=0,pt=0;
 				
     for( ; wireIt != lastWire; ++wireIt){
+      nWireHits++;  
       //h_w_T->Fill(wireIt->getWireGroup(),wireIt->getTimeBin());
       wire[id.layer()-1]->Fill(wireIt->getWireGroup());
       wire[6]->Fill(wireIt->getWireGroup());
@@ -456,6 +526,9 @@ Gif::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       }; //if
     */
   };	//all layers for wires		
+
+  hNWireHits->Fill(nWireHits); 
+
   int zero=0;
   for(int i=0;i<6;i++){
     if(lff[i]>0){zero++;};
@@ -467,6 +540,7 @@ Gif::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //========================== STRIPS ========================
   edm::Handle<CSCStripDigiCollection> strips;
   iEvent.getByLabel(stripDigiTag,strips);
+  int nStripHits = 0;  
   for (CSCStripDigiCollection::DigiRangeIterator si=strips->begin(); si!=strips->end(); si++) {
     CSCDetId id = (CSCDetId)(*si).first;
     str->Fill(id.station(),id.ring());
@@ -493,6 +567,7 @@ Gif::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  // if(evn<3000){evS->SetBinContent(strn,k+1,myADCVals[k]);};
 	};
       if(was_signal){
+	nStripHits++;  
 	strip[id.layer()-1]->Fill(strn);
 	strip[6]->Fill(strn);
 	for(size_t k=0;k<myADCVals.size();k++){
@@ -522,7 +597,7 @@ Gif::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     // };//chamber
 	
   };//strip collection
-
+  hNStripHits->Fill(nStripHits);  
 
   evn++;
 
@@ -578,6 +653,19 @@ Gif::endJob()
   hnRecHitsAll->Write();
   hnRecHitsMax->Write();
   hSegPos2D->Write(); 
+  hSegPos2DBeam->Write(); 
+  hSegPos2DBkgd->Write(); 
+  hNWireHits->Write();
+  hNStripHits->Write();
+  hNRecHits->Write();
+  hSegInBeam->Write();
+  hSegChi2Beam->Write();
+  hSegNHitsBeam->Write();
+  hSegSlopeBeam->Write();
+  hSegChi2Bkgd->Write();
+  hSegNHitsBkgd->Write();
+  hSegSlopeBkgd->Write();
+  hNSegGoodQuality->Write();  
 
   TCanvas *cc=new TCanvas();
   char t1[200],t2[200],t3[200];
