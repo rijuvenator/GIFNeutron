@@ -79,10 +79,10 @@ baseDir = "/afs/cern.ch/user/w/wulsin/workspace/public/gif/CMSSW_6_2_12_patch1/s
 # process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME21Test40sourceOn/")
 
 
-process.GifDisplay.chamberType = cms.untracked.string('11')  
-process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160508_163702_UTC.root')  
-process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160508_163702_UTC_display.root')    
-process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME11Test27sourceOff/")
+# process.GifDisplay.chamberType = cms.untracked.string('11')  
+# process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160508_163702_UTC.root')  
+# process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160508_163702_UTC_display.root')    
+# process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME11Test27sourceOff/")
 
 # process.GifDisplay.chamberType = cms.untracked.string('11')  
 # process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_015143_UTC.root')             
@@ -94,10 +94,10 @@ process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME11Test27
 # process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160506_025710_UTC_display.root')    
 # process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME11Test27sourceOn/")
 
-# process.GifDisplay.chamberType = cms.untracked.string('11')  
-# process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_125054_UTC.root')
-# process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_125054_UTC_display.root')
-# process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME11Test40sourceOn/")
+process.GifDisplay.chamberType = cms.untracked.string('11')  
+process.source.fileNames        = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_125054_UTC.root')
+process.GifDisplay.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_125054_UTC_display.root')
+process.GifDisplay.eventDisplayDir = cms.untracked.string("tmpDisplay/ME11Test40sourceOn/")
 
 
 process.p = cms.Path(process.muonCSCDigis  *process.csc2DRecHits * process.GifDisplay)

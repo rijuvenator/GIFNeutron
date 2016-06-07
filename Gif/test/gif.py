@@ -1,7 +1,22 @@
+# Usage:
+# cmsRun gif.py input=NUM
+# where NUM = [1, 8], to specify which input/output files to use 
+# Can do multiple jobs in series with:
+# source gif.src 
+
+
 import FWCore.ParameterSet.Config as cms
 from FWCore.ParameterSet.VarParsing import VarParsing
+import sys
+
 
 options = VarParsing ('analysis')
+options.register ('input',
+                  0, # default value
+                  VarParsing.multiplicity.singleton, # singleton or list
+                  VarParsing.varType.int,          # string, int, or float
+                  "Integer that controls input/output files.  Set to [1-8]."  
+              )
 options.parseArguments()
 process = cms.Process("Demo")
 
@@ -33,7 +48,7 @@ process.source = cms.Source("PoolSource",
                             )
                             
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(10000)
     )
 
 
@@ -42,31 +57,53 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 
 process.demo = cms.EDAnalyzer('Gif',
-#rootFileName = cms.untracked.string(options.outputFile),
-rootFileName = cms.untracked.string("output_res.root"),
-
-stripDigiTag = cms.InputTag("muonCSCDigis","MuonCSCStripDigi"),
-wireDigiTag = cms.InputTag("muonCSCDigis","MuonCSCWireDigi"),
-cscRecHitTag = cms.InputTag("csc2DRecHits",""),
-)
+                              #rootFileName = cms.untracked.string(options.outputFile),
+                              rootFileName = cms.untracked.string("output_res.root"),                              
+                              stripDigiTag = cms.InputTag("muonCSCDigis","MuonCSCStripDigi"),
+                              wireDigiTag = cms.InputTag("muonCSCDigis","MuonCSCWireDigi"),
+                              cscRecHitTag = cms.InputTag("csc2DRecHits",""),
+                              cscSegTag = cms.InputTag("cscSegments"),                              
+                              chamberType = cms.untracked.string('21'), #chamber type: ME1/1-11, ME2/1-21  
+                              )   
 
 baseDir = "/afs/cern.ch/user/w/wulsin/workspace/public/gif/CMSSW_6_2_12_patch1/src/outputRoot/"
-# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160509_094700_UTC.root') 
-# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160509_094700_UTC_analysis.root')
-# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160509_111100_UTC.root') 
-# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160509_111100_UTC_analysis.root')
-# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160506_220324_UTC.root') 
-# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160506_220324_UTC_analysis.root')
-process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_222510_UTC.root') 
-process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_222510_UTC_analysis.root')
-# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160508_163702_UTC.root')   # problem
-# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160508_163702_UTC_analysis.root')
-# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_015143_UTC.root') 
-# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_015143_UTC_analysis.root')
-# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160506_025710_UTC.root') 
-# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160506_025710_UTC_analysis.root')
-# process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_125054_UTC.root') 
-# process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_125054_UTC_analysis.root')
+
+
+# ME2/1, source off:
+if options.input == 1:
+    process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160509_094700_UTC.root') 
+    process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160509_094700_UTC_analysis.root')
+if options.input == 2:
+    process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160509_111100_UTC.root') 
+    process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160509_111100_UTC_analysis.root')
+
+# ME2/1, source on:
+if options.input == 3:
+    process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160506_220324_UTC.root') 
+    process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160506_220324_UTC_analysis.root')
+if options.input == 4:
+    process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_222510_UTC.root') 
+    process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_222510_UTC_analysis.root')
+
+# ME1/1, source off:
+if options.input == 5:
+    process.demo.chamberType = cms.untracked.string('11') 
+    process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160508_163702_UTC.root')  
+    process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160508_163702_UTC_analysis.root')
+if options.input == 6:
+    process.demo.chamberType = cms.untracked.string('11') 
+    process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_015143_UTC.root') 
+    process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_015143_UTC_analysis.root')
+
+# ME1/1, source on:  
+if options.input == 7:
+    process.demo.chamberType = cms.untracked.string('11') 
+    process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_27_000_160506_025710_UTC.root') 
+    process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_27_000_160506_025710_UTC_analysis.root')
+if options.input == 8:
+    process.demo.chamberType = cms.untracked.string('11')
+    process.source.fileNames  = cms.untracked.vstring('file:' + baseDir + 'STEP_40_000_160506_125054_UTC.root') 
+    process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_000_160506_125054_UTC_analysis.root')
 
 
 #
@@ -101,4 +138,6 @@ process.demo.rootFileName = cms.untracked.string         ('outputPlots/STEP_40_0
 #)
 
 #process.p = cms.Path(process.gtDigis * process.muonCSCDigis  *process.csc2DRecHits * process.demo)
-process.p = cms.Path(process.muonCSCDigis  *process.csc2DRecHits * process.demo)
+process.p = cms.Path(process.muonCSCDigis * process.csc2DRecHits * process.cscSegments * process.demo)
+
+
