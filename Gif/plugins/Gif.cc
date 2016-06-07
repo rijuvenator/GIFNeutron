@@ -166,6 +166,7 @@ private:
   //edm::InputTag hltTag;
 
   std::string theRootFileName,pdf;
+  std::string chamberType;
   //std::string test;
   //std::string date;
   //std::string cond;
@@ -321,6 +322,7 @@ Gif::Gif(const edm::ParameterSet& iConfig)
   stripDigiTag  = iConfig.getParameter<edm::InputTag>("stripDigiTag");
   wireDigiTag   = iConfig.getParameter<edm::InputTag>("wireDigiTag");
   cscSegTag     = iConfig.getParameter<edm::InputTag>("cscSegTag");
+  chamberType   = iConfig.getUntrackedParameter<std::string>("chamberType", "");
 
   //template<typename T>
   //edm::EDGetTokenT<CSCRecHit2DCollection> consumes<CSCRecHit2DCollection>(cscRecHitTag)
@@ -400,12 +402,23 @@ Gif::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       //     distanceBetweenSegs->Fill(dSeg);
     }
 
-    bool isInBeam = (segX > -39 && 
-		     segX < -24 && 
-		     segY > -3 && 
-		     segY < 12);  // beam is about 15 x 15 cm  
-    hSegInBeam->Fill(isInBeam);  
+    bool isInBeam = false;
 
+    if (chamberType=="11") {
+      isInBeam = (segX > -12 && 
+		  segX <   3 && 
+		  segY >  38 && 
+		  segY <  60); 
+    } else if (chamberType=="21") {
+      isInBeam = (segX > -39 && 
+		  segX < -24 && 
+		  segY >  -3 && 
+		  segY <  12); 
+    } else {
+      std::cout << "Invalid chamber type: " << chamberType << std::endl;
+    }  
+    hSegInBeam->Fill(isInBeam);  
+    
     double chi2perDof = (*dSiter).chi2() / (*dSiter).degreesOfFreedom();  
     LocalVector localVec = (*dSiter).localDirection();  
 
