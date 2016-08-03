@@ -1,4 +1,7 @@
 # Gif
+
+*Warning current README is out of date (Aug 2, 2016 - Chris Schnaible)*
+
 Analysis code to produce plots of reconstruction performance.  
 
 Original documentation is at https://twiki.cern.ch/twiki/bin/view/CMS/CSCTestBeamDataTreatment
