@@ -41,8 +41,8 @@ for plot in plots:
     
     f1 = TFile(plot["file1"])  
     f2 = TFile(plot["file2"]) 
-    h1 = f1.Get(plot["name"])
-    h2 = f2.Get(plot["name"])
+    h1 = f1.Get("GIFAnalysis").Get(plot["name"])
+    h2 = f2.Get("GIFAnalysis").Get(plot["name"])
     h1.GetXaxis().SetNdivisions(5)  
     h1.GetYaxis().SetNdivisions(5)  
     h1.GetXaxis().SetTitleSize(0.05)

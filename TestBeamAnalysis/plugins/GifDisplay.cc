@@ -182,7 +182,8 @@ GifDisplay::GifDisplay(const edm::ParameterSet& iConfig)
     //clctDigiTag = iConfig.getParameter<edm::InputTag>("clctDigiTag");
     //corrlctDigiTag = iConfig.getParameter<edm::InputTag>("corrlctDigiTag");
     eventDisplayDir = iConfig.getUntrackedParameter<std::string>("eventDisplayDir");
-    eventlistFile = "eventList.txt";
+    //eventlistFile = "eventList.txt";
+    eventlistFile = iConfig.getUntrackedParameter<std::string>("eventListFile");
     chamberType = iConfig.getUntrackedParameter<std::string>("chamberType");
 }
 
@@ -213,12 +214,6 @@ GifDisplay::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     Run = iEvent.id().run();
     Event = iEvent.id().event();
 
-    vector<CSCDetID> chamberList;
-    chamberList.clear();
-    vector<WIRE>   wire_container;
-    vector<STRIP>  strip_container;
-    vector<COMPARATOR> com_container;
-
     //==========================Get event list for display================
     ifstream file(eventlistFile);
     while (file) {
@@ -231,6 +226,15 @@ GifDisplay::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             eventList.push_back(data);
         }
     }
+
+    //if (find(eventList.begin(), eventList.end(), Event) != eventList.end()) return;
+
+    vector<CSCDetID> chamberList;
+    chamberList.clear();
+    vector<WIRE>   wire_container;
+    vector<STRIP>  strip_container;
+    vector<COMPARATOR> com_container;
+
 
     CSCDetID chamberID;
 
