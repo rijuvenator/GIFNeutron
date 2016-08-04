@@ -17,7 +17,7 @@ class TBM(object):
     def __init__(self, fn):
         self.fn = fn
         self.setInfo()
-    def setInfo(self,ana_dataset=None):
+    def setInfo(self):
         fileName  = os.path.basename(self.fn)
         nameList  = fileName.split('_')
         self.CSC  = nameList[0]
@@ -28,7 +28,6 @@ class TBM(object):
         self.dAtt = nameList[5]
         self.meas = nameList[6]
         self.time = nameList[7].strip('.root')
-        self.ana_dataset = ana_dataset
 
 #measDirMay16 = '/eos/cms/store/group/dpg_csc/comm_csc/gif/may16/'
 measDirMay16 = '/store/group/dpg_csc/comm_csc/gif/may16/'
@@ -56,17 +55,6 @@ measurements = [
 for TBM in measurements:
     exec '%s = TBM' % TBM.meas
 
-anaDatasetDir = '/afs/cern.ch/work/c/cschnaib/GIF/data/'
-m2250.ana_dataset = anaDatasetDir + 'ana_ME21_Test27_HV0_bOn_uOff_dOff_m2306.root' 
-m2312.ana_dataset = anaDatasetDir + 'ana_ME21_Test40_HV0_bOn_uOff_dOff_m2312.root'
-m2062.ana_dataset = anaDatasetDir + 'ana_ME21_Test27_HV0_bOn_u46_d15_m2062.root'
-m2064.ana_dataset = anaDatasetDir + 'ana_ME21_Test40_HV0_bOn_u46_d15_m2064.root'
-m2250.ana_dataset = anaDatasetDir + 'ana_ME11_Test27_HV0_bOn_uOff_dOff_m2250.root'
-m1966.ana_dataset = anaDatasetDir + 'ana_ME11_Test40_HV0_bOn_uOff_dOff_m1966.root'
-m1977.ana_dataset = anaDatasetDir + 'ana_ME11_Test27_HV0_bOn_u46_d46_m1977.root'
-m2040.ana_dataset = anaDatasetDir + 'ana_ME11_Test40_HV0_bOn_u46000_d46_m2040.root'
-
-
 __all__ = ['measurements'] + [m.meas for m in measurements]
 
 
@@ -81,5 +69,4 @@ if __name__ == '__main__':
         print TBM.meas
         print TBM.time
         print TBM.fn
-        if m.ana_dataset: print m.ana_dataset
         print 

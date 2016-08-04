@@ -58,11 +58,11 @@ class gifHisto:
         self.histos = {}
         self.setHistos()
     def setHistos(self):
-        if self.m.ana_dataset is not None:
-            f = ROOT.TFile(self.m.ana_dataset)
-            for hist in hists:
-                self.histos[hist] = f.Get("GIFAnalysis").Get(hist).Clone()
-                self.histos[hist].SetDirectory(0)
+        f = ROOT.TFile('data/ana_%s_%s_%s_%s_%s_%s_%s.root'%(self.m.CSC,self.m.test,self.m.HV,self.m.beam,self.m.uAtt,self.m.dAtt,self.m.meas))
+        print f
+        for hist in hists:
+            self.histos[hist] = f.Get("GIFHistos").Get(hist).Clone()
+            self.histos[hist].SetDirectory(0)
 
 
 # debug and sample implementation

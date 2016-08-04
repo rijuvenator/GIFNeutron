@@ -15,7 +15,7 @@ process.options = cms.untracked.PSet(
     SkipEvent = cms.untracked.vstring('LogicError','ProductNotFound')
 )
 process.maxEvents.input = -1
-process.MessageLogger.cerr.FwkReport.reportEvery = -1
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.p = cms.Path(process.muonCSCDigis * process.csc2DRecHits * process.cscSegments)
 
@@ -53,14 +53,19 @@ f.close()
 if __name__ == '__main__' and 'submit' in sys.argv:
     plotsDir = '/afs/cern.ch/work/c/cschnaib/GIF/data/'
     dryrun = 'dryrun' in sys.argv
-    from Gif.TestBeamAnalysis.TestBeamMeasurements import *
-    measurements = [m2040,m2064]
+    from Gif.TestBeamAnalysis.TestBeamMeasurements import measurements
+    #measurements = [m2040,m2064]
     for TBM in measurements:
-        print TBM.meas
         chamber = TBM.CSC
+        test = TBM.test
+        HV = TBM.HV
+        beam = TBM.beam
+        uAtt = TBM.uAtt
+        dAtt = TBM.dAtt
+        meas = TBM.meas
         fn = TBM.fn
-        ana_dataset = plotsDir+'ana_%s.root'%TBM.meas
-        print chamber
+        ana_dataset = plotsDir+'ana_%s_%s_%s_%s_%s_%s_%s.root'%(chamber,test,HV,beam,uAtt,dAtt,meas)
+        print chamber, test, HV, beam, uAtt, dAtt, meas
         print fn
         print ana_dataset
 
