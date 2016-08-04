@@ -1,6 +1,6 @@
-#include "GIF/TestBeamAnalysis/include/FillGIFInfo.h"
+#include "Gif/TestBeamAnalysis/include/FillGIFInfo.h"
 //#include "CSCUCLA/CSCDigiTuples/include/GIFHelper.h"
-#include "GIF/TestBeamAnalysis/include/GIFHelper.h"
+#include "Gif/TestBeamAnalysis/include/GIFHelper.h"
 
 void FillGIFEventInfo::fill(const edm::Event& iEvent){
   reset();

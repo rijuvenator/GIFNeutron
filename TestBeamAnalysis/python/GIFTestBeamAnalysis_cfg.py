@@ -13,11 +13,12 @@ process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('RecoMuon.MuonSeedGenerator.standAloneMuonSeeds_cff')
 #process.load('RecoMuon.GlobalMuonProducer.globalMuons_cff')
 
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 process.GlobalTag.globaltag = '74X_dataRun2_Prompt_v0'
 
 process.load('FWCore.MessageLogger.MessageLogger_cfi')
-process.MessageLogger.cerr.FwkReport.reportEvery = -1
-process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+#process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 
 process.TFileService = cms.Service('TFileService', fileName=cms.string('gif_histos.root'))
 

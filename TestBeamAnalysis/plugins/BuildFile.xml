@@ -21,6 +21,6 @@
 <export>
    <lib name="1"/>
 </export>
-<use name="GIF/TestBeamAnalysis"/>
+<use name="Gif/TestBeamAnalysis"/>
 <library   name="GifDigiTuplesPlugins" file="*.cc">
 </library>

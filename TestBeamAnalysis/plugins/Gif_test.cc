@@ -359,12 +359,12 @@ void Gif::fillSegmentHistos(const CSCSegmentCollection& cscSegments)
 
     bool isInBeam = false;
 
-    if (chamberType=="11") {
+    if (chamberType=="ME11") {
       isInBeam = (segX > -12 && 
 		  segX <   3 && 
 		  segY >  38 && 
 		  segY <  60); 
-    } else if (chamberType=="21") {
+    } else if (chamberType=="ME21") {
       isInBeam = (segX > -39 && 
 		  segX < -24 && 
 		  segY >  -3 && 

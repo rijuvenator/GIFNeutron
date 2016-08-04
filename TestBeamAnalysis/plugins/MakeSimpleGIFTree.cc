@@ -7,7 +7,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 
-#include "GIF/TestBeamAnalysis/include/FillGIFInfo.h"
+#include "Gif/TestBeamAnalysis/include/FillGIFInfo.h"
 
 
 

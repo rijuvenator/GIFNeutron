@@ -11,7 +11,7 @@
 #include <DataFormats/CSCRecHit/interface/CSCSegmentCollection.h>
 #include <DataFormats/CSCDigi/interface/CSCCLCTDigiCollection.h>
 #include <DataFormats/CSCDigi/interface/CSCALCTDigiCollection.h>
-#include "GIF/TestBeamAnalysis/include/GIFHelper.h"
+#include "Gif/TestBeamAnalysis/include/GIFHelper.h"
 
 #include "TFile.h"
 #include "TTree.h"
