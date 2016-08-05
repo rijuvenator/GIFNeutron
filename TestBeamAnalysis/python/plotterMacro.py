@@ -1,5 +1,5 @@
 from ROOT import *
-import Plotter
+import Gif.TestBeamAnalysis.Plotter as Plotter
 
 def plotterMacro():
 	# *** USAGE:
