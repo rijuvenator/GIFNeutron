@@ -1,0 +1,20 @@
+For the modern version, which
+- doesn't close and open a new browser
+- uses Marionette
+Get the webdriver executable from https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette/WebDriver, rename it wires, and chmod +x it.
+Add the path in which it sits to PATH.
+
+'sel.py' inputs 'data' and outputs 'curr'
+'chunks.py' inputs 'stuff' and outputs the end of each "chunk"
+	any change in chamber, HV, or filter factors
+'meh' is my hand-processed chunks output
+	from chunks, grep -B1 ^meas stuff; echo. Then change the empty lines
+	missing files, TMB dumps, etc. have been given a "dummy" name for script purposes
+'times' is a copy of 'meh' but with human-readable timestamps in the required format (instead of raw files)
+	emugif2.\{-}_160(d)(dd)_(dd)(dd)dd_UTC.raw -> (2).0(1).2016 (3):(4)
+	Increment top minute (round up); watch out for 59->60, and octal 07->010, 08->9
+'data' puts every two lines of 'times' on its own line for use in 'sel.py'
+'ranges' is just the ranges from any of the files
+
+9 of the measurements had unresponsive scripts even when the browser was closed; I did this by hand, marked with 'did work'.
+
