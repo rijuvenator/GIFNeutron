@@ -87,7 +87,7 @@ for comp in to_plot:
                 for saveas in ['.pdf','.png']:
                     outFile.cd()
                     c.SaveAs(outname+saveas)
-                #c.Write(hName)
+                c.Write(hName)
                 print "Wrote plot: ", outname
             else: 
                 if i==0:
@@ -114,6 +114,6 @@ for comp in to_plot:
             outFile.cd()
             for saveas in ['.pdf','.png']:
                 c.SaveAs(outname+saveas)
-            #c.Write(hName)
+            c.Write(hName)
     outFile.Close()
 

@@ -15,7 +15,7 @@ process.options = cms.untracked.PSet(
     SkipEvent = cms.untracked.vstring('LogicError','ProductNotFound')
 )
 process.maxEvents.input = -1
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.p = cms.Path(process.muonCSCDigis * process.csc2DRecHits * process.cscSegments)
 

@@ -70,3 +70,13 @@ if __name__ == '__main__':
         print TBM.time
         print TBM.fn
         print 
+    TBM = eval('m2064')
+    print TBM.CSC
+    print TBM.test
+    print TBM.HV
+    print TBM.beam
+    print TBM.uAtt
+    print TBM.dAtt
+    print TBM.meas
+    print TBM.time
+    print TBM.fn
