@@ -1,7 +1,7 @@
 <use   name="FWCore/Framework"/>
 <use   name="FWCore/PluginManager"/>
-<use   name="FWCore/MessageLogger"/>
 <use   name="FWCore/ParameterSet"/>
+<use   name="FWCore/MessageLogger"/>
 <use   name="FWCore/Utilities"/>
 <use   name="Geometry/Records"/>
 <use   name="Geometry/CSCGeometry"/>
@@ -17,10 +17,11 @@
 <use   name="EventFilter/CSCRawToDigi"/>
 <use   name="RecoMuon/TrackingTools"/>
 <use   name="CommonTools/UtilAlgos"/>
-<flags EDM_PLUGIN="1"/>
-<export>
-   <lib name="1"/>
-</export>
+
 <use name="Gif/TestBeamAnalysis"/>
-<library   name="GifDigiTuplesPlugins" file="*.cc">
+
+<library   name="GifDigiTuplesPlugins" file="MakeSimpleGIFTree.cc">
+</library>
+
+<library name="GifDisplay" file="display.cc,GifDisplay.cc">
 </library>
