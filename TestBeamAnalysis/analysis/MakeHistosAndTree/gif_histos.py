@@ -1,6 +1,7 @@
 import sys, os
 import FWCore.ParameterSet.Config as cms
 from Gif.TestBeamAnalysis.GIFTestBeamAnalysis_cfg import process
+import commands
 #from Gif.TestBeamAnalysis.GIFHistos_cfi import GIFHistos
 #from Gif.TestBeamAnalysis.GIFTree_cfi import GIFTree
 
@@ -51,7 +52,8 @@ f.write(process.dumpPython())
 f.close()
 
 if __name__ == '__main__' and 'submit' in sys.argv:
-    plotsDir = '/afs/cern.ch/work/c/cschnaib/GIF/data/'
+	user = commands.getoutput('echo $USER')
+    plotsDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/GIF/data/'
     dryrun = 'dryrun' in sys.argv
     from Gif.TestBeamAnalysis.TestBeamMeasurements import measurements
     #measurements = [m2040,m2064]
