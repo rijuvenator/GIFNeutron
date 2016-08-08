@@ -153,6 +153,30 @@ size16 FillGIFSegmentInfo::findRecHitIdx(const CSCRecHit2D& hit, const CSCRecHit
   return GIFHelper::convertTo<size16,int>(foundIDX,"foundIDX");
 }
 
+int FillGIFSegmentInfo::segmentQuality(edm::OwnVector<CSCSegment>::const_iterator segment)
+{
+  int Nchi2 = 0;
+  int quality = 0;
+  int nhits = segment->recHits().size();
+  if ( segment->chi2()/(nhits*2.-4.) > 3. ) Nchi2 = 1;
+  if ( segment->chi2()/(nhits*2.-4.) > 9. ) Nchi2 = 2;
+
+  if ( nhits >  4 ) quality = 1 + Nchi2;
+  if ( nhits == 4 ) quality = 3 + Nchi2;
+  if ( nhits == 3 ) quality = 5 + Nchi2;
+
+  // there's no globalDirection in CSCSegment (there is in MuonTransientTrackingRecHit), so commenting this bit out
+  //float dPhiGloDir = fabs ( deltaPhi(segment->globalPosition().phi(), segment->globalDirection().phi()) );
+
+  //if ( dPhiGloDir > .2 ) ++quality;
+
+  // there's no isCSC in CSCSegment (there is in MuonTransientTrackingRecHit), so
+  // hard-coding isCSC as true, since all of our segments are CSC segments. At least I assume that's what that means...
+  // add a penalty for being ME1A
+  if(true && CSCDetId(segment->geographicalId()).ring() == 4) ++quality;
+  return quality;
+}
+
 void FillGIFSegmentInfo::fill(const CSCSegmentCollection& segments, const CSCRecHit2DCollection* recHits){
   reset();
 
@@ -177,6 +201,7 @@ void FillGIFSegmentInfo::fill(const CSCSegmentCollection& segments, const CSCRec
     segment_chisq.push_back((*dSiter).chi2());
     segment_dof.push_back((*dSiter).degreesOfFreedom());
     segment_nHits.push_back(GIFHelper::convertTo<size8>(segmentHits.size()  ,"segment_nHits"));
+	segment_quality.push_back(segmentQuality(dSiter));
     segment_recHitIdx_1 .push_back((recHits && segmentHits.size() > 0) ?findRecHitIdx(segmentHits[0],recHits) : 0);
     segment_recHitIdx_2 .push_back((recHits && segmentHits.size() > 1) ?findRecHitIdx(segmentHits[1],recHits) : 0);
     segment_recHitIdx_3 .push_back((recHits && segmentHits.size() > 2) ?findRecHitIdx(segmentHits[2],recHits) : 0);

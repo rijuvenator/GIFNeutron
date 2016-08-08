@@ -19,6 +19,8 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
+#include "DataFormats/Math/interface/deltaPhi.h"
+
 typedef   unsigned char        size8 ; // 8 bit 0->255
 typedef   unsigned short int   size16; //16 bit 0->65536
 typedef   unsigned int         size  ; //32 bit 0->4294967296
@@ -316,6 +318,7 @@ public:
     book("segment_chisq"       ,segment_chisq      );
     book("segment_dof"         ,segment_dof      );
     book("segment_nHits"       ,segment_nHits      );
+    book("segment_quality"         ,segment_quality      );
     book("segment_recHitIdx_1" ,segment_recHitIdx_1);
     book("segment_recHitIdx_2" ,segment_recHitIdx_2);
     book("segment_recHitIdx_3" ,segment_recHitIdx_3);
@@ -340,6 +343,7 @@ private:
      std::vector<float>   segment_chisq          ;
      std::vector<size8>   segment_dof          ;
      std::vector<size8>   segment_nHits          ;
+     std::vector<int>   segment_quality          ;
      std::vector<size16>  segment_recHitIdx_1    ;
      std::vector<size16>  segment_recHitIdx_2    ;
      std::vector<size16>  segment_recHitIdx_3    ;
@@ -360,6 +364,7 @@ private:
     segment_chisq       .clear();
     segment_dof         .clear();
     segment_nHits       .clear();
+    segment_quality         .clear();
     segment_recHitIdx_1 .clear();
     segment_recHitIdx_2 .clear();
     segment_recHitIdx_3 .clear();
@@ -374,6 +379,8 @@ private:
 
   void fill(const CSCSegmentCollection& segments, const CSCRecHit2DCollection * recHits = 0);
   size16 findRecHitIdx(const CSCRecHit2D& hit, const CSCRecHit2DCollection* allRecHits);
+
+  int segmentQuality(edm::OwnVector<CSCSegment>::const_iterator segment);
 
 };
 
