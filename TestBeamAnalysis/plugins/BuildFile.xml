@@ -20,7 +20,7 @@
 
 <use name="Gif/TestBeamAnalysis"/>
 
-<library   name="GifAnalysisPlugins" file="MakeSimpleGIFTree.cc,GifHistos.cc">
+<library   name="GifAnalysis" file="MakeSimpleGIFTree.cc,GifHistos.cc">
 </library>
 
 <library name="GifDisplay" file="display.cc,GifDisplay.cc">
