@@ -4,27 +4,37 @@ Script for running gifDisplays.py
 
 import os,sys
 import argparse
+import commands
 parser = argparse.ArgumentParser(description='Draw event displays of GIF++ data')
 parser.add_argument('--tag',dest='tag',help='Tagged directory name for output plots',default=None)
 parser.add_argument('--eventList',dest='eventList',help='Event list to draw',default=None)
 parser.add_argument('--meas',dest='meas',help='Measurement number to draw from',default=None)
 parser.add_argument('--dryrun',dest='dryrun',action='store_true',help='Flag for dry-running',default=False)
 parser.add_argument('--extra',dest='extra',help='Extra info about event displays (e.g. noSegments, twoMuons)',default=None)
+parser.add_argument('--outdir',dest='outdir',help='Output directory name',default=None)
 args = parser.parse_args()
 if (args.eventList is None) or (args.meas is None):
     raise ValueError('Need to specify event list and measurement number.\
                       Ex: --eventList list.txt --meas mXXXX')
+if args.tag:
+	TAG = args.tag + ('/' if args.tag[-1]!='/' else '')
+else:
+	TAG = 'TEST/'
 LIST = args.eventList
 MEAS = args.meas
-if args.tag: TAG = args.tag
-else: TAG = 'TEST'
 DRYRUN = args.dryrun
 EXTRA = args.extra
+if args.outdir:
+	OUTDIR = args.outdir + ('/' if args.outdir[-1]!='/' else '')
+else:
+	user = commands.getoutput('echo $USER')
+	OUTDIR = '/afs/cern.ch/work/'+user[0]+'/'+user+'/GIF/eventDisplay/'
 
 # Set list input and output root/png file paths
-listDir = '/afs/cern.ch/user/c/cschnaib/Work/CMSSW_7_5_1/src/Gif/TestBeamAnalysis/test/GIFDisplay/'
-listFile = listDir+LIST
-displaysDir = '/afs/cern.ch/work/c/cschnaib/GIF/eventDisplay/'+TAG+'/'
+listFile = LIST
+if not os.path.isfile(listFile):
+	raise ValueError('%s is not a valid file' % listFile)
+displaysDir = OUTDIR+TAG
 if not os.path.isdir(displaysDir):
     raise ValueError('%s is not a tagged directory' % displaysDir)
 
