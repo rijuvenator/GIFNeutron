@@ -225,8 +225,9 @@ public:
     book("wire_lay"    ,wire_lay        );
     book("wire_grp"    ,wire_grp        );
     book("wire_time"   ,wire_time       );
-    book("wire_nlay"   ,wire_nlay,   "I");
-    book("n_wires"   ,nWG,   "I");
+    book("wire_bx"     ,wire_bx         );
+    book("wire_nlay"   ,wire_nlay   ,"I");
+    book("n_wires"     ,nWG         ,"I");
 
 
 
@@ -238,6 +239,7 @@ private:
   std::vector<size8>      wire_lay ;
   std::vector<size8>      wire_grp ;
   std::vector<size8>      wire_time;
+  std::vector<int>        wire_bx;
   int wire_nlay;
   int                     nWG;
 
@@ -248,6 +250,7 @@ private:
     wire_nlay     = -1;
     wire_grp  .clear();
     wire_time .clear();
+    wire_bx .clear();
     nWG = -1;
   }
 
