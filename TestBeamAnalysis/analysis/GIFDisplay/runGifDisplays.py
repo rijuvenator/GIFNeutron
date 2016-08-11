@@ -33,7 +33,7 @@ else:
 # Set list input and output root/png file paths
 listFile = LIST
 if not os.path.isfile(listFile):
-	raise ValueError('%s is not a valid file' % listFile)
+    raise ValueError('%s is not a valid file' % listFile)
 displaysDir = OUTDIR+TAG
 if not os.path.isdir(displaysDir):
     raise ValueError('%s is not a tagged directory' % displaysDir)

@@ -13,13 +13,29 @@ class TBM(object):
       - uAtt : Upsteam source attenuation (u46, uOff, etc.)
       - dAtt : Downstream source attenuation (d15, dOff, etc.)
       - meas : Measurement number (m1966, m1977, etc.)
+    - Needs at least one argument, which is the file path name.
+    - Additional argument is optional, which sets meta data from a user input list
     '''
-    def __init__(self, fn):
+    def __init__(self, fn,userList=None):
         self.fn = fn
-        self.setInfo()
-    def setInfo(self):
-        fileName  = os.path.basename(self.fn)
-        nameList  = fileName.split('_')
+        nameList = self.setList(userList)
+        self.setInfo(nameList)
+    def setList(self,userList=None):
+        '''
+        If user list is None, get all meta data from the file name
+        If user list is not None, get all meta data from the user list
+        '''
+        if userList is None:
+            fileName  = os.path.basename(self.fn)
+            nameList  = fileName.split('_')
+            nameList[7] = nameList[7].strip('.root')
+            return nameList
+        else:
+            return userList
+    def setInfo(self,nameList):
+        '''
+        Set TBM object meta data to elements to list elements
+        '''
         self.CSC  = nameList[0]
         self.test = nameList[1]
         self.HV   = nameList[2]
@@ -27,7 +43,7 @@ class TBM(object):
         self.uAtt = nameList[4]
         self.dAtt = nameList[5]
         self.meas = nameList[6]
-        self.time = nameList[7].strip('.root')
+        self.time = nameList[7]
 
 #measDirMay16 = '/eos/cms/store/group/dpg_csc/comm_csc/gif/may16/'
 measDirMay16 = '/store/group/dpg_csc/comm_csc/gif/may16/'
@@ -49,6 +65,9 @@ measurements = [
     TBM(measDirMay16+'ME21/d15/test27/ME21_Test27_HV0_bOn_u46_d15_m2062_t160506220324.root'),
 
     TBM(measDirMay16+'ME21/d15/test40/ME21_Test40_HV0_bOn_u46_d15_m2064_t160506222510.root'),
+
+    TBM('file:/afs/cern.ch/user/c/cschnaib/Work/CMSSW_7_5_1/src/Gif/TestBeamAnalysis/analysis/MakeHistosAndTree/test_CAM.root',
+        userList=['ME21','Test40','HV0','bOff','uOff','dOff','mCAM','CAM'])
 
 ]
 

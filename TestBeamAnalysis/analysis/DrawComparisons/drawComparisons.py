@@ -3,10 +3,6 @@
 import sys,os
 from inputHists import *
 
-sys.path.append(os.environ['CMSSW_BASE'] + "/src/AnalysisScripts/") 
-import CMS_lumi_CSC, tdrstyle
-
-tdrstyle.setTDRStyle()
 
 ROOT.gROOT.SetBatch()
 ROOT.gStyle.SetOptStat(0)  
