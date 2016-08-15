@@ -11,8 +11,8 @@ For scraping the [CSC GIF Measurements Database](https://oraweb.cern.ch/pls/cms_
     * Do `./starlord.sh > star_exploded` to update *star_exploded*.
   * *star_exploded* is a list of measurements with how many files are associated with them.
   * *autopass.sh* is an `expect` script for ssh'ing or scp'ing automatically.
-  * *trig.sh* makes a table from the TMB dumps in `tmb/`, output to `trigdata`.
     * Usage is `./autopass.sh PASSWORD COMMAND`
+  * *trig.sh* makes a table from the TMB dumps in `tmb/`, output to `trigdata`.
     * *trig_cam.sh* reads Cameron's measurements and makes a table, output to `trigdata_cam`
   * *byFilter.sh* makes a list of TMB dumps by chamber and downstream attenuation. Good for sorting.
   * *kat* contains the script for the silly renaming scheme and some filenames split up somehow. I haven't looked at this in a while.
