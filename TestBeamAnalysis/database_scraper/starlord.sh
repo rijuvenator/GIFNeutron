@@ -14,6 +14,6 @@ do
 	fi
 
 	fb=$(awk '/^'$m'/ {sub(/emugif2.*current\//,"",$NF); print $NF}' $FILE)
-	ct=$(./autopass.sh \\\$localuser\\\$ ssh localuser@emugif2.cern.ch "ls $BACKUP/raid/data/current/$fb | wc -l" | sed -e "/spawn\|Connection\|Password/d")
+	ct=$(./autopass.sh PASSWORD ssh localuser@emugif2.cern.ch "ls $BACKUP/raid/data/current/$fb | wc -l" | sed -e "/spawn\|Connection\|Password/d")
 	echo $m $ct
 done
