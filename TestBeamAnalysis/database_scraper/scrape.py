@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import sys
 import os
@@ -66,18 +66,30 @@ cmd += " from gif_table"
 cmd += " where MEASUR_NUM>1648"
 cmd += " order by MEASUR_NUM"
 
-curs.execute(cmd)
-#rows = curs.fetchall()
+empty = [2480, 2589, 2612, 2733, 2783]
+special = [2318, 2319]
 
-#for row in curs.fetchone():
+curs.execute(cmd)
+
 row = curs.fetchone()
 while row is not None:
+
+	# reset metadata and hasErred
+	meas = 'X'
+	cham = 'X'
+	hv = 'X'
+	source = 'X'
+	beam = 'X'
+	attup = 'X'
+	attdown = 'X'
+	ff = 'X'
+	mtype = 'X'
+
 	hasErred = False
 	data = dict(zip(cshort, row))
 	meas = str(data['meas'])
 
-	empty = [2480, 2589, 2612, 2733, 2783]
-	special = [2318, 2319]
+	# skip the empty and double-readout special runs entirely
 	if int(meas) in empty or int(meas) in special:
 		row = curs.fetchone()
 		continue
@@ -101,8 +113,24 @@ while row is not None:
 	elif data['ehv'+cham+'1'] is not None:
 		if 'HV0' in data['ehv'+cham+'1']:
 			hv = 'HV0'
+		# for a handful of cases I don't want to edit -- the text in "except" is not HV0:
+		elif data['hv'+cham+'1'] is not None:
+			hv = str(data['hv'+cham+'1'])
+		else:
+			if not hasErred:
+				hasErred = True
+				sys.stderr.write("\n")
+			sys.stderr.write("%s: HV not found\n" % meas)
+			hv = 'X'
 	elif data['hv'+cham+'1'] is not None:
 		hv = str(data['hv'+cham+'1'])
+		try:
+			x = int(hv)
+		except ValueError:
+			if not hasErred:
+				hasErred = True
+				sys.stderr.write("\n")
+			sys.stderr.write('%s: HV not an int\n' % meas)
 	else:
 		if not hasErred:
 			hasErred = True
@@ -191,6 +219,12 @@ while row is not None:
 			mtype = data['file']
 			tmp = "".join(mtype.split())
 			mtype = tmp
+		else:
+			if not hasErred:
+				hasErred = True
+				sys.stderr.write("\n")
+			sys.stderr.write("%s: Found invalid filename\n" % meas)
+			mtype = 'X'
 	else:
 		if not hasErred:
 			hasErred = True
@@ -205,9 +239,13 @@ while row is not None:
 			for line in byline:
 				if 'FastFilter' in line or 'option' in line:
 					ff = line.split()[-1]
+					# make sure it's a number
 					try:
 						x = int(ff)
 					except ValueError:
+						if not hasErred:
+							hasErred = True
+							sys.stderr.write("\n")
 						sys.stderr.write('%s: FF not an int\n' % meas)
 		elif 'Cameron' in data['comment']:
 			ff = 'C'

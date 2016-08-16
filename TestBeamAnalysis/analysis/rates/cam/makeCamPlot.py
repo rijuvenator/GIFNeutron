@@ -54,10 +54,6 @@ for i, mode in enumerate(modes):
 		for m in meas:
 			if m.pretrig == mode[0] and m.trig == mode[1] and m.down == a:
 				val = sum(m.cfebs)
-#				if val > rmax:
-#					rmax = val
-#				if val < rmin:
-#					rmin = val
 				rate[i].append(val)
 				break
 
@@ -67,14 +63,16 @@ print "Rate array made"
 #nrate = rate / np.tile(np.array([rate[:,-1]]).transpose(), (1,rate.shape[1]))
 nrate = rate / np.tile(rate[0,:], (rate.shape[0],1))
 
-rmax = np.amax(nrate)
-rmin = np.amin(nrate)
+rmax = np.amax(rate)
+rmin = np.amin(rate)
+#rmax = np.amax(nrate)
+#rmin = np.amin(nrate)
 
 graphs = []
 plots = []
 for i, mode in enumerate(modes):
-#	graphs.append(TGraph(len(atten), curr / 5.e-34, np.array(rate[i,:])))
-	graphs.append(TGraph(len(atten), curr / 5.e-34, np.array(nrate[i,:])))
+	graphs.append(TGraph(len(atten), curr * 5.e33, np.array(rate[i,:])))
+#	graphs.append(TGraph(len(atten), curr * 5.e33, np.array(nrate[i,:])))
 	plots.append(Plotter.Plot(graphs[i], "("+str(mode[0])+","+str(mode[1])+")", "p", "AP" if i==0 else "P"))
 
 canvas = Plotter.Canvas("ME2/1, Self-Triggered Cosmics", True, 0., "Internal", 800, 700)
@@ -99,9 +97,9 @@ plots[0].scaleLabels(0.8)
 #graphs[0].GetYaxis().SetTitle("CFEB Sum")
 graphs[0].GetYaxis().SetTitle("Normalized CFEB Sum")
 graphs[0].GetXaxis().SetTitle("Luminosity [cm^{-2} s^{-1}]")
-graphs[0].GetXaxis().SetLimits(-2.e33,5.e34)
-#graphs[0].GetYaxis().SetRangeUser(rmin*0.8,rmax*1.2)
-graphs[0].GetYaxis().SetRangeUser(rmin*0.7,rmax*1.3)
+graphs[0].GetXaxis().SetLimits(-2.e33,13.e34)
+graphs[0].GetYaxis().SetRangeUser(rmin*0.8,rmax*1.2)
+#graphs[0].GetYaxis().SetRangeUser(rmin*0.7,rmax*1.3)
 TGaxis.SetExponentOffset(-0.08, 0.02, "y")
 graphs[0].GetYaxis().SetDecimals()
 graphs[0].GetYaxis().SetTitleOffset(graphs[0].GetYaxis().GetTitleOffset() * 1.35)
