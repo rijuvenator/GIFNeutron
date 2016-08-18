@@ -21,3 +21,6 @@
 == August 16, 2016 ==
 2946                                                 : added * to file name
 1722, 1723, 1724, 1815, 1925, 1944, 2068, 2423       : changed typos and added raw file names
+
+== August 17, 2016 ==
+3052-3083                                            : added spaces or newlines to fix e.g. 'option0' and 'option 3 new scint position'
