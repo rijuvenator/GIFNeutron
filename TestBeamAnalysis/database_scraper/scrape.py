@@ -36,7 +36,8 @@ cnames = [\
 	"FILE_NAME"       ,
 	"RUN_COMMENT"     ,
 	"TMB_DUMP_TIME"   ,
-	"TMB_DUMP_COMMENT"
+	"TMB_DUMP_COMMENT",
+	"SPS_CYCLE"
 	]
 
 cshort = [\
@@ -57,7 +58,8 @@ cshort = [\
 	"file"   ,
 	"comment",
 	"time"   ,
-	"dump"
+	"dump"   ,
+	"spstime"
 	]
 
 cmd = "select "
@@ -199,13 +201,29 @@ while row is not None:
 
 	if 'TMB' in dtyp or 'Counter' in dump:
 		mtype = 'TMB'
-		time = data['time']
+		# also save the duration (as time, or as 3 x SPS Cycle Time)
+		time = str(data['time'])
+		if time=='None' and data['spstime'] is not None:
+			#if not hasErred:
+			#	hasErred = True
+			#	sys.stderr.write("\n")
+			#sys.stderr.write("%s: No duration; using 3 x SPS Cycle Time instead\n" % meas)
+			time = str(3 * data['spstime'])
+		elif time=='None':
+			if not hasErred:
+				hasErred = True
+				sys.stderr.write("\n")
+			sys.stderr.write("%s: Found TMB dump, but no duration found\n" % meas)
+			time = str(0)
+		# also save the TMB dump, stripping carriage returns, extra newlines, adding the Counters, and the Duration
+		dump = dump.replace('\r','')
 		while dump[-2:] == '\n\n':
 			dump = dump.strip('\n')
 		if 'Counter' not in dump:
 			dump = """--------------------------------------------------------
 			---              Counters                             --
 			--------------------------------------------------------""" + dump
+		dump = dump + '\nDuration: ' + time
 		tmb = open("tmb/"+meas+".tmb", "w")
 		tmb.write(dump)
 		tmb.close()
