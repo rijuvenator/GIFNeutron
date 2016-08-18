@@ -14,7 +14,7 @@ class TBM(object):
       - dAtt : Downstream source attenuation (d15, dOff, etc.)
       - meas : Measurement number (m1966, m1977, etc.)
     - Needs at least one argument, which is the file path name.
-    - Additional argument is optional, which sets meta data from a user input list
+    - Additional argument is optional, which sets meta data from a user set input list
     '''
     def __init__(self, fn,userList=None):
         self.fn = fn
@@ -44,6 +44,7 @@ class TBM(object):
         self.dAtt = nameList[5]
         self.meas = nameList[6]
         self.time = nameList[7]
+        
 
 #measDirMay16 = '/eos/cms/store/group/dpg_csc/comm_csc/gif/may16/'
 measDirMay16 = '/store/group/dpg_csc/comm_csc/gif/may16/'
@@ -67,8 +68,6 @@ measurements = [
     TBM(measDirMay16+'ME11/d1000/test40/ME11_Test40_HV0_bOn_u6.9_d1000_m2357_t160510002250.root'),
     TBM(measDirMay16+'ME11/d46000/test40/ME11_Test40_HV0_bOn_u10_d46000_m2322_t160509153759.root'),
 
-
-
     # ME21 Test27
     TBM(measDirMay16+'ME21/sourceOFF/test27/ME21_Test27_HV0_bOn_uOff_dOff_m2306_t160509094700.root'),
     TBM(measDirMay16+'ME21/d15/test27/ME21_Test27_HV0_bOn_u46_d15_m2062_t160506220324.root'),
@@ -82,8 +81,8 @@ measurements = [
     TBM(measDirMay16+'ME21/d1000/test40/ME21_Test40_HV0_bOn_u69_d1000_m2333_t160509200512.root'),
     
     # Test for Cameron
-    TBM('file:/afs/cern.ch/user/c/cschnaib/Work/CMSSW_7_5_1/src/Gif/TestBeamAnalysis/analysis/MakeHistosAndTree/test_CAM.root',
-        userList=['ME21','Test40','HV0','bOff','uOff','dOff','mCAM','CAM'])
+    #TBM('file:/afs/cern.ch/user/c/cschnaib/Work/CMSSW_7_5_1/src/Gif/TestBeamAnalysis/analysis/MakeHistosAndTree/test_CAM.root',
+    #    userList=['ME21','Test40','HV0','bOff','uOff','dOff','mCAM','CAM'])
 
 ]
 
@@ -105,6 +104,7 @@ if __name__ == '__main__':
         print TBM.time
         print TBM.fn
         print 
+    '''
     TBM = eval('m2064')
     print TBM.CSC
     print TBM.test
@@ -115,3 +115,4 @@ if __name__ == '__main__':
     print TBM.meas
     print TBM.time
     print TBM.fn
+    '''

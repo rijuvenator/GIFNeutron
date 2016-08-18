@@ -8,7 +8,7 @@ if __name__ == '__main__' and 'submit' in sys.argv:
     user = commands.getoutput('echo $USER')
     plotsDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/GIF/data/'
     dryrun = 'dryrun' in sys.argv
-    from Gif.TestBeamAnalysis.TestBeamMeasurements import measurements
+    from Gif.TestBeamAnalysis.TestBeamMeasurements import *
     #measurements = [m2040,m2064]
     for TBM in measurements:
         chamber = TBM.CSC
@@ -19,7 +19,7 @@ if __name__ == '__main__' and 'submit' in sys.argv:
         dAtt = TBM.dAtt
         meas = TBM.meas
         fn = TBM.fn
-        ana_dataset = plotsDir+'ana_%s_%s_%s_%s_%s_%s_%s_TEST.root'%(chamber,test,HV,beam,uAtt,dAtt,meas)
+        ana_dataset = plotsDir+'ana_%s_%s_%s_%s_%s_%s_%s.root'%(chamber,test,HV,beam,uAtt,dAtt,meas)
         print chamber, test, HV, beam, uAtt, dAtt, meas
         print fn
         print ana_dataset
