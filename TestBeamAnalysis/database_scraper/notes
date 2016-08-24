@@ -24,3 +24,6 @@
 
 == August 17, 2016 ==
 3052-3083                                            : added spaces or newlines to fix e.g. 'option0' and 'option 3 new scint position'
+
+== August 24, 2016 ==
+3094                                                 : added raw file

@@ -2,8 +2,7 @@
 
 rm -f trigdata
 touch trigdata
-# the sub below used to say $2 from when the only commas were attached to the field
-for i in /afs/cern.ch/user/a/adasgupt/GIF/meas/tmb/*
+for i in tmb/*
 do
 	meas=${i%%.tmb}
 	meas=${meas##*/}
@@ -11,11 +10,7 @@ do
 	then
 		data="$(awk '
 		/Duration/ {
-		sub(/,/,"",$0)
-		if ($2=="0")
-			print $5
-		else
-			print $2
+		print $2
 		}
 		/13CLCT|14CLCT|15CLCT|16CLCT|17CLCT|18CLCT|19CLCT|20CLCT|29CLCT|30CLCT|32TMB|55L1A/ {
 		print $NF
@@ -26,13 +21,9 @@ do
 	then
 		data="$(awk '
 		/Duration/ {
-		sub(/,/,"",$0)
-		if ($2=="0")
-			print $5
-		else
-			print $2
+		print $2
 		}
-		/13CLCT|14CLCT|15CLCT|16CLCT|17CLCT|18CLCT|19CLCT|20CLCT|27CLCT|28CLCT|30TMB|53L1A/ {
+		/13CLCT|14CLCT|15CLCT|16CLCT|17CLCT|18CLCT|19CLCT|20CLCT|27CLCT|28CLCT|32TMB|55L1A/ {
 		print $NF
 		}
 		' $i)"
