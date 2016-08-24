@@ -11,11 +11,23 @@ parser = argparse.ArgumentParser(description='Segment Analysis : make histograms
 parser.add_argument('--extra',dest='extra',help='Extra info about plots',default=None)
 parser.add_argument('--CSC',dest='CSC',help='Choose which CSC to make plots for',default=None)
 parser.add_argument('--test',dest='test',help='Choose which test to make plots for',default=None)
+parser.add_argument('--slope',dest='slope',help='Choose which slope to penalize segments at',default='0.0825')
 args = parser.parse_args()
 EXTRA = args.extra
 CSC = args.CSC
 TEST = args.test
+SLOPE = float(args.slope)
 if (TEST is not None) and (TEST[:1]=='t'): raise ValueError('do --test TestXX not --test testXX')
+
+# Normalize quality histograms to be relative to N(segment quality = 1)
+def ratioToBin(hist,rBin):
+    nBins = hist.GetXaxis().GetNbins()
+    refBinCont = hist.GetBinContent(rBin)
+    for ibin in range(nBins):
+        ibin=ibin+1
+        ratio = hist.GetBinContent(ibin)/refBinCont
+        #print hSegQual.GetBinContent(ibin), refQual, ratio
+        hist.SetBinContent(ibin,ratio)
 
 # Control Plots to Make per Test Beam Measurement
 #
@@ -40,11 +52,24 @@ hSegYpos = r.TH1F('hSegYpos','Segment Y position;pos [cm];N(segments)',100,-100,
 # Slope
 hSegXslope = r.TH1F('hSegXslope','Segment dx/dz;segment slope dx/dz;N(segments)',100,-2,2)
 hSegYslope = r.TH1F('hSegYslope','Segment dy/dz;segment slope dy/dz;N(segments)',100,-2,2)
+hSegSlope = r.TH1F('hSegSlope','Segment Slope;#sqrt{(dx/dz)^{2} + (dy/dz)^{2}};N(segments)',200,0,2)
+hSegdSlope = r.TH1F('hSegdSlope','Segment Slope;#sqrt{(#Delta(dx/dz))^{2} + (#Delta(dy/dz))^{2}};N(segments)',100,0,1)
+hSegSlopeIN = r.TH1F('hSegSlopeIN','Segment Slope in scintillator paddle region;#sqrt{(dx/dz)^{2} + (dy/dz)^{2}};N(segments)',200,0,2)
+hSegdSlopeIN = r.TH1F('hSegdSlopeIN','Segment Slope in scintillator paddle region;#sqrt{(#Delta(dx/dz))^{2} + (#Delta(dy/dz))^{2}};N(segments)',100,0,1)
+hSegSlopeOUT = r.TH1F('hSegSlopeOUT','Segment Slope out of scintillator paddle region;#sqrt{(dx/dz)^{2} + (dy/dz)^{2}};N(segments)',200,0,2)
+hSegdSlopeOUT = r.TH1F('hSegdSlopeOUT','Segment Slope out of scintillator paddle region;#sqrt{(#Delta(dx/dz))^{2} + (#Delta(dy/dz))^{2}};N(segments)',100,0,1)
 # N(segments)
 hNSeg = r.TH1F('hNSeg','Number of segments in an event;N(segments);N(events)',15,0,15)
 # Segment Quality (all and best segments)
 hSegQual = r.TH1F('hSegQual','Segment Quality;quality;N(segments)',10,0,10)
+hSegQualNorm = r.TH1F('hSegQualNorm','Segment Quality Normalized to Quality = 1;quality;N(segments)',10,0,10)
 hSegQualBest = r.TH1F('hSegQualBest','Best Segment Quality;quality;N(segments)',10,0,10)
+hSegQualBestNorm = r.TH1F('hSegQualBestNorm','Best Segment Quality Normalized to Quality = 1;quality;N(segments)',10,0,10)
+hSegQualSlope = r.TH1F('hSegQualSlope','Segment Quality with slope penalty;quality;N(segments)',10,0,10)
+hSegQualSlopeNorm = r.TH1F('hSegQualSlopeNorm','Segment Quality with slope penalty normalized to Quality = 1;quality;N(segments)',10,0,10)
+hSegQualSlopePen = r.TH1F('hSegQualSlopePen','Quality of segments affected by slope penalty;quality;N(segments)',10,0,10)
+hSegQualSlopePenFrac = r.TH1F('hSegQualSlopePenFrac','Fraction of segments affected by slope penalty;quality;Fraction of segments',10,0,10)
+hSegQualSlopePenNorm = r.TH1F('hSegQualSlopePenNorm','Quality of segments affected by slope penalty;quality;N(segments)',10,0,10)
 # To add : Segment Quality with slope penalty
 
 #measurements = [m1966,m2040,m2312,m2064] 
@@ -58,16 +83,37 @@ for TBM in measurements:
             toDo.append(TBM)
     else: toDo.append(TBM)
 for tbm in toDo:
-    print 'In : ana_%s_%s_%s_%s_%s_%s_%s.root'%(tbm.CSC, tbm.test, tbm.HV, tbm.beam, tbm.uAtt, tbm.dAtt, tbm.meas)
+    #print 'In : ana_%s_%s_%s_%s_%s_%s_%s.root'%(tbm.CSC, tbm.test, tbm.HV, tbm.beam, tbm.uAtt, tbm.dAtt, tbm.meas)
     fin = r.TFile('data/ana_%s_%s_%s_%s_%s_%s_%s.root'%(tbm.CSC, tbm.test, tbm.HV, tbm.beam, tbm.uAtt, tbm.dAtt, tbm.meas),'read')
     tree = fin.Get('GIFTree').Get('GIFDigiTree')
     fout = r.TFile('histos/ana_segHistos_%s_%s_%s_%s_%s_%s_%s.root'%(tbm.CSC, tbm.test, tbm.HV, tbm.beam, tbm.uAtt, tbm.dAtt, tbm.meas),'recreate')
-    print 'Out : ana_segHistos_%s_%s_%s_%s_%s_%s_%s.root'%(tbm.CSC, tbm.test, tbm.HV, tbm.beam, tbm.uAtt, tbm.dAtt, tbm.meas)
+    #print 'Out : ana_segHistos_%s_%s_%s_%s_%s_%s_%s.root'%(tbm.CSC, tbm.test, tbm.HV, tbm.beam, tbm.uAtt, tbm.dAtt, tbm.meas)
+
+    # Set beam slope parameters
+    # Mean of segment slopes in x and y directions
+    # - No Source, segment position w/in scintillator paddle
+    if tbm.CSC == 'ME21':
+        bXZslope = -0.04995
+        bYZslope = 0.006429
+        padYlow = -2.5
+        padYhigh = 12.5
+        padXlow = -38.5
+        padXhigh = -22.5
+    else:#ME11
+        bXZslope = 0.
+        bYZslope = 0.
+        padXlow = 0.
+        padXhigh = 100.
+        padYlow = 0.
+        padYhigh = 100.
 
     # reset per measurement quantities
     events = 0
     eventsSegs = 0
     totalSegs = 0
+    nSegIN = 0
+    nSegOUT = 0
+    nSegSlopePen = 0
 
     n2dof = 0
     n4dof = 0
@@ -86,7 +132,11 @@ for tbm in toDo:
             best_seg_qual = min(seg_quals)
             eventsSegs = eventsSegs + 1
         for seg, sid in enumerate(entry.segment_id):
+            # N(segments)/measurement
             totalSegs = totalSegs + 1
+            # N(segments)/event
+            nSegs = nSegs + 1
+
             # Get segment quantities
             chi2 = entry.segment_chisq[seg]
             dof = struct.unpack('1b',entry.segment_dof[seg])[0]
@@ -117,29 +167,64 @@ for tbm in toDo:
             prob = r.TMath.Prob(chi2,dof)
             #print prob
             hSegChi2pdofProb.Fill(prob)
+
             # N(hits)
             hSegNhits.Fill(nHits)
+
             # Position
             hSegXpos.Fill(posX)
             hSegYpos.Fill(posY)
+
             # Slope
             hSegXslope.Fill(slopeXZ)
             hSegYslope.Fill(slopeYZ)
-            # N(segments)
-            nSegs = nSegs + 1
+            # To add : Segment Quality with slope penalty
+            segSlope = ((slopeXZ)**2 + (slopeYZ)**2)**(0.5)
+            dSegSlope = ((slopeXZ-bXZslope)**2 + (slopeYZ-bYZslope)**2)**(0.5)
+            hSegSlope.Fill(segSlope)
+            hSegdSlope.Fill(dSegSlope)
+            # Inside scintillator paddle area
+            if entry.segment_pos_x[seg]>padXlow and \
+                entry.segment_pos_x[seg]<padXhigh and \
+                entry.segment_pos_y[seg]>padYlow and \
+                entry.segment_pos_y[seg]<padYhigh:
+                hSegSlopeIN.Fill(segSlope)
+                hSegdSlopeIN.Fill(dSegSlope)
+                nSegIN = nSegIN + 1
+            else: # Outside scintillator paddle area
+                hSegSlopeOUT.Fill(segSlope)
+                hSegdSlopeOUT.Fill(dSegSlope)
+                nSegOUT = nSegOUT + 1
+
             # Segment Quality (all segments)
             hSegQual.Fill(seg_qual)
+            hSegQualNorm.Fill(seg_qual)
             if entry.n_segments>0 and seg_qual == best_seg_qual: 
                 N_best_seg_qual = N_best_seg_qual + 1
-            # To add : Segment Quality with slope penalty
+            # Add a penalty for dSlope>SLOPE
+            seg_qual_slope = seg_qual
+            if dSegSlope>SLOPE:
+                hSegQualSlopePen.Fill(seg_qual)
+                hSegQualSlopePenNorm.Fill(seg_qual)
+                seg_qual_slope = seg_qual_slope + 1
+                nSegSlopePen = nSegSlopePen + 1
+            hSegQualSlope.Fill(seg_qual_slope)
+            hSegQualSlopeNorm.Fill(seg_qual_slope)
+
         # Fill Per event histograms
+
         # N(Segments)
         hNSeg.Fill(nSegs)
+
         # Segment Quality (best segments)
         if entry.n_segments>0:
             hSegQualBest.SetBinContent(best_seg_qual,N_best_seg_qual)
+            hSegQualBestNorm.SetBinContent(best_seg_qual,N_best_seg_qual)
             #print best_seg_qual,N_best_seg_qual
-    print events, tree.GetEntries()
+
+    print events, eventsSegs
+    print SLOPE, tbm.dAtt[1:], nSegSlopePen, totalSegs-nSegSlopePen, totalSegs, float(nSegSlopePen)/totalSegs, \
+            events, eventsSegs, float(nSegSlopePen)/eventsSegs, float(totalSegs-nSegSlopePen)/eventsSegs
     # Fill/modify per measurement histograms
     for ibin in [4,5,6,7]:
         hSeg3hits.SetBinContent(ibin,hSegNhits.GetBinContent(ibin)/hSegNhits.GetBinContent(4))
@@ -147,14 +232,22 @@ for tbm in toDo:
         hSeg5hits.SetBinContent(ibin,hSegNhits.GetBinContent(ibin)/hSegNhits.GetBinContent(6))
         hSeg6hits.SetBinContent(ibin,hSegNhits.GetBinContent(ibin)/hSegNhits.GetBinContent(7))
     # Normalize quality histograms to be relative to N(segment quality = 1)
-    nBins = hSegQual.GetXaxis().GetNbins()
-    refQual = hSegQual.GetBinContent(2)
-    for ibin in range(nBins):
-        ibin=ibin+1
-        ratio = hSegQual.GetBinContent(ibin)/refQual
-        #print hSegQual.GetBinContent(ibin), refQual, ratio
-        hSegQual.SetBinContent(ibin,ratio)
-    # write histos
+    ratioToBin(hSegQualNorm,2)
+    ratioToBin(hSegQualSlopeNorm,2)
+    ratioToBin(hSegQualBestNorm,2)
+    ratioToBin(hSegQualSlopePenNorm,2)
+
+    for ibin in range(1,10):
+        ibin = ibin + 1
+        affBySlopeInBin = hSegQualSlopePen.GetBinContent(ibin)
+        totalInBin = hSegQual.GetBinContent(ibin)
+        if totalInBin==0 or affBySlopeInBin==0:
+            hSegQualSlopePenFrac.SetBinContent(ibin,0.)
+        else:
+            frac = affBySlopeInBin/totalInBin
+            hSegQualSlopePenFrac.SetBinContent(ibin,frac)
+
+    # Normalize Histograms 
     # 1/totalSegs normalizes to total number of segments
     # 1/events normalizes to total number of events
     # 1/eventsSegs normalizes to total number of events with segmens
@@ -169,7 +262,18 @@ for tbm in toDo:
     hSegYpos.Scale(1./totalSegs)
     hSegXslope.Scale(1./totalSegs)
     hSegYslope.Scale(1./totalSegs)
+    hSegSlope.Scale(1./totalSegs)
+    hSegdSlope.Scale(1./totalSegs)
+    hSegSlopeIN.Scale(1./totalSegs)
+    hSegdSlopeIN.Scale(1./totalSegs)
+    hSegSlopeOUT.Scale(1./totalSegs)
+    hSegdSlopeOUT.Scale(1./totalSegs)
     hNSeg.Scale(1./eventsSegs)
+    hSegQual.Scale(1./totalSegs)
+    hSegQualBest.Scale(1./totalSegs)
+    hSegQualSlope.Scale(1./totalSegs)
+    hSegQualSlopePen.Scale(1./totalSegs)
+
     # Write Histograms
     hSegChi2p2dof.Write()
     hSegChi2p4dof.Write()
@@ -186,9 +290,23 @@ for tbm in toDo:
     hSegYpos.Write()
     hSegXslope.Write()
     hSegYslope.Write()
+    hSegSlope.Write()
+    hSegdSlope.Write()
+    hSegSlopeIN.Write()
+    hSegdSlopeIN.Write()
+    hSegSlopeOUT.Write()
+    hSegdSlopeOUT.Write()
     hSegQual.Write()
     hSegQualBest.Write()
+    hSegQualSlope.Write()
+    hSegQualSlopePen.Write()
+    hSegQualSlopePenFrac.Write()
+    hSegQualNorm.Write()
+    hSegQualBestNorm.Write()
+    hSegQualSlopeNorm.Write()
+    hSegQualSlopePenNorm.Write()
     hNSeg.Write()
+
     # Close in/out files
     fout.Close()
     fin.Close()

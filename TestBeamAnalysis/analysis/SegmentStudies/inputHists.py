@@ -21,9 +21,22 @@ hists = [
     "hSegYpos",
     "hSegXslope",
     "hSegYslope",
+    "hSegSlope",
+    "hSegdSlope",
+    "hSegSlopeIN",
+    "hSegdSlopeIN",
+    "hSegSlopeOUT",
+    "hSegdSlopeOUT",
     "hNSeg",
     "hSegQual",
+    "hSegQualSlope",
+    "hSegQualSlopePen",
+    "hSegQualSlopePenFrac",
     "hSegQualBest",
+    "hSegQualNorm",
+    "hSegQualSlopeNorm",
+    "hSegQualSlopePenNorm",
+    "hSegQualBestNorm",
 ]
 # Map for histogram axes labels
 histAxesTitles = {
@@ -42,9 +55,22 @@ histAxesTitles = {
     "hSegYpos" : ('Fraction of segments','segment Y pos [cm]'),
     "hSegXslope" : ('Fraction of segments','segment slope dx/dz'),
     "hSegYslope" : ('Fraction of segments','segment slope dy/dz'),
+    "hSegSlope" : ('Fraction of segments','segment #sqrt{(dx/dz)^{2} + (dy/dz)^{2}}'),
+    "hSegdSlope" : ('Fraction of segments','segment #sqrt{(#Delta(dx/dz))^{2} + (#Delta(dy/dz))^{2}}'),
+    "hSegSlopeIN" : ('Fraction of segments','segment #sqrt{(dx/dz)^{2} + (dy/dz)^{2}}'),
+    "hSegdSlopeIN" : ('Fraction of segments','segment #sqrt{(#Delta(dx/dz))^{2} + (#Delta(dy/dz))^{2}}'),
+    "hSegSlopeOUT" : ('Fraction of segments','segment #sqrt{(dx/dz)^{2} + (dy/dz)^{2}}'),
+    "hSegdSlopeOUT" : ('Fraction of segments','segment #sqrt{(#Delta(dx/dz))^{2} + (#Delta(dy/dz))^{2}}'),
     "hNSeg" : ('Fraction of events','N(segments)'),
-    "hSegQual" : ('ratio','segment quality'),
-    "hSegQualBest" : ('ratio','best segment quality'),
+    "hSegQual" : ('Fraction of segments','segment quality'),
+    "hSegQualNorm" : ('ratio','segment quality'),
+    "hSegQualBest" : ('Fraction of segments','best segment quality'),
+    "hSegQualBestNorm" : ('ratio','best segment quality'),
+    "hSegQualSlope" : ('Fraction of segments','segment quality with slope penalty'),
+    "hSegQualSlopeNorm" : ('ratio','segment quality with slope penalty'),
+    "hSegQualSlopePen" : ('Fraction of segments','segment quality'),
+    "hSegQualSlopePenFrac" : ('Fraction of segments per quality','segment quality'),
+    "hSegQualSlopePenNorm" : ('ratio','segment quality'),
 }
 yLimits = {
     "hSegChi2p2dof" : (0,0.2),
@@ -62,9 +88,22 @@ yLimits = {
     "hSegYpos" : (0,0.20),
     "hSegXslope" : (0,0.6),
     "hSegYslope" : (0,0.40),
+    "hSegSlope" : (0,0.5),
+    "hSegdSlope" : (0,0.5),
+    "hSegSlopeIN" : (0,0.5),
+    "hSegdSlopeIN" : (0,0.5),
+    "hSegSlopeOUT" : (0,0.5),
+    "hSegdSlopeOUT" : (0,0.5),
     "hNSeg" : (0,1.01),
-    "hSegQual" : (0,3.5),
-    "hSegQualBest" : (0,4.5),
+    "hSegQual" : (0,1.01),
+    "hSegQualNorm" : (0,5.),
+    "hSegQualBest" : (0,1.01),
+    "hSegQualBestNorm" : (0,5.),
+    "hSegQualSlope" : (0,1.01),
+    "hSegQualSlopeNorm" : (0,5.),
+    "hSegQualSlopePen" : (0,1.01),
+    "hSegQualSlopePenFrac" : (0,1.01),
+    "hSegQualSlopePenNorm" : (0,5.),
 }
 
 # Map measurements to styles
@@ -123,7 +162,9 @@ class segHisto:
         self.title = self.setTitle()
         self.legEntry = self.setLegEntry()
     def setHistos(self):
-        f = ROOT.TFile('histos/ana_segHistos_%s_%s_%s_%s_%s_%s_%s.root'%(self.m.CSC,self.m.test,self.m.HV,self.m.beam,self.m.uAtt,self.m.dAtt,self.m.meas))
+        self.ana_dataset = 'histos/ana_segHistos_%s_%s_%s_%s_%s_%s_%s.root'%(self.m.CSC,self.m.test,self.m.HV,self.m.beam,self.m.uAtt,self.m.dAtt,self.m.meas)
+        f = ROOT.TFile(self.ana_dataset)
+        #f = ROOT.TFile('histos/ana_segHistos_%s_%s_%s_%s_%s_%s_%s.root'%(self.m.CSC,self.m.test,self.m.HV,self.m.beam,self.m.uAtt,self.m.dAtt,self.m.meas))
         #print f
         for hist in hists:
             #print hist
@@ -132,21 +173,28 @@ class segHisto:
                 hist == 'hSegChi2p4dof' or \
                 hist == 'hSegChi2p6dof' or \
                 hist == 'hSegChi2p8dof' or \
-                hist == 'hSegChi2pdof':
+                hist == 'hSegChi2pdof' or \
+                hist == 'hSegSlope' or \
+                hist == 'hSegdSlope' or \
+                hist == 'hSegSlopeIN' or \
+                hist == 'hSegdSlopeIN' or \
+                hist == 'hSegSlopeOUT' or \
+                hist == 'hSegdSlopeOUT':
                 self.histos[hist] = DrawOverflow(f.Get(hist))
             else:
                 self.histos[hist] = f.Get(hist).Clone()
             self.histos[hist].SetDirectory(0)
     def setTitle(self):
         '''
-        Set title = "CSC, Test, HV"
+        Set title = "CSC, Test, HV, TB"
         '''
         title = ''
         if self.m.CSC == 'ME11': title+='ME1/1, '
         else: title+= 'ME2/1, '
         if self.m.test == 'test27': title += 'Test 27, '
         else: title+= 'Test 40, '
-        title += 'HV0'
+        title += '%s, '%self.m.HV
+        title += 'TB%s'%self.m.TB
         return title
     def setLegEntry(self):
         '''
@@ -161,24 +209,28 @@ class segHisto:
 
 # debug and sample implementation
 if __name__=='__main__':
-    measList = [segHisto(m) for m in measurements]
+    measList = [segHisto(m) for m in measurements if m.CSC=='ME21' and m.test=='Test40']
     for entry in measList:
-        print entry.m.CSC
-        print entry.m.meas
-        print entry.m.test
-        print entry.m.HV
-        print entry.m.beam
-        print entry.m.uAtt
-        print entry.m.dAtt
-        print entry.m.time
-        print entry.m.fn
-        print entry.m.title
-        print entry.m.legEntry
-        if entry.m.ana_dataset: print entry.m.ana_dataset
-        color, legEntry, title = styles[entry.m.meas]
-        color2 = colors[entry.m.dAtt]
-        print entry.histos["nSeg"]
-        print 'old', title
-        print 'old', legEntry
-        print 'old', color
-        print 'new', color2
+        print 'CSC:',entry.m.CSC
+        print 'Measurement #',entry.m.meas
+        print 'STEP Test',entry.m.test
+        print 'High Voltage:',entry.m.HV
+        print 'Beam status:',entry.m.beam
+        print 'Upstream attenuation:',entry.m.uAtt
+        print 'Downstream attenuation:',entry.m.dAtt
+        print 'Time Stamp:',entry.m.time
+        print 'Unpacked file path:',entry.m.fn
+        print 'Test Beam:',entry.m.TB
+        print 'Title:',entry.title
+        print entry.legEntry
+        print entry.histos["hNSeg"]
+        if entry.ana_dataset: print entry.ana_dataset
+        lineStyle = styles[entry.m.meas]
+        print lineStyle
+        color = colors[entry.m.dAtt]
+        print color
+        yLimitLow,yLimitHigh = yLimits["hNSeg"]
+        print yLimitLow, yLimitHigh
+        xAxisTitle,yAxisTitle = histAxesTitles["hNSeg"]
+        print xAxisTitle,yAxisTitle
+        print

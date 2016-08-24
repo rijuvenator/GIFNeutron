@@ -25,7 +25,8 @@ r.gStyle.SetGridStyle(3)
 r.gErrorIgnoreLevel = 1001
 
 # Make segHisto classes
-measList = [segHisto(m) for m in measurements]
+measList = [segHisto(m) for m in measurements if m.CSC==CSC and m.test==TEST]
+print measList
 for segHisto in measList:
     exec '%s = segHisto' % segHisto.m.meas
 
@@ -69,8 +70,17 @@ for comp in to_plot:
            hName == 'hSeg4hits' or \
            hName == 'hSeg5hits' or \
            hName == 'hSeg6hits' or \
-           hName == 'hSegQual':
+           hName == 'hSegQual' or \
+           hName == 'hSegQualBest' or \
+           hName == 'hSegQualSlope' or \
+           hName == 'hSegQualSlopePen' or \
+           hName == 'hSegQualNorm' or \
+           hName == 'hSegQualBestNorm' or \
+           hName == 'hSegQualSlopePenNorm' or \
+           hName == 'hSegQualSlopeNorm':
             leg = ROOT.TLegend(0.15, 0.6, 0.39, 0.85)
+        elif hName == 'hSegQualSlopePenFrac':
+            leg = ROOT.TLegend(0.50,0.20,0.74,0.45)
         else:
             leg = ROOT.TLegend(0.65, 0.6, 0.89, 0.85)
         leg.SetFillStyle(0)
@@ -122,7 +132,7 @@ for comp in to_plot:
                hName == 'hSeg4hits' or \
                hName == 'hSeg5hits' or \
                hName == 'hSeg6hits' or \
-               hName == 'hSegQual':
+               hName == 'hSegQualSlopePenNorm':
                 thisMax = hist.GetMaximum()
                 if thisMax > histMax:
                     histMax = thisMax
