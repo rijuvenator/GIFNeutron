@@ -1,4 +1,7 @@
-f = open("currents")
+import sys
+
+# Take the output of sel.py, strip the semicolons, [i], and _m; leave the pressure (it induces a newline)
+f = open(sys.argv[1])
 for line in f:
 	if line[0] == '#':
 		rawmeas = line.split()[0].lstrip('#')
