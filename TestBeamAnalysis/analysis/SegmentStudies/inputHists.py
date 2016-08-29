@@ -136,10 +136,19 @@ styles = {
     '2224' : (1),
     '2333' : (1),
 }
+slopeStyles = {
+    '05' : (3),
+    '06' : (2),
+    '07' : (1),
+    '08' : (4),
+    '09' : (5),
+    '10' : (6),
+}
+    
 
 # Map attenuations to colors
 colors = {
-    '0'   : (ROOT.kBlack),
+    '0'     : (ROOT.kBlack),
     '10'    : (ROOT.kBlue),
     '15'    : (ROOT.kOrange+1),
     '22'    : (ROOT.kGreen+1),
@@ -148,7 +157,7 @@ colors = {
     '100'   : (ROOT.kSpring),
     '1000'  : (ROOT.kMagenta),
     '46000' : (ROOT.kGray),
-}
+ }
 
 
 class segHisto:
@@ -156,57 +165,55 @@ class segHisto:
     - segHisto class is designed to be a python class container for all relevant 
       histogram information associated with a measurement: 
       *** Others ***
-      - color : color applied to histograms
       - legEntry : legend entry for histograms
       - title : common title
     - setHistos()
       - segEntry is also a container for histograms made from makeSegmentHistos.py 
       - Histograms to be analyzed are added to a list 'hists = []'
-    - setStyle(color, legEntry, title)
-      - Sets style options
     '''
     def __init__(self, measNum,slope=None):
         self.m = self.getMeas(measNum)
+        self.slope = slope if slope else None
         self.histos = {}
         self.setHistos(slope)
         self.title = self.setTitle()
         self.legEntry = self.setLegEntry()
     def getMeas(self, measNum):
+        print measNum
         return Meas.meas[measNum]
     def setHistos(self,slope=None):
+        #print slope
         # set locals
         CSC = self.m.cham
         test = self.m.runtype
         HV = self.m.HV
-        if self.m.beam: beam = 'bOn'
-        else: beam = 'bOff'
-        if self.m.uAtt=='0': uAtt = 'uOff'
-        else: uAtt = 'u'+self.m.uAtt
-        if self.m.dAtt=='0': dAtt = 'dOff'
-        else: dAtt = 'd'+self.m.dAtt
+        beam = 'bOn' if self.m.beam else 'bOff'
+        uAtt = 'uOff' if self.m.uAtt=='0' else 'u'+self.m.uAtt
+        dAtt = 'dOff' if self.m.dAtt=='0' else 'd'+self.m.dAtt
         meas = self.m.meas
+        # Get root file with histograms from makeSegmentHistos.py
         if slope:
             self.ana_dataset = 'histos/ana_segHistos_%(CSC)s_%(test)s_%(HV)s_%(beam)s_%(uAtt)s_%(dAtt)s_m%(meas)s_%(slope)s.root'%locals()
         else:
             self.ana_dataset = 'histos/ana_segHistos_%(CSC)s_%(test)s_%(HV)s_%(beam)s_%(uAtt)s_%(dAtt)s_m%(meas)s.root'%locals()
         f = ROOT.TFile(self.ana_dataset)
-        print self.ana_dataset, f
-        if slope: histList = histsSlope
-        else: histList = hists
+        #print self.ana_dataset, f
+        # Set map to histograms
+        histList = histsSlope if slope else hists
         for hist in histList:
             #print hist
             if hist == 'hNSeg' or \
-                hist == 'hSegChi2p2dof' or \
-                hist == 'hSegChi2p4dof' or \
-                hist == 'hSegChi2p6dof' or \
-                hist == 'hSegChi2p8dof' or \
-                hist == 'hSegChi2pdof' or \
-                hist == 'hSegSlope' or \
-                hist == 'hSegdSlope' or \
-                hist == 'hSegSlopeIN' or \
-                hist == 'hSegdSlopeIN' or \
-                hist == 'hSegSlopeOUT' or \
-                hist == 'hSegdSlopeOUT':
+               hist == 'hSegChi2p2dof' or \
+               hist == 'hSegChi2p4dof' or \
+               hist == 'hSegChi2p6dof' or \
+               hist == 'hSegChi2p8dof' or \
+               hist == 'hSegChi2pdof' or \
+               hist == 'hSegSlope' or \
+               hist == 'hSegdSlope' or \
+               hist == 'hSegSlopeIN' or \
+               hist == 'hSegdSlopeIN' or \
+               hist == 'hSegSlopeOUT' or \
+               hist == 'hSegdSlopeOUT':
                 self.histos[hist] = DrawOverflow(f.Get(hist))
             else:
                 self.histos[hist] = f.Get(hist).Clone()
@@ -225,7 +232,8 @@ class segHisto:
         return title
     def setLegEntry(self):
         '''
-        Set Legend entry = 'Att = XX'
+        Set Legend entry = 'Att = XX' (downstream attentuation)
+            - If there are multiple downstream entries (set by user), add upstream attenuation in parenthesis
         '''
         if self.m.dAtt == '0': leg = 'No Source'
         else: 
