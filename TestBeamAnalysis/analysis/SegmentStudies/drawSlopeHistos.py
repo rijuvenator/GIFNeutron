@@ -5,7 +5,7 @@ options : ?
 
 import os,sys
 import ROOT as r
-import Gif.TestBeamAnalysis.Measurements as Meas
+from Gif.TestBeamAnalysis.TestBeamMeasurements import *
 from Gif.TestBeamAnalysis.roottools import *
 from inputHists import *
 import argparse
@@ -24,20 +24,40 @@ r.gStyle.SetPadTickY(1)
 r.gStyle.SetGridStyle(3)
 r.gErrorIgnoreLevel = 1001
 
+# Make segHisto classes
+'''
+measList = [segHisto(m) for m in measurements if m.CSC==CSC and m.test==TEST]
+for segHisto in measList:
+    exec '%s = segHisto' % segHisto.m.meas
+'''
+
+# Slope penalties to compare
+slope_comp = [
+    '05',
+#    '06',
+    '07',
+#    '08',
+    '09',
+#    '10',
+]
+
 
 # Set list of measurements to use for each comparison plot
 to_use = {
     # Nominal set of plots
-    #'ME11_Test27_HV0' : [segHisto(m) for m in ['2250','1977']],
-    #'ME11_Test40_HV0' : [segHisto(m) for m in ['1966','2040']],
-    #'ME21_Test27_HV0' : [segHisto(m) for m in ['2306','2062']],
-    'ME21_Test40_HV0'           : [segHisto(m) for m in ['2095','2262','2064','2079','2224','2333','2312']],
-    'ME21_Test40_HV0_u100_d10'  : [segHisto(m) for m in ['2312','2095']],
-    'ME21_Test40_HV0_u46_d10'   : [segHisto(m) for m in ['2312','2262']],
-    'ME21_Test40_HV0_u46_d15'   : [segHisto(m) for m in ['2312','2064']],
-    'ME21_Test40_HV0_u69_d46'   : [segHisto(m) for m in ['2312','2079']],
-    'ME21_Test40_HV0_u46_d100'  : [segHisto(m) for m in ['2312','2224']],
-    'ME21_Test40_HV0_u69_d1000' : [segHisto(m) for m in ['2312','2333']],
+    #'ME11_Test27_HV0' : ('2250','1977'),
+    #'ME11_Test40_HV0' : ('1966','2040'),
+    #'ME21_Test27_HV0' : ('2306','2062'),
+    #'ME21_Test40_HV0' : ('2312','2095','2262','2064','2079','2224','2333'),
+    #'ME21_Test40_HV0_u100_d10' : ('2312','2095'),
+    #'ME21_Test40_HV0_u46_d10' : ('2312','2262'),
+    #'ME21_Test40_HV0_u46_d15' : ('2312','2064'),
+    #'ME21_Test40_HV0_u69_d46' : ('2312','2079'),
+    #'ME21_Test40_HV0_u46_d100' : ('2312','2224'),
+    #'ME21_Test40_HV0_u69_d1000' : ('2312','2333'),
+    # Plots for slope coparisons
+    'ME21_Test40_HV0_NS_d10_slope' : [segHisto(measNum,s) for measNum in ['2312','2095'] for s in slope_comp],
+    #'ME21_Test40_HV0_NS_d10_slope' : ['2312'],#'2095'],
 }
 
 # List of comparison plots (m2312, no source, is left implicit)
@@ -45,29 +65,31 @@ to_plot = [
     #'ME11_Test27_HV0',
     #'ME11_Test40_HV0',
     #'ME21_Test27_HV0',
-    'ME21_Test40_HV0',
-    'ME21_Test40_HV0_u100_d10',
-    'ME21_Test40_HV0_u46_d10',
-    'ME21_Test40_HV0_u46_d15',
-    'ME21_Test40_HV0_u69_d46',
-    'ME21_Test40_HV0_u46_d100',
-    'ME21_Test40_HV0_u69_d1000',
+    #'ME21_Test40_HV0',
+    #'ME21_Test40_HV0_u100_d10',
+    #'ME21_Test40_HV0_u46_d10',
+    #'ME21_Test40_HV0_u46_d15',
+    #'ME21_Test40_HV0_u69_d46',
+    #'ME21_Test40_HV0_u46_d100',
+    #'ME21_Test40_HV0_u69_d1000',
+    'ME21_Test40_HV0_NS_d10_slope',
 ]
 
-# Loop over measurement/slope comparison plots to make
+
+# Loop over measurement comparison plots
 for comp in to_plot:
     outFile = ROOT.TFile('histos/segAnalysis_'+comp+'.root','recreate')
     # Loop over histograms to compare
-    for hName in hists:
+    for hName in histsSlope:
         # Set save name
-        outname = 'plots/' + comp + '_' + hName
+        outname = 'plots/' + comp + '_' + hName + '_slopeComp'
         
         # Set canvas options
         c = ROOT.TCanvas()
         c.SetTopMargin(0.10)
         ROOT.gStyle.SetOptStat(0)
         ROOT.gStyle.SetOptTitle(0)
-        
+
         # Set legend
         if hName == 'hSeg3hits' or \
            hName == 'hSeg4hits' or \
@@ -89,8 +111,9 @@ for comp in to_plot:
         leg.SetFillStyle(0)
         leg.SetBorderSize(0)
         leg.SetTextFont(42)
-        
+
         histMax = 0.
+        # Loop over measurements in comparison plots
         for i, entry in enumerate(to_use[comp]):
             # Get measurement specific plot attributes
             hist = entry.histos[hName]
@@ -110,11 +133,11 @@ for comp in to_plot:
             hist.GetZaxis().SetLabelSize(0.035)
             hist.GetXaxis().SetTitleOffset(1.0)
             #hist.GetYaxis().SetTitleOffset(1.6)
+            hist.SetTitle('')
             if i==0:
                 yAxis = hist.GetYaxis()
                 hist.SetStats(0)
-            hist.SetTitle('')
-            yAxis.SetTitle(Ytitle)
+            #yAxis.SetTitle(Ytitle)
             if hName == 'hSeg3hits' or \
                hName == 'hSeg4hits' or \
                hName == 'hSeg5hits' or \
@@ -140,21 +163,21 @@ for comp in to_plot:
             # Set hist line styles
             hist.SetLineColor(color)
             hist.SetLineWidth(2)
-            hist.SetLineStyle(styles[entry.m.meas])
-            
+            hist.SetLineStyle(slopeStyles[entry.slope])
+
             # Draw histograms and title
-            leg.AddEntry(hist,entry.legEntry,'L')
+            leg.AddEntry(hist,entry.legEntry+", 0."+entry.slope,'L')
             draw = 'HIST' if i==0 else 'HIST SAME'
             hist.Draw(draw)
             HeaderLabel.Draw()
-            print "Wrote plot: ", outname
+            print "Draw plot: ", outname, entry.m.meas, entry.slope
 
         # Draw legend and save plot
         leg.Draw()
         outFile.cd()
         for saveas in ['.pdf','.png']:
             c.SaveAs(outname+saveas)
-        c.Write(hName)
+        c.Write(hName+'slope')
     outFile.Close()
 
 
