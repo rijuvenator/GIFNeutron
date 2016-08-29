@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 import ROOT
-from Gif.TestBeamAnalysis.TestBeamMeasurements import *
+import Gif.TestBeamAnalysis.Measurements as Meas
 from Gif.TestBeamAnalysis.roottools import *
 
 # List of hists from makeSegmentHistos to compare
@@ -28,6 +28,17 @@ hists = [
     "hSegSlopeOUT",
     "hSegdSlopeOUT",
     "hNSeg",
+    "hSegQual",
+    "hSegQualSlope",
+    "hSegQualSlopePen",
+    "hSegQualSlopePenFrac",
+    "hSegQualBest",
+    "hSegQualNorm",
+    "hSegQualSlopeNorm",
+    "hSegQualSlopePenNorm",
+    "hSegQualBestNorm",
+]
+histsSlope = [
     "hSegQual",
     "hSegQualSlope",
     "hSegQualSlopePen",
@@ -108,35 +119,35 @@ yLimits = {
 
 # Map measurements to styles
 styles = {
-    'm2250' : (1),
-    'm1977' : (1),
+    '2250' : (1),
+    '1977' : (1),
 
-    'm1966' : (1),
-    'm2040' : (1),
+    '1966' : (1),
+    '2040' : (1),
 
-    'm2306' : (1),
-    'm2062' : (1),
+    '2306' : (1),
+    '2062' : (1),
 
-    'm2312' : (1),
-    'm2095' : (1),
-    'm2262' : (2),
-    'm2064' : (1),
-    'm2079' : (1),
-    'm2224' : (1),
-    'm2333' : (1),
+    '2312' : (1),
+    '2095' : (1),
+    '2262' : (2),
+    '2064' : (1),
+    '2079' : (1),
+    '2224' : (1),
+    '2333' : (1),
 }
 
 # Map attenuations to colors
 colors = {
-    'dOff'   : (ROOT.kBlack),
-    'd10'    : (ROOT.kBlue),
-    'd15'    : (ROOT.kOrange+1),
-    'd22'    : (ROOT.kGreen+1),
-    'd46'    : (ROOT.kRed),
-    'd69'    : (ROOT.kViolet),
-    'd100'   : (ROOT.kSpring),
-    'd1000'  : (ROOT.kMagenta),
-    'd46000' : (ROOT.kGray),
+    '0'   : (ROOT.kBlack),
+    '10'    : (ROOT.kBlue),
+    '15'    : (ROOT.kOrange+1),
+    '22'    : (ROOT.kGreen+1),
+    '46'    : (ROOT.kRed),
+    '69'    : (ROOT.kViolet),
+    '100'   : (ROOT.kSpring),
+    '1000'  : (ROOT.kMagenta),
+    '46000' : (ROOT.kGray),
 }
 
 
@@ -154,19 +165,35 @@ class segHisto:
     - setStyle(color, legEntry, title)
       - Sets style options
     '''
-    def __init__(self, gifMeas):
-        self.m = gifMeas
-        #self.setInfo()
+    def __init__(self, measNum,slope=None):
+        self.m = self.getMeas(measNum)
         self.histos = {}
-        self.setHistos()
+        self.setHistos(slope)
         self.title = self.setTitle()
         self.legEntry = self.setLegEntry()
-    def setHistos(self):
-        self.ana_dataset = 'histos/ana_segHistos_%s_%s_%s_%s_%s_%s_%s.root'%(self.m.CSC,self.m.test,self.m.HV,self.m.beam,self.m.uAtt,self.m.dAtt,self.m.meas)
+    def getMeas(self, measNum):
+        return Meas.meas[measNum]
+    def setHistos(self,slope=None):
+        # set locals
+        CSC = self.m.cham
+        test = self.m.runtype
+        HV = self.m.HV
+        if self.m.beam: beam = 'bOn'
+        else: beam = 'bOff'
+        if self.m.uAtt=='0': uAtt = 'uOff'
+        else: uAtt = 'u'+self.m.uAtt
+        if self.m.dAtt=='0': dAtt = 'dOff'
+        else: dAtt = 'd'+self.m.dAtt
+        meas = self.m.meas
+        if slope:
+            self.ana_dataset = 'histos/ana_segHistos_%(CSC)s_%(test)s_%(HV)s_%(beam)s_%(uAtt)s_%(dAtt)s_m%(meas)s_%(slope)s.root'%locals()
+        else:
+            self.ana_dataset = 'histos/ana_segHistos_%(CSC)s_%(test)s_%(HV)s_%(beam)s_%(uAtt)s_%(dAtt)s_m%(meas)s.root'%locals()
         f = ROOT.TFile(self.ana_dataset)
-        #f = ROOT.TFile('histos/ana_segHistos_%s_%s_%s_%s_%s_%s_%s.root'%(self.m.CSC,self.m.test,self.m.HV,self.m.beam,self.m.uAtt,self.m.dAtt,self.m.meas))
-        #print f
-        for hist in hists:
+        print self.ana_dataset, f
+        if slope: histList = histsSlope
+        else: histList = hists
+        for hist in histList:
             #print hist
             if hist == 'hNSeg' or \
                 hist == 'hSegChi2p2dof' or \
@@ -189,31 +216,34 @@ class segHisto:
         Set title = "CSC, Test, HV, TB"
         '''
         title = ''
-        if self.m.CSC == 'ME11': title+='ME1/1, '
-        else: title+= 'ME2/1, '
-        if self.m.test == 'test27': title += 'Test 27, '
-        else: title+= 'Test 40, '
-        title += '%s, '%self.m.HV
-        title += 'TB%s'%self.m.TB
+        if self.m.cham == 'ME11': title+='ME1/1'
+        else: title+= 'ME2/1'
+        if self.m.runtype == 'test27': title += ', Test 27'
+        else: title+= ', Test 40'
+        title += ', %s'%self.m.HV
+        title += ', TB%s'%self.m.TB
         return title
     def setLegEntry(self):
         '''
         Set Legend entry = 'Att = XX'
         '''
-        if self.m.dAtt == 'dOff': leg = 'No Source'
+        if self.m.dAtt == '0': leg = 'No Source'
         else: 
-            leg = 'Att = %s'%self.m.dAtt[1:]
-            if self.m.dAtt == 'd10': leg += ' (%s)'%self.m.uAtt
+            leg = 'Att = %s'%self.m.dAtt
+            if self.m.dAtt == '10': leg += ' (%s)'%self.m.uAtt
         return leg
 
 
 # debug and sample implementation
 if __name__=='__main__':
-    measList = [segHisto(m) for m in measurements if m.CSC=='ME21' and m.test=='Test40']
+    #mList = [Meas.meas[i] for i in Meas.meas.keys()]
+    #measList = [segHisto(m.meas) for m in mList if m.cham=='ME21' and m.runtype=='Test40' and m.beam and m.HV=='HV0' and m.TB=='1' and m.FF=='1']
+    mList = [Meas.meas[i] for i in ['2312','2095','2262','2064','2079','2224','2333']]
+    measList = [segHisto(m.meas,'05') for m in mList]
     for entry in measList:
-        print 'CSC:',entry.m.CSC
+        print 'CSC:',entry.m.cham
         print 'Measurement #',entry.m.meas
-        print 'STEP Test',entry.m.test
+        print 'STEP Test',entry.m.runtype
         print 'High Voltage:',entry.m.HV
         print 'Beam status:',entry.m.beam
         print 'Upstream attenuation:',entry.m.uAtt
@@ -223,14 +253,14 @@ if __name__=='__main__':
         print 'Test Beam:',entry.m.TB
         print 'Title:',entry.title
         print entry.legEntry
-        print entry.histos["hNSeg"]
+        print entry.histos["hSegQual"]
         if entry.ana_dataset: print entry.ana_dataset
         lineStyle = styles[entry.m.meas]
         print lineStyle
         color = colors[entry.m.dAtt]
         print color
-        yLimitLow,yLimitHigh = yLimits["hNSeg"]
+        yLimitLow,yLimitHigh = yLimits["hSegQual"]
         print yLimitLow, yLimitHigh
-        xAxisTitle,yAxisTitle = histAxesTitles["hNSeg"]
+        xAxisTitle,yAxisTitle = histAxesTitles["hSegQual"]
         print xAxisTitle,yAxisTitle
         print

@@ -5,18 +5,22 @@ options : --extra EXTRA (optional)
 import ROOT as r
 import struct
 import os,sys
-from Gif.TestBeamAnalysis.TestBeamMeasurements import *
+import Gif.TestBeamAnalysis.Measurements as Meas
+#from Gif.TestBeamAnalysis.TestBeamMeasurements import *
 import argparse
 parser = argparse.ArgumentParser(description='Segment Analysis : make histograms from tree')
 parser.add_argument('--extra',dest='extra',help='Extra info about plots',default=None)
 parser.add_argument('--CSC',dest='CSC',help='Choose which CSC to make plots for',default=None)
 parser.add_argument('--test',dest='test',help='Choose which test to make plots for',default=None)
-parser.add_argument('--slope',dest='slope',help='Choose which slope to penalize segments at',default='0.0825')
+parser.add_argument('--slope',dest='slope',help='Choose which slope to penalize segments',default='0.07')
 args = parser.parse_args()
 EXTRA = args.extra
 CSC = args.CSC
 TEST = args.test
 SLOPE = float(args.slope)
+sslope = args.slope[2:]
+print sslope
+
 if (TEST is not None) and (TEST[:1]=='t'): raise ValueError('do --test TestXX not --test testXX')
 
 # Normalize quality histograms to be relative to N(segment quality = 1)
@@ -70,29 +74,32 @@ hSegQualSlopeNorm = r.TH1F('hSegQualSlopeNorm','Segment Quality with slope penal
 hSegQualSlopePen = r.TH1F('hSegQualSlopePen','Quality of segments affected by slope penalty;quality;N(segments)',10,0,10)
 hSegQualSlopePenFrac = r.TH1F('hSegQualSlopePenFrac','Fraction of segments affected by slope penalty;quality;Fraction of segments',10,0,10)
 hSegQualSlopePenNorm = r.TH1F('hSegQualSlopePenNorm','Quality of segments affected by slope penalty;quality;N(segments)',10,0,10)
-# To add : Segment Quality with slope penalty
 
-#measurements = [m1966,m2040,m2312,m2064] 
-#measurements = [m2250,m1977,m2306,m2062] # Test27
-toDo = []
+mList = ['2312','2095','2262','2064','2079','2224','2333']
+toDo = [Meas.meas[i] for i in mList]
 # Set list of measurements to make histograms for
-for TBM in measurements:
-    #print TBM.CSC, TBM.test
-    if CSC and TEST:
-        if TBM.CSC == CSC and TBM.test == TEST:
-            toDo.append(TBM)
-    else: toDo.append(TBM)
 for tbm in toDo:
-    #print 'In : ana_%s_%s_%s_%s_%s_%s_%s.root'%(tbm.CSC, tbm.test, tbm.HV, tbm.beam, tbm.uAtt, tbm.dAtt, tbm.meas)
-    fin = r.TFile('data/ana_%s_%s_%s_%s_%s_%s_%s.root'%(tbm.CSC, tbm.test, tbm.HV, tbm.beam, tbm.uAtt, tbm.dAtt, tbm.meas),'read')
+    # Set locals
+    CSC = tbm.cham
+    test = tbm.runtype
+    HV = tbm.HV
+    beam = 'bOn' if tbm.beam else 'bOff'
+    uAtt = 'uOff' if tbm.uAtt=='0' else 'u'+tbm.uAtt
+    dAtt = 'dOff' if tbm.dAtt=='0' else 'd'+tbm.dAtt
+    measNum = 'm'+tbm.meas
+    inFile = 'data/ana_%(CSC)s_%(test)s_%(HV)s_%(beam)s_%(uAtt)s_%(dAtt)s_%(measNum)s.root'%locals()
+    outFile = 'histos/ana_segHistos_%(CSC)s_%(test)s_%(HV)s_%(beam)s_%(uAtt)s_%(dAtt)s_%(measNum)s_%(sslope)s.root'%locals()
+    print CSC, test, HV, beam, uAtt, dAtt, measNum
+    print inFile
+    print outFile
+    fin = r.TFile(inFile,'read')
     tree = fin.Get('GIFTree').Get('GIFDigiTree')
-    fout = r.TFile('histos/ana_segHistos_%s_%s_%s_%s_%s_%s_%s.root'%(tbm.CSC, tbm.test, tbm.HV, tbm.beam, tbm.uAtt, tbm.dAtt, tbm.meas),'recreate')
-    #print 'Out : ana_segHistos_%s_%s_%s_%s_%s_%s_%s.root'%(tbm.CSC, tbm.test, tbm.HV, tbm.beam, tbm.uAtt, tbm.dAtt, tbm.meas)
+    fout = r.TFile(outFile,'recreate')
 
     # Set beam slope parameters
     # Mean of segment slopes in x and y directions
     # - No Source, segment position w/in scintillator paddle
-    if tbm.CSC == 'ME21':
+    if tbm.cham == 'ME21':
         bXZslope = -0.04995
         bYZslope = 0.006429
         padYlow = -2.5

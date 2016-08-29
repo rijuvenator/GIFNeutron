@@ -27,10 +27,10 @@ class Meas():
 	def __init__(self, line):
 		l = line.strip('\n').split()
 		self.meas    = l[0]
-		self.cham    = l[1]
+		self.cham    = 'ME'+l[1]+'1'
 		self.HV      = l[2]
-		self.source  = l[3]
-		self.beam    = l[4]
+		self.source  = bool(int(l[3]))
+		self.beam    = bool(int(l[4]))
 		self.uAtt    = l[5]
 		self.dAtt    = l[6]
 		self.FF      = l[7]
@@ -40,11 +40,11 @@ class Meas():
 		if 'TMB' in endname:
 			self.runtype = 'TMB'
 		elif 'STEP_40' in endname:
-			self.runtype = 'STEP_40'
+			self.runtype = 'Test40'
 		elif 'STEP_27s' in endname:
-			self.runtype = 'STEP_27s'
+			self.runtype = 'Test27s'
 		elif 'STEP_27' in endname:
-			self.runtype = 'STEP_27'
+			self.runtype = 'Test27'
 		else:
 			self.runtype = 'Other'
 
@@ -60,19 +60,33 @@ class Meas():
 			self.star = True
 		else:
 			self.star = False
+                
+                # get test beam #
+                measNum = int(self.meas)
+                if measNum >= 1926 and measNum <=2432 and self.cham=='ME11':
+                    self.TB = '1'
+                elif measNum >= 2062 and measNum <=2432 and self.cham=='ME21':
+                    self.TB = '1'
+                elif measNum >=2433 and measNum <=2588:
+                    self.TB = '2'
+                elif measNum >=2590 and measNum <= 3134:
+                    self.TB = '3'
+                else:
+                    self.TB = 'bad'
 	
 	# --- repr; what to print
 	def __repr__(self):
 		pstr = """
 		\033[1mMeasurement #%s\033[m
-		   Chamber : ME%s1
-		   Run Type: %s
-		   HV      : %s
-		   Beam    : %s
-		   Source  : %s
-		   Atten.  : %s
-		   FF      : %s
-		   Time    : %s
+		   Chamber   : %s
+		   Run Type  : %s
+		   HV        : %s
+		   Beam      : %s
+		   Source    : %s
+		   Atten.    : %s
+		   FF        : %s
+		   Time      : %s
+		   Test Beam : %s
 		  """
 		pstr = pstr.lstrip('\n')
 		pstr = pstr.replace('\t','')
@@ -86,7 +100,8 @@ class Meas():
 			'OFF' if self.source=='0' else 'ON',
 			'%s/%s' % (self.uAtt,self.dAtt),
 			self.FF,
-			self.time
+			self.time,
+                        self.TB
 				)
 
 	# --- returns path to unpacked ROOT file
@@ -148,12 +163,12 @@ meas['2224'].SetCentralFN(measDirMay16+'ME21/d100/test40/ME21_Test40_HV0_bOn_u46
 meas['2333'].SetCentralFN(measDirMay16+'ME21/d1000/test40/ME21_Test40_HV0_bOn_u69_d1000_m2333_t160509200512.root')
 # Test for Cameron
 # Giving it a fake meta string with a fake file name so that the class gets initialized correctly
-meas['CAM'] = Meas('CAM 1 HV0 0 0 0 0 C emugif2_STEP_40_000000_000000_UTC.raw')
-meas['CAM'].SetCentralFN('file:/afs/cern.ch/user/c/cschnaib/Work/CMSSW_7_5_1/src/Gif/TestBeamAnalysis/analysis/MakeHistosAndTree/test_CAM.root')
+#meas['CAM'] = Meas('CAM 1 HV0 0 0 0 0 C emugif2_STEP_40_000000_000000_UTC.raw')
+#meas['CAM'].SetCentralFN('file:/afs/cern.ch/user/c/cschnaib/Work/CMSSW_7_5_1/src/Gif/TestBeamAnalysis/analysis/MakeHistosAndTree/test_CAM.root')
 
 # for testing
 if __name__ == '__main__':
 	print 'Meas has', len(meas.keys()), 'classes'
 	print meas['2040']
 	print meas['2064']
-	print meas['CAM']
+	#print meas['CAM']

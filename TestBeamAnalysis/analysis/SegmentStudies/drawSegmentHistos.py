@@ -5,7 +5,7 @@ options : ?
 
 import os,sys
 import ROOT as r
-from Gif.TestBeamAnalysis.TestBeamMeasurements import *
+import Gif.TestBeamAnalysis.Measurements as Meas
 from Gif.TestBeamAnalysis.roottools import *
 from inputHists import *
 import argparse
@@ -24,27 +24,23 @@ r.gStyle.SetPadTickY(1)
 r.gStyle.SetGridStyle(3)
 r.gErrorIgnoreLevel = 1001
 
-# Make segHisto classes
-measList = [segHisto(m) for m in measurements if m.CSC==CSC and m.test==TEST]
-print measList
-for segHisto in measList:
-    exec '%s = segHisto' % segHisto.m.meas
 
 # Set list of measurements to use for each comparison plot
 to_use = {
-    #'ME11_Test27_HV0' : (m2250,m1977),
-    #'ME11_Test40_HV0' : (m1966,m2040),
-    #'ME21_Test27_HV0' : (m2306,m2062),
-    'ME21_Test40_HV0' : (m2312,m2095,m2262,m2064,m2079,m2224,m2333),
-    'ME21_Test40_HV0_u100_d10' : (m2312,m2095),
-    'ME21_Test40_HV0_u46_d10' : (m2312,m2262),
-    'ME21_Test40_HV0_u46_d15' : (m2312,m2064),
-    'ME21_Test40_HV0_u69_d46' : (m2312,m2079),
-    'ME21_Test40_HV0_u46_d100' : (m2312,m2224),
-    'ME21_Test40_HV0_u69_d1000' : (m2312,m2333),
+    # Nominal set of plots
+    #'ME11_Test27_HV0' : [segHisto(m) for m in ['2250','1977']],
+    #'ME11_Test40_HV0' : [segHisto(m) for m in ['1966','2040']],
+    #'ME21_Test27_HV0' : [segHisto(m) for m in ['2306','2062']],
+    'ME21_Test40_HV0' : [segHisto(m) for m in ['2312','2095','2262','2064','2079','2224','2333']],
+    'ME21_Test40_HV0_u100_d10' : [segHisto(m) for m in ['2312','2095']],
+    'ME21_Test40_HV0_u46_d10' : [segHisto(m) for m in ['2312','2262']],
+    'ME21_Test40_HV0_u46_d15' : [segHisto(m) for m in ['2312','2064']],
+    'ME21_Test40_HV0_u69_d46' : [segHisto(m) for m in ['2312','2079']],
+    'ME21_Test40_HV0_u46_d100' : [segHisto(m) for m in ['2312','2224']],
+    'ME21_Test40_HV0_u69_d1000' : [segHisto(m) for m in ['2312','2333']],
 }
 
-# List of comparison plots
+# List of comparison plots (m2312, no source, is left implicit)
 to_plot = [
     #'ME11_Test27_HV0',
     #'ME11_Test40_HV0',
@@ -62,10 +58,16 @@ to_plot = [
 for comp in to_plot:
     outFile = ROOT.TFile('histos/segAnalysis_'+comp+'.root','recreate')
     for hName in hists:
+        # Set save name
+        outname = 'histos/' + comp + '_' + hName
+        
+        # Set canvas options
         c = ROOT.TCanvas()
         c.SetTopMargin(0.10)
         ROOT.gStyle.SetOptStat(0)
         ROOT.gStyle.SetOptTitle(0)
+        
+        # Set legend
         if hName == 'hSeg3hits' or \
            hName == 'hSeg4hits' or \
            hName == 'hSeg5hits' or \
@@ -86,16 +88,20 @@ for comp in to_plot:
         leg.SetFillStyle(0)
         leg.SetBorderSize(0)
         leg.SetTextFont(42)
+        
         draw = ''
         histMax = 0.
         for i, entry in enumerate(to_use[comp]):
+            # 
             if i==0: draw = 'HIST'
             else: draw = 'HIST SAME'
 
+            # Get measurement specific plot attributes
             hist = entry.histos[hName]
             color = colors[entry.m.dAtt]
             Ytitle,Xtitle = histAxesTitles[hName]
 
+            # Set X,Y axes styles
             #hist.GetXaxis().SetNdivisions(5)
             #hist.GetYaxis().SetNdivisions(5)
             hist.GetYaxis().SetTitle(Ytitle)
@@ -108,26 +114,11 @@ for comp in to_plot:
             hist.GetZaxis().SetLabelSize(0.035)
             hist.GetXaxis().SetTitleOffset(1.0)
             #hist.GetYaxis().SetTitleOffset(1.6)
-
-            HeaderLabel = ROOT.TPaveLabel(0.2, 0.92, 0.8, 0.98,entry.title,"NDC")
-            # HeaderLabel.SetTextAlign(32)
-            HeaderLabel.SetTextFont(42)
-            HeaderLabel.SetTextSize(0.8)
-            HeaderLabel.SetBorderSize(0)
-            HeaderLabel.SetFillColor(0)
-            HeaderLabel.SetFillStyle(0)
-
             if i==0:
                 yAxis = hist.GetYaxis()
                 hist.SetStats(0)
             hist.SetTitle('')
             yAxis.SetTitle(Ytitle)
-            hist.SetLineColor(color)
-            hist.SetLineWidth(2)
-            hist.SetLineStyle(styles[entry.m.meas])
-            outname = 'histos/' + comp + '_' + hName
-            print "Wrote plot: ", outname
-            leg.AddEntry(hist,entry.legEntry,'L')
             if hName == 'hSeg3hits' or \
                hName == 'hSeg4hits' or \
                hName == 'hSeg5hits' or \
@@ -140,9 +131,28 @@ for comp in to_plot:
             else:
                 low,high = yLimits[hName]
                 yAxis.SetRangeUser(low,high)
+
+            # Set plot title
+            HeaderLabel = ROOT.TPaveLabel(0.2, 0.92, 0.8, 0.98,entry.title,"NDC")
+            # HeaderLabel.SetTextAlign(32)
+            HeaderLabel.SetTextFont(42)
+            HeaderLabel.SetTextSize(0.8)
+            HeaderLabel.SetBorderSize(0)
+            HeaderLabel.SetFillColor(0)
+            HeaderLabel.SetFillStyle(0)
+
+            # Set hist line styles
+            hist.SetLineColor(color)
+            hist.SetLineWidth(2)
+            hist.SetLineStyle(styles[entry.m.meas])
+            
+            # Draw histograms and title
+            print "Wrote plot: ", outname
+            leg.AddEntry(hist,entry.legEntry,'L')
             hist.Draw(draw)
             HeaderLabel.Draw()
-        # Plot options
+
+        # Draw legend and save plot
         leg.Draw()
         outFile.cd()
         for saveas in ['.pdf','.png']:

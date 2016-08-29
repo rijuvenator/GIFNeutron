@@ -8,21 +8,26 @@ if __name__ == '__main__' and 'submit' in sys.argv:
     user = commands.getoutput('echo $USER')
     plotsDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/GIF/data/'
     dryrun = 'dryrun' in sys.argv
-    from Gif.TestBeamAnalysis.TestBeamMeasurements import *
-    #measurements = [m2040,m2064]
+    import Gif.TestBeamAnalysis.Measurements as Meas
+    measurements = [Meas.meas[m] for m in ['2312','2095','2262','2064','2079','2224','2333']]
     for TBM in measurements:
-        chamber = TBM.CSC
-        test = TBM.test
+        chamber = TBM.cham
+        test = TBM.runtype
         HV = TBM.HV
-        beam = TBM.beam
-        uAtt = TBM.uAtt
-        dAtt = TBM.dAtt
-        meas = TBM.meas
+        beam = 'bOn' if TBM.beam else 'bOff'
+        uAtt = 'uOff' if TBM.uAtt=='0' else 'u'+TBM.uAtt
+        dAtt = 'dOff' if TBM.dAtt=='0' else 'd'+TBM.dAtt
+        measNum = 'm'+TBM.meas
+        #fn = TBM.ROOTFile(prefix='/store/user/adasgupt/GIF/')
         fn = TBM.fn
-        ana_dataset = plotsDir+'ana_%s_%s_%s_%s_%s_%s_%s.root'%(chamber,test,HV,beam,uAtt,dAtt,meas)
-        print chamber, test, HV, beam, uAtt, dAtt, meas
-        print fn
-        print ana_dataset
+        # For Chris: # fn = TBM.fn
+        #ana_dataset = plotsDir+'ana_%s.root'%(TBM.meas)
+        ana_dataset = 'ana_%(chamber)s_%(test)s_%(HV)s_%(beam)s_%(uAtt)s_%(dAtt)s_%(measNum)s.root'%locals()
+        outPath = plotsDir+ana_dataset
+        print TBM
+        print "\033[1mINPUT:\033[m", fn
+        print "\033[1mOUTPUT:\033[m", outPath
+        print ""
 
         gif_py = open('GifAnalysis.py').read()
         if not 'noHistos' in sys.argv:
@@ -32,7 +37,7 @@ if __name__ == '__main__' and 'submit' in sys.argv:
         gif_py += '''
 process.GIFHistos.chamberType = cms.untracked.string('%(chamber)s')
 process.source.fileNames  = cms.untracked.vstring('%(fn)s')
-process.TFileService.fileName = cms.string('%(ana_dataset)s')
+process.TFileService.fileName = cms.string('%(outPath)s')
 ''' % locals()
 
         open('submit_GifAnalysis.py','wt').write(gif_py)
@@ -40,7 +45,7 @@ process.TFileService.fileName = cms.string('%(ana_dataset)s')
             pass
         else: 
             cmd = 'cmsRun submit_GifAnalysis.py'
-            print cmd
+            print "\033[1mEXECUTING:\033[m", cmd
             os.system(cmd)
 
     if not dryrun:
