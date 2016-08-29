@@ -1,13 +1,28 @@
 import numpy as np
-import Plotter
+import Gif.TestBeamAnalysis.Plotter as Plotter
 import commands # python 2.6 on UNIX only
-from ROOT import *
+import ROOT as R
 
-data1 = []
-data2 = []
-#yaxis = "CFEB"
-yaxis = "ALCT*CLCT"
-#yaxis = "CLCT0"
+# PARAMETERS
+cham = 2
+numer = 'CLCT1'
+denom = 'L1A'
+
+data = []
+quants = ['CFEB', 'CLCT0', 'CLCT1', 'ALCT', 'ALCT*CLCT', 'L1A']
+fftypes = ['Original', 'TightPreCLCT', 'TightCLCT', 'TightALCT']
+
+ylist = [numer+'-'+ff for ff in fftypes]
+if denom is not None: nlist = [denom+'-'+ff for ff in fftypes]
+
+awkStrings = {}
+awkStrings['CFEB']      = '$3 + $4 + $5 + $6 + $7 + $8 + $9'
+awkStrings['CLCT0']     = '$10'
+awkStrings['CLCT1']     = '$11'
+awkStrings['ALCT*CLCT'] = '$12'
+awkStrings['L1A']       = '$13'
+awkStrings['ALCT']      = '$14'
+
 f = open('tmb')
 doingME11 = True
 for line in f:
@@ -17,44 +32,35 @@ for line in f:
 	if line[0]=='#':
 		continue
 	s = line.strip('\n').split()
-	currs = []
-	for currm in s[1:5]:
-		curr = commands.getoutput('grep " '+currm+'-" attenhut').strip('\n').split()
-		currs.append(sum([float(i) for i in curr[2:]])/float(len(curr[2:])))
+	curr = commands.getoutput('grep " '+s[1]+'-" attenhut').strip('\n').split()
+	curr = sum([float(i) for i in curr[2:]])/float(len(curr[2:]))
 	rates = []
-	for m in s[5:9]:
-		#x = float(commands.getoutput('awk \'/^'+m+'/ {x = $3 + $4 + $5 + $6 + $7 + $8 + $9; print x}\' trigdata'))
-		x = float(commands.getoutput('awk \'/^'+m+'/ {x = $(NF); print x}\' trigdata'))
-		#x = float(commands.getoutput('awk \'/^'+m+'/ {x = $(NF-2); print x}\' trigdata'))
-		rates.append(x)
-	l = [float(s[0])]
-	l.extend(currs)
+	for m in s[2:]:
+		for q in quants:
+			rates.append(float(commands.getoutput('awk \'/^'+m+'/ {x = '+awkStrings[q]+'; print x}\' trigdata')))
+	l = [1 if doingME11 else 2]
+	l.append(float(s[0]))
+	l.append(curr)
 	l.extend(rates)
-	if doingME11:
-		data1.append(l)
-	else:
-		data2.append(l)
+	data.append(tuple(l))
 
-data1 = np.array(data1)
-data2 = np.array(data2)
+dt = [('Cham','f4'), ('Filter','f4'), ('Current','f4')]
+dt.extend([(q+'-'+ff, 'f4') for ff in fftypes for q in quants])
+dt = np.dtype(dt)
+data = np.array(data, dtype=dt)
 
-print "=== ME11 ==="
-print "%10s %10s %10s %10s %10s %10s %10s %10s %10s" % ('Filter', 'Curr1', 'Curr2', 'Curr3', 'Curr4', 'Rate1', 'Rate2', 'Rate3', 'Rate4')
-for i in data1:
-	for j in i:
-		print "%10.3f" % j,
-	print ""
-print "=== ME21 ==="
-print "%10s %10s %10s %10s %10s %10s %10s %10s %10s" % ('Filter', 'Curr1', 'Curr2', 'Curr3', 'Curr4', 'Rate1', 'Rate2', 'Rate3', 'Rate4')
-for i in data2:
-	for j in i:
-		print "%10.3f" % j,
-	print ""
+#mult = len(quants)
+#for key in quants:
+#	for cham in [1, 2]:
+#	print "\033[1m=== ME%i1 Rates: %s ===\033[m" % (cham, key)
+#	print "\033[4m%10s %10s %10s %10s %10s %10s\033[m" % ('Filter', 'Curr', 'Orig', 'T-Pre', 'TCLCT', 'T-ALCT')
+#	for i in data2:
+#		for j in list(i[0:2]) + list(i[plotOptions[key][0]::mult]):
+#			print "%10.0f" % j,
+#		print ""
+#	print ""
 
-yrange1 = [np.amin(data1[:,5:]), np.amax(data1[:,5:])]
-yrange2 = [np.amin(data2[:,5:]), np.amax(data2[:,5:])]
-
-def makePlot(x, y, ytit, fn, extra, makeFit):
+def makePlot(x, y, ytit, fn, extra, makeFit, norm=None):
 	# *** USAGE:
 	#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 	#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
@@ -73,36 +79,53 @@ def makePlot(x, y, ytit, fn, extra, makeFit):
 	# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
 	#
 
-	cols = [kRed-3, kBlue-1, kOrange, kGreen+2]
-	#mars = [kOpenCircle, kOpenSquare, kOpenTriangleUp, kOpenCross]
-	#mars = [kOpenCircle, kPlus, kStar, kMultiply]
-	mars = [kFullCircle, kFullSquare, kFullTriangleUp, kFullCross]
+	cols = [R.kRed-3, R.kBlue-1, R.kOrange, R.kGreen+2]
+	#mars = [R.kOpenCircle, R.kOpenSquare, R.kOpenTriangleUp, R.kOpenCross]
+	#mars = [R.kOpenCircle, R.kPlus, R.kStar, R.kMultiply]
+	mars = [R.kFullCircle, R.kFullSquare, R.kFullTriangleUp, R.kFullCross]
 
-	gr0 = TGraph(len(x), np.array(x[:,0]), np.array(y[:,0]))
-	gr1 = TGraph(len(x), np.array(x[:,1]), np.array(y[:,1]))
-	gr2 = TGraph(len(x), np.array(x[:,2]), np.array(y[:,2]))
-	gr3 = TGraph(len(x), np.array(x[:,3]), np.array(y[:,3]))
+	# I give up trying to get numpy structured arrays to work with PyROOT.
+	# This function, "single column array", copies the array one by one
+	# and makes a new np.array
+	def sca(arr):
+		l = []
+		for i in arr:
+			l.append(float(i))
+		return np.array(l)
+
+	yrange = [(y/norm).min(), (y/norm).max()] if norm is not None else [y.min(), y.max()]
+
+	if norm is None:
+		gr0 = R.TGraph(len(x), sca(x), sca(y[:,0]))
+		gr1 = R.TGraph(len(x), sca(x), sca(y[:,1]))
+		gr2 = R.TGraph(len(x), sca(x), sca(y[:,2]))
+		gr3 = R.TGraph(len(x), sca(x), sca(y[:,3]))
+	else:
+		gr0 = R.TGraph(len(x), sca(x), sca(y[:,0])/sca(norm[:,0]))
+		gr1 = R.TGraph(len(x), sca(x), sca(y[:,1])/sca(norm[:,1]))
+		gr2 = R.TGraph(len(x), sca(x), sca(y[:,2])/sca(norm[:,2]))
+		gr3 = R.TGraph(len(x), sca(x), sca(y[:,3])/sca(norm[:,3]))
 
 	if makeFit:
-		fit0 = TF1("fit0", "[0] * pow(x,[1])", 0.0, 50.0)
+		fit0 = R.TF1("fit0", "[0] * pow(x,[1])", 0.0, 50.0)
 		fit0.SetParName(0,'c')
 		fit0.SetParName(1,'e')
 		fit0.SetParameter(0,1.0)
 		fit0.SetParameter(1,2.0)
 		gr0.Fit('fit0')
-		fit1 = TF1("fit1", "[0] * pow(x,[1])", 0.0, 50.0)
+		fit1 = R.TF1("fit1", "[0] * pow(x,[1])", 0.0, 50.0)
 		fit1.SetParName(0,'c')
 		fit1.SetParName(1,'e')
 		fit1.SetParameter(0,1.0)
 		fit1.SetParameter(1,2.0)
 		gr1.Fit('fit1')
-		fit2 = TF1("fit2", "[0] * pow(x,[1])", 0.0, 50.0)
+		fit2 = R.TF1("fit2", "[0] * pow(x,[1])", 0.0, 50.0)
 		fit2.SetParName(0,'c')
 		fit2.SetParName(1,'e')
 		fit2.SetParameter(0,1.0)
 		fit2.SetParameter(1,2.0)
 		gr2.Fit('fit2')
-		fit3 = TF1("fit3", "[0] * pow(x,[1])", 0.0, 50.0)
+		fit3 = R.TF1("fit3", "[0] * pow(x,[1])", 0.0, 50.0)
 		fit3.SetParName(0,'c')
 		fit3.SetParName(1,'e')
 		fit3.SetParameter(0,1.0)
@@ -116,11 +139,11 @@ def makePlot(x, y, ytit, fn, extra, makeFit):
 	gr3plot = Plotter.Plot(gr3, "TightALCT"   , "p","P")
 
 	# Step 2
-	#canvas = Plotter.Canvas(extra, False, 0., "Internal", 800, 700)
-	canvas = Plotter.Canvas(extra, True, 0., "Internal", 800, 700)
+	canvas = Plotter.Canvas(extra, False, 0., "Internal", 800, 700)
+	#canvas = Plotter.Canvas(extra, True, 0., "Internal", 800, 700)
 
 	# Step 3
-	canvas.makeLegend(.2,0.15,'tl',0.04)
+	canvas.makeLegend(.2,0.15,'tr',0.04, 0.03)
 
 	# Step 4
 	canvas.addMainPlot(gr0plot,True ,True)
@@ -129,12 +152,14 @@ def makePlot(x, y, ytit, fn, extra, makeFit):
 	canvas.addMainPlot(gr3plot,False,True)
 
 	# Step 5
-	TGaxis.SetExponentOffset(-0.08, 0.02, "y")
+	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
 #	canvas.mainPad.SetLogx(True)
 	gr0.GetYaxis().SetTitle(ytit)
 	gr0.GetXaxis().SetTitle('Mean Current [#muA]')
-	gr0.SetMinimum((yrange1[0] if extra=='ME1/1' else yrange2[0])*0.8)
-	gr0.SetMaximum((yrange1[1] if extra=='ME1/1' else yrange2[1])*1.2)
+	gr0plot.scaleTitles(0.8)
+	gr0plot.scaleLabels(0.8)
+	gr0.SetMinimum(yrange[0]*0.8)
+	gr0.SetMaximum(yrange[1]*1.2)
 
 	gr0.SetMarkerColor(cols[0])
 	gr1.SetMarkerColor(cols[1])
@@ -186,7 +211,7 @@ def makePlot(x, y, ytit, fn, extra, makeFit):
 		s3.SetY1NDC(s3.GetY1NDC()+.33+add)
 		s3.SetY2NDC(s3.GetY2NDC()+.33+add)
 
-		f = TLatex()
+		f = R.TLatex()
 		f.SetTextFont(42)
 		f.SetTextAlign(13)
 		f.DrawLatexNDC(0.6,0.7,"R = c I^{e}")
@@ -198,6 +223,14 @@ def makePlot(x, y, ytit, fn, extra, makeFit):
 	# Step 8
 	canvas.finishCanvas()
 	canvas.c.SaveAs(fn)
+	R.SetOwnership(canvas.c, False)
 
-makePlot(data1[:,1:5], data1[:,5:], yaxis+' Rate [Hz]', 'me11.pdf', 'ME1/1', False)
-makePlot(data2[:,1:5], data2[:,5:], yaxis+' Rate [Hz]', 'me21.pdf', 'ME2/1', False)
+makePlot(\
+		data[data["Cham"]==cham]["Current"].view((data.dtype[0], 1)),
+		data[ylist].view((data.dtype[0], len(ylist))),
+		numer + ("" if denom is None else "/"+denom),
+		'me'+str(cham)+'1.pdf',
+		'ME'+str(cham)+'/1',
+		False,
+		norm=None if denom is None else data[nlist].view((data.dtype[0], len(nlist)))
+		)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from ROOT import *
-import Plotter
+import Gif.TestBeamAnalysis.Plotter as Plotter
 import numpy as np
 import sys, shlex
 

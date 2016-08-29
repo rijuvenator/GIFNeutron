@@ -1,9 +1,9 @@
-from ROOT import *
+import ROOT as R
 import numpy as n
 
 # setStyle function, based on TDRStyle, but more flexible
 def setStyle(width_=800, height_=600, font_=42, tsize_=0.04):
-	style = TStyle("style","Style")
+	style = R.TStyle("style","Style")
 
 	width = width_
 	height = height_
@@ -22,16 +22,16 @@ def setStyle(width_=800, height_=600, font_=42, tsize_=0.04):
 
 	# canvas
 	style.SetCanvasBorderMode(0)			# off
-	style.SetCanvasColor(kWhite)			# white
+	style.SetCanvasColor(R.kWhite)			# white
 	style.SetCanvasDefW(width)				# width
 	style.SetCanvasDefH(height)				# height
 
 	# pad
 	style.SetPadBorderMode(0)				# off
-	style.SetPadColor(kWhite)				# white
-	style.SetPadGridX(kFALSE)				# grid x
-	style.SetPadGridY(kFALSE)				# grid y
-	style.SetGridColor(kGray)				# gray
+	style.SetPadColor(R.kWhite)				# white
+	style.SetPadGridX(R.kFALSE)				# grid x
+	style.SetPadGridY(R.kFALSE)				# grid y
+	style.SetGridColor(R.kGray)				# gray
 	style.SetGridStyle(3)					# dotted
 	style.SetGridWidth(1)					# pixels
 
@@ -43,9 +43,9 @@ def setStyle(width_=800, height_=600, font_=42, tsize_=0.04):
 
 	# frame
 	style.SetFrameBorderMode(0)				# off
-	style.SetFrameFillColor(kWhite)			# white
+	style.SetFrameFillColor(R.kWhite)			# white
 	style.SetFrameFillStyle(0)				# hollow
-	style.SetFrameLineColor(kWhite)			# white
+	style.SetFrameLineColor(R.kWhite)			# white
 	style.SetFrameLineStyle(1)				# solid
 	style.SetFrameLineWidth(0)				# pixels
 
@@ -54,11 +54,11 @@ def setStyle(width_=800, height_=600, font_=42, tsize_=0.04):
 	style.SetLegendFont(font)				# helvetica normal
 
 	# hist
-	style.SetHistLineColor(kBlack)			# black
+	style.SetHistLineColor(R.kBlack)			# black
 	style.SetHistLineStyle(1)				# solid
 	style.SetHistLineWidth(2)				# pixels
-	style.SetMarkerStyle(kFullDotLarge)		# marker
-	style.SetMarkerColor(kBlack)			# black
+	style.SetMarkerStyle(R.kFullDotLarge)		# marker
+	style.SetMarkerColor(R.kBlack)			# black
 	style.SetEndErrorSize(0)				# no little lines on errors
 
 	# stats box
@@ -70,10 +70,10 @@ def setStyle(width_=800, height_=600, font_=42, tsize_=0.04):
 	# title
 	style.SetOptTitle(0)					# off
 	style.SetTitleFont(font,"")				# helvetica normal
-	style.SetTitleTextColor(kBlack)			# black
+	style.SetTitleTextColor(R.kBlack)			# black
 	style.SetTitleFontSize(tsize+0.02)		# default 0
 	style.SetTitleStyle(0)					# hollow
-	style.SetTitleFillColor(kWhite)			# white
+	style.SetTitleFillColor(R.kWhite)			# white
 	style.SetTitleBorderSize(0)				# default 2
 	style.SetTitleAlign(22)					# center top
 	style.SetTitleX(titleX)					# center title horizontally with respect to frame
@@ -81,20 +81,20 @@ def setStyle(width_=800, height_=600, font_=42, tsize_=0.04):
 
 	# axis titles
 	style.SetTitleFont(font, "XYZ")			# helvetica normal
-	style.SetTitleColor(kBlack, "XYZ")		# black
+	style.SetTitleColor(R.kBlack, "XYZ")		# black
 	style.SetTitleSize(tsize+0.005,"XYZ")	# default 0.02
 	style.SetTitleOffset(1,"X")				# default 1
 	style.SetTitleOffset(1,"Y")				# default 1
 
 	# axis labels
 	style.SetLabelFont(font, "XYZ")			# helvetica normal
-	style.SetLabelColor(kBlack, "XYZ")		# black
+	style.SetLabelColor(R.kBlack, "XYZ")		# black
 	style.SetLabelSize(tsize, "XYZ")		# default 0.04
 	style.SetLabelOffset(0.005,"XYZ")		# default 0.005
 
 	# axis
-	style.SetAxisColor(kBlack, "XYZ")		# black
-	style.SetStripDecimals(kTRUE)			# strip decimals
+	style.SetAxisColor(R.kBlack, "XYZ")		# black
+	style.SetStripDecimals(R.kTRUE)			# strip decimals
 	style.SetPadTickX(1)					# opposite x ticks
 	style.SetPadTickY(1)					# opposite y ticks
 
@@ -149,7 +149,7 @@ class Canvas:
 
 		setStyle(self.cWidth,self.cHeight,self.font,self.tsize)
 
-		self.c = TCanvas("c","Canvas",self.cWidth,self.cHeight)
+		self.c = R.TCanvas("c","Canvas",self.cWidth,self.cHeight)
 
 		self.prepareCanvas()
 
@@ -159,12 +159,12 @@ class Canvas:
 		lMargin = self.c.GetLeftMargin()
 		rMargin = self.c.GetRightMargin()
 
-		self.mainPad = TPad("main","Main",0,self.ratioFactor,1,1)
+		self.mainPad = R.TPad("main","Main",0,self.ratioFactor,1,1)
 		
 		if (self.ratioFactor != 0):
 			self.mainPad.SetBottomMargin(0.04)
 			self.mainPad.SetRightMargin(tMargin * (self.cHeight * (1 - self.ratioFactor)) / self.cWidth)
-			self.ratPad = TPad("ratio","Ratio",0,0,1,self.ratioFactor)
+			self.ratPad = R.TPad("ratio","Ratio",0,0,1,self.ratioFactor)
 			self.ratPad.SetTopMargin(0.04)
 			self.ratPad.SetBottomMargin(lMargin * (1 - self.ratioFactor)/self.ratioFactor)
 			self.ratPad.SetRightMargin(tMargin * (self.cHeight * (1 - self.ratioFactor)) / self.cWidth)
@@ -187,16 +187,16 @@ class Canvas:
 		self.mainPad.cd()
 
 		if (pos == "tr"):
-			self.leg = TLegend(1-rMargin-lOffset-lWidth, 1-tMargin-lOffset-lHeight, 1-rMargin-lOffset,		  1-tMargin-lOffset        )
+			self.leg = R.TLegend(1-rMargin-lOffset-lWidth, 1-tMargin-lOffset-lHeight, 1-rMargin-lOffset,		  1-tMargin-lOffset        )
 		elif (pos == "tl"):
-			self.leg = TLegend(  lMargin+lOffset,        1-tMargin-lOffset-lHeight,   lMargin+lOffset+lWidth, 1-tMargin-lOffset        )
+			self.leg = R.TLegend(  lMargin+lOffset,        1-tMargin-lOffset-lHeight,   lMargin+lOffset+lWidth, 1-tMargin-lOffset        )
 		elif (pos == "br"):
-			self.leg = TLegend(1-rMargin-lOffset-lWidth,   bMargin+lOffset,         1-rMargin-lOffset,		    bMargin+lOffset+lHeight)
+			self.leg = R.TLegend(1-rMargin-lOffset-lWidth,   bMargin+lOffset,         1-rMargin-lOffset,		    bMargin+lOffset+lHeight)
 		elif (pos == "bl"):
-			self.leg = TLegend(  lMargin+lOffset,          bMargin+lOffset,			  lMargin+lOffset+lWidth,   bMargin+lOffset+lHeight)
+			self.leg = R.TLegend(  lMargin+lOffset,          bMargin+lOffset,			  lMargin+lOffset+lWidth,   bMargin+lOffset+lHeight)
 		else:
 			print "Invalid legend position string; defaulting to top-right"
-			self.leg = TLegend(1-rMargin-lOffset-lWidth, 1-tMargin-lOffset-lHeight, 1-rMargin-lOffset, 1-tMargin-lOffset)
+			self.leg = R.TLegend(1-rMargin-lOffset-lWidth, 1-tMargin-lOffset-lHeight, 1-rMargin-lOffset, 1-tMargin-lOffset)
 
 		self.leg.SetTextSize(fontsize)
 		self.leg.SetFillStyle(0)
@@ -282,7 +282,7 @@ class Canvas:
 	def makeRatioPlot(self, topHist, bottomHist, plusminus=0.5, option="", ytit="Data/MC", xtit=""):
 		self.c.cd()
 		self.ratPad.cd()
-		self.ratPad.SetGridy(kTRUE)
+		self.ratPad.SetGridy(R.kTRUE)
 
 		self.rat = topHist.Clone()
 		bot = bottomHist.Clone()
@@ -312,15 +312,15 @@ class Canvas:
 		up = float(self.rat.GetXaxis().GetXmax())
 		x = n.array([ low, up ])
 		y = n.array([ 1., 1. ])
-		self.gr = TGraph(2,x,y)
-		self.gr.SetLineColor(kRed)
+		self.gr = R.TGraph(2,x,y)
+		self.gr.SetLineColor(R.kRed)
 		self.gr.SetLineStyle(3)
 		self.gr.SetLineWidth(2)
 		self.gr.Draw("C same")
 
 		self.rat.Draw((option+" same"))
-		self.rat.SetMarkerColor(kBlack)
-		self.rat.SetLineColor(kBlack)
+		self.rat.SetMarkerColor(R.kBlack)
+		self.rat.SetLineColor(R.kBlack)
 
 		self.ratPad.RedrawAxis()
 
@@ -338,7 +338,7 @@ class Canvas:
 		self.c.cd()
 		self.mainPad.cd()
 
-		latex = TLatex()
+		latex = R.TLatex()
 		latex.SetTextFont(self.font)
 		latex.SetTextSize(fontsize)
 		latex.SetTextAlign(31)

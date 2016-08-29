@@ -104,6 +104,10 @@ def getCurrents(data):
 	# so click and unclick elsewhere on the form
 	turnOff(b.find_element_by_id("section1"))
 	turnOn(b.find_element_by_id("section1"))
+	turnOff(b.find_element_by_id("section1"))
+	turnOn(b.find_element_by_id("section1"))
+	turnOff(b.find_element_by_id("section1"))
+	turnOn(b.find_element_by_id("section1"))
 
 	# Click chamber and turn on section 2 and 3 for ME2/1
 	if data["cham"] == "1":
