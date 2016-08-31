@@ -5,7 +5,7 @@ import ROOT as R
 
 # PARAMETERS
 cham = 2
-numer = 'CLCT1'
+numer = 'ALCT*CLCT'
 denom = 'L1A'
 
 data = []

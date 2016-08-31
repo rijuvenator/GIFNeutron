@@ -61,18 +61,18 @@ class Meas():
 		else:
 			self.star = False
                 
-                # get test beam #
-                measNum = int(self.meas)
-                if measNum >= 1926 and measNum <=2432 and self.cham=='ME11':
-                    self.TB = '1'
-                elif measNum >= 2062 and measNum <=2432 and self.cham=='ME21':
-                    self.TB = '1'
-                elif measNum >=2433 and measNum <=2588:
-                    self.TB = '2'
-                elif measNum >=2590 and measNum <= 3134:
-                    self.TB = '3'
-                else:
-                    self.TB = 'bad'
+		# get test beam #
+		measNum = int(self.meas)
+		if measNum >= 1926 and measNum <=2432 and self.cham=='ME11':
+			self.TB = '1'
+		elif measNum >= 2062 and measNum <=2432 and self.cham=='ME21':
+			self.TB = '1'
+		elif measNum >=2433 and measNum <=2588:
+			self.TB = '2'
+		elif measNum >=2590 and measNum <= 3134:
+			self.TB = '3'
+		else:
+			self.TB = 'bad'
 	
 	# --- repr; what to print
 	def __repr__(self):
@@ -96,12 +96,12 @@ class Meas():
 			self.cham,
 			self.runtype.replace('_',' '),
 			self.HV if self.HV=='HV0' else self.HV+' V',
-			'ON' if self.beam=='1' else 'OFF',
-			'OFF' if self.source=='0' else 'ON',
+			'ON' if self.beam else 'OFF',
+			'OFF' if not self.source else 'ON',
 			'%s/%s' % (self.uAtt,self.dAtt),
 			self.FF,
 			self.time,
-                        self.TB
+			self.TB
 				)
 
 	# --- returns path to unpacked ROOT file

@@ -91,8 +91,8 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   iEvent.getByToken(sd_token,cscStripDigi);
   recStripInfo.fill(*cscStripDigi);
 
-  if(cscStripDigi->begin() == cscStripDigi->end())
-    cout << "Error!"<<endl;
+//  if(cscStripDigi->begin() == cscStripDigi->end())
+//    cout << "Error!"<<endl;
 
   edm::Handle<CSCComparatorDigiCollection> compDigi;
   iEvent.getByToken(cod_token, compDigi);
