@@ -4,7 +4,8 @@
 # Outputs a file containing the header and the first line
 # and also the last two lines, if it's a captured neutron
 
-# compute.py takes in the output file from this and prints some stuff
+# pickle.py takes in the output file from this and saves a dictionary
+# examine.py opens the pickled dictionary and does some analysis
 # energies is just the energies of the captured neutrons
 
 # save 3 lines after Particles and 1 line before nCaptures

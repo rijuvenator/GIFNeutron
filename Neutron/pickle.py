@@ -1,5 +1,6 @@
 import sys
 from itertools import groupby
+import cPickle as pickle
 
 f = open('/afs/cern.ch/work/a/adasgupt/Neutron/parts')
 
@@ -30,6 +31,7 @@ for line in f:
 		parts[thisID][3] = float(l[4])
 	else:
 		continue
+f.close()
 print "Done filling initial dictionary."
 
 # === Make Daughter Lists
@@ -45,25 +47,7 @@ for k, g in groupby(plist, lambda x: x[0]):
 	j = list(g)
 	parts[k][2] = [i[1] for i in j]
 
-# === Work with Neutrons
-# find neutrons, "unique" neutrons, and captured neutrons
-# print information about captured neutrons
-neutrons = [parts[p] for p in parts.keys() if parts[p][0]=='neutron']
-uneutrons = []
-captured = []
-for n in neutrons:
-	foundN = False
-	for nd in n[2]:
-		if parts[nd][0] == 'neutron':
-			foundN = True
-			break
-	if not foundN:
-		uneutrons.append(n)
-		if n[3] is not None:
-			captured.append(n)
-
-print len(neutrons), "neutrons, but only", len(uneutrons), "neutrons without neutron daughters"
-print "Of THOSE neutrons,", len(captured), "were captured."
-
-for n in captured:
-	print "Neutron (ID %7s) with energy %.4e, daughter of a %13s (ID %7s), with %2i daughters" % (n[4], n[3], parts[n[1]][0], n[1], len(n[2]))
+# Now save this dictionary using pickle
+print 'Pickling...'
+pickle.dump(parts, open('saved','wb'), 2)
+print 'Done!'
