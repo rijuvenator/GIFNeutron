@@ -60,6 +60,15 @@ for i, mode in enumerate(modes):
 rate = np.array(rate)
 print "Rate array made"
 
+# area of ACTIVE CFEBs (i.e. missing CFEB4) in square centimeters
+area = 2./5. * (1254. + 534.) * 1900. / 100.
+
+# "divide" by 10 s
+# Sorry, I'm a huge dick
+area *= 10.
+
+rate = rate/area
+
 #nrate = rate / np.tile(np.array([rate[:,-1]]).transpose(), (1,rate.shape[1]))
 nrate = rate / np.tile(rate[0,:], (rate.shape[0],1))
 
@@ -68,6 +77,7 @@ rmin = np.amin(rate)
 #rmax = np.amax(nrate)
 #rmin = np.amin(nrate)
 
+
 graphs = []
 plots = []
 for i, mode in enumerate(modes):
@@ -75,11 +85,11 @@ for i, mode in enumerate(modes):
 #	graphs.append(TGraph(len(atten), curr * 5.e33, np.array(nrate[i,:])))
 	plots.append(Plotter.Plot(graphs[i], "("+str(mode[0])+","+str(mode[1])+")", "p", "AP" if i==0 else "P"))
 
-canvas = Plotter.Canvas("ME2/1, Self-Triggered Cosmics", True, 0., "Internal", 800, 700)
-#canvas = Plotter.Canvas("ME2/1, Self-Triggered Cosmics", False, 0., "Internal", 800, 700)
+#canvas = Plotter.Canvas("ME2/1, Self-Triggered Cosmics", True, 0., "Internal", 800, 700)
+canvas = Plotter.Canvas("ME2/1, Self-Triggered Cosmics", False, 0., "Internal", 800, 700)
 
-canvas.makeLegend(.125,.37,'br',0.02,0.03)
-#canvas.makeLegend(.125,.37,'tl',0.05,0.03)
+#canvas.makeLegend(.125,.37,'br',0.02,0.03)
+canvas.makeLegend(.125,.37,'tl',0.05,0.03)
 
 #cols =  [1, 2, 3, 4, kOrange, 6, 7, 8, 46, kCyan+1, kGray]
 #marks = [kOpenCircle, kOpenSquare, kOpenTriangleUp, kOpenTriangleDown, kOpenCircle, kOpenSquare, kOpenTriangleUp, kOpenTriangleDown, kOpenStar, kOpenCross, kOpenDiamond]
@@ -92,17 +102,18 @@ for i, p in enumerate(plots):
 	p.plot.SetMarkerStyle(marks[i])
 	p.plot.SetMarkerSize(2 if i==0 else 1)
 
-plots[0].scaleTitles(0.8)
-plots[0].scaleLabels(0.8)
-#graphs[0].GetYaxis().SetTitle("CFEB Sum")
-graphs[0].GetYaxis().SetTitle("Normalized CFEB Sum")
-graphs[0].GetXaxis().SetTitle("Luminosity [cm^{-2} s^{-1}]")
+plots[0].scaleTitles(0.73)
+plots[0].scaleLabels(0.73)
+graphs[0].GetYaxis().SetTitle("PreTrigger Rate #left[#frac{Hz}{cm^{2}}#right]")
+#graphs[0].GetYaxis().SetTitle("Ratio of PreTrigger Rate to Default")
+graphs[0].GetXaxis().SetTitle("Luminosity #left[#frac{Hz}{cm^{2}}#right]")
 graphs[0].GetXaxis().SetLimits(-2.e33,13.e34)
-graphs[0].GetYaxis().SetRangeUser(rmin*0.8,rmax*1.2)
-#graphs[0].GetYaxis().SetRangeUser(rmin*0.7,rmax*1.3)
+#graphs[0].GetYaxis().SetRangeUser(rmin*0.8,rmax*1.2)
+graphs[0].GetYaxis().SetRangeUser(rmin*0.7,rmax*1.3)
 TGaxis.SetExponentOffset(-0.08, 0.02, "y")
 graphs[0].GetYaxis().SetDecimals()
 graphs[0].GetYaxis().SetTitleOffset(graphs[0].GetYaxis().GetTitleOffset() * 1.35)
+graphs[0].GetXaxis().SetTitleOffset(graphs[0].GetXaxis().GetTitleOffset() * 1.25)
 canvas.mainPad.SetRightMargin(canvas.mainPad.GetRightMargin() * 1.05)
 
 canvas.leg.SetBorderSize(1)

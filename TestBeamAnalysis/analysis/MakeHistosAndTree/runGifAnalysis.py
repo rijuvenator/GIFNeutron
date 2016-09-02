@@ -9,7 +9,10 @@ if __name__ == '__main__' and 'submit' in sys.argv:
     plotsDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/GIF/data/'
     dryrun = 'dryrun' in sys.argv
     import Gif.TestBeamAnalysis.Measurements as Meas
-    measurements = [Meas.meas[m] for m in ['2312','2095','2262','2064','2079','2224','2333']]
+    #measurements = [Meas.meas[m] for m in ['2312','2095','2262','2064','2079','2224','2333']]
+    #measList = [3084,3086,3088,3090,3092,3094,3095,3097,3099,3101,3103,3105,3107,3109,3111,3113,3115,3117,3119,3121,3123,3125,3127,3129,3131,3133]
+    measList = [3092, 3103, 3113, 3123, 2758, 3094, 3080, 2970, 2843, 2756]
+    measurements = [Meas.meas[str(m)] for m in measList]
     for TBM in measurements:
         chamber = TBM.cham
         test = TBM.runtype
@@ -18,11 +21,11 @@ if __name__ == '__main__' and 'submit' in sys.argv:
         uAtt = 'uOff' if TBM.uAtt=='0' else 'u'+TBM.uAtt
         dAtt = 'dOff' if TBM.dAtt=='0' else 'd'+TBM.dAtt
         measNum = 'm'+TBM.meas
-        #fn = TBM.ROOTFile(prefix='/store/user/adasgupt/GIF/')
-        fn = TBM.fn
+        fn = TBM.ROOTFile(prefix='/store/user/adasgupt/GIF/')
+        #fn = TBM.fn
         # For Chris: # fn = TBM.fn
-        #ana_dataset = plotsDir+'ana_%s.root'%(TBM.meas)
-        ana_dataset = 'ana_%(chamber)s_%(test)s_%(HV)s_%(beam)s_%(uAtt)s_%(dAtt)s_%(measNum)s.root'%locals()
+        ana_dataset = 'ana_%s.root'%(TBM.meas)
+        #ana_dataset = 'ana_%(chamber)s_%(test)s_%(HV)s_%(beam)s_%(uAtt)s_%(dAtt)s_%(measNum)s.root'%locals()
         outPath = plotsDir+ana_dataset
         print TBM
         print "\033[1mINPUT:\033[m", fn
