@@ -47,11 +47,19 @@ for i in list(set(others)):
 
 print "\n\n"
 
+def isWithin(r1, r2, thres=1.0):
+	return (sum([(i-j)**2 for i,j in zip(r1,r2)]))**0.5 < thres	
+
 for n in captured:
-	print 'Captured neutron #%-7s with final energy %.4e and daughters:' % (n.ID, n.energy_final)
-	for d in n.daughters:
+	#print 'Captured neutron #%-7s with final energy %.4e and daughters:' % (n.ID, n.energy_final)
+	#print 'Gammas ',
+	for d in parts[n].daughters:
+		if isWithin(parts[n].pos_final, parts[d].pos_init):
+			print parts[d].name, parts[d].ID, parts[d].energy_init
 		#if parts[d].pos_init == n.pos_final:
-		if parts[d].pos_init == n.pos_final and parts[d].name == 'gamma':
+		#if parts[d].pos_init == n.pos_final and parts[d].name == 'gamma' and parts[d].energy_init > 3.5e-3 and parts[d].energy_init < 5.0e-3:
+			#print parts[d].name, parts[d].ID, parts[d].energy_init
+			#break
 			#print " %13s #%-7s with energy %.4e" % (parts[d].name, parts[d].ID, parts[d].energy_init)
-			print "Gammas %.4e" % (parts[d].energy_init),
+			#print "%.4e" % (parts[d].energy_init),
 	print ""

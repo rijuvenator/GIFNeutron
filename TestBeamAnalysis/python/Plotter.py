@@ -353,3 +353,8 @@ class Canvas:
 
 		self.leg.Draw()
 		self.mainPad.RedrawAxis()
+	
+	# save canvas as file
+	def save(self, name, extList=['.pdf']):
+		for ext in extList:
+			canvas.c.SaveAs(name+ext)
