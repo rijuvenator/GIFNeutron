@@ -5,7 +5,7 @@ from Gif.Neutron.ParticleClass import Particle
 import commands
 
 user = commands.getoutput('echo $USER')
-f = open('/afs/cern.ch/work/%s/%s/public/parts'%(user[0],user))
+f = open('/afs/cern.ch/work/%s/%s/Neutron/parts'%(user[0],user))
 
 # === Fill initial dictionary and "parent list"
 # dictionary is indexed by the Track ID string, and contains a list:
