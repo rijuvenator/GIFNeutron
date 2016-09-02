@@ -2,10 +2,14 @@ import sys
 from itertools import groupby
 import cPickle as pickle
 from Gif.Neutron.ParticleClass import Particle
-import commands
+import ROOT as R
 
-user = commands.getoutput('echo $USER')
-f = open('/afs/cern.ch/work/%s/%s/Neutron/parts'%(user[0],user))
+# This is the same thing as pickle.py, except it uses the ROOT Tree to make the dictionaries.
+# It's syntactically better, and it doesn't depend on the 'parts' file
+# It seems to be slower, but this is to be expected since the entire tree is loaded...
+
+ft = R.TFile.Open('partTree.root')
+t = ft.Get('partTree')
 
 # === Fill initial dictionary and "parent list"
 # dictionary is indexed by the Track ID string, and contains a list:
@@ -24,29 +28,27 @@ print "Filling initial dictionary..."
 parts = {}
 plist = []
 parts['0'] = ['0', 'null', '0', None, None, [], [], 0, [], 0]
-for line in f:
-	l = line.strip('\n').split()
-	if l[0] == 'Particle':
-		thisID = l[6]
-		thisName = l[2]
-		thisParent = l[10]
-		parts[thisID] = [thisID, thisName, thisParent, None, None, [], [], 0, [], 0]
-		plist.append((thisParent,thisID))
-	elif l[0] == '0':
-		parts[thisID][6] = [float(l[1]), float(l[2]), float(l[3])]
-		parts[thisID][7] = float(l[4])
-		pass
-	elif float(l[4])>0:
-		parts[thisID][9] = float(l[4])
-		parts[thisID][8] = [float(l[1]), float(l[2]), float(l[3])]
-		parts[thisID][3] = float(l[7])
-		parts[thisID][4] = l[9]
-	else:
-		parts[thisID][8] = [float(l[1]), float(l[2]), float(l[3])]
-		parts[thisID][3] = float(l[7])
-		parts[thisID][4] = l[9]
-	prevLine = l
-f.close()
+for i in range(t.GetEntries()):
+	t.GetEntry(i)
+
+	nonZero = -1
+	while t.energy[nonZero] < 1.0e-16:
+		nonZero -= 1
+
+	parts[str(t.ID)] = [\
+		str(t.ID),
+		str(t.name),
+		str(t.parent),
+		t.track[-1],
+		t.process[-1],
+		[],
+		[t.x[0], t.y[0], t.z[0]],
+		t.energy[0],
+		[t.x[-1], t.y[-1], t.z[-1]],
+		t.energy[-2]
+	]
+
+	plist.append((str(t.parent), str(t.ID)))
 print "Done filling initial dictionary."
 
 # === Make Daughter Lists
