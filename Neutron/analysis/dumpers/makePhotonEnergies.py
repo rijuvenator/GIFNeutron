@@ -32,6 +32,7 @@ def isWithin(r1, r2, thresh=0.05):
 
 # make photon energy list
 for nID in captured:
+	print parts[nID].energy_final,
 	for dID in parts[nID].daughters:
 		if isWithin(parts[nID].pos_final, parts[dID].pos_init) and parts[dID].name == 'gamma':
 			print '%.4e' % (parts[dID].energy_init),
