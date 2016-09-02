@@ -2,8 +2,10 @@ import sys
 from itertools import groupby
 import cPickle as pickle
 from Gif.Neutron.ParticleClass import Particle
+import commands
 
-f = open('/afs/cern.ch/work/a/adasgupt/Neutron/parts')
+user = commands.getoutput('echo $USER')
+f = open('/afs/cern.ch/work/%s/%s/Neutron/parts'%(user[0],user))
 
 # === Fill initial dictionary and "parent list"
 # dictionary is indexed by the Track ID string, and contains a list:

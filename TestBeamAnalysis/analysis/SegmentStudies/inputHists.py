@@ -136,19 +136,20 @@ styles = {
     '2224' : (1),
     '2333' : (1),
 }
+
 slopeStyles = {
-    '05' : (3),
-    '06' : (2),
-    '07' : (1),
-    '08' : (4),
-    '09' : (5),
+    '05' : (1),
+    '07' : (9),
+    '09' : (2),
+
+    '06' : (5),
+    '08' : (8),
     '10' : (6),
 }
     
 
 # Map attenuations to colors
-colors = {
-    '0'     : (ROOT.kBlack),
+colorsBad = {
     '10'    : (ROOT.kBlue),
     '15'    : (ROOT.kOrange+1),
     '22'    : (ROOT.kGreen+1),
@@ -157,6 +158,20 @@ colors = {
     '100'   : (ROOT.kSpring),
     '1000'  : (ROOT.kMagenta),
     '46000' : (ROOT.kGray),
+    '0'     : (ROOT.kBlack),
+ }
+# Map attenuations to colors
+colors = {
+    '10'    : (ROOT.kYellow+1),
+    '15'    : (ROOT.kGreen),
+    '46'    : (ROOT.kTeal),
+    '100'   : (ROOT.kCyan+1),
+    '1000'  : (ROOT.kBlue),
+    '0'     : (ROOT.kBlack),
+
+    '46000' : (ROOT.kGray),
+    '69'    : (ROOT.kCyan+4),
+    '22'    : (ROOT.kCyan+2),
  }
 
 
