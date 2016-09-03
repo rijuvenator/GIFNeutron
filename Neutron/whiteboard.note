@@ -28,10 +28,13 @@ Neutron ID 641453 -- the neutron we were looking at when we figured out the "lif
     - We can do this for non captured neutrons, but what about the gammas in between?
     - Veto gammas near the capture point
   * {RIJU} _Make a ROOT Tree for "E1" files_
+#    ~~ Done. In fact, we have the option of pickling only from E1 files, if we want.
   * _How far does the neutron travel from 10^m11 GeV to capture?_
     - (GEANT might be making a mess of things by lowering the energy since cross section increase with decreasing energy)
-    - Find the length from thermal to capture `Gonna need the interim path lengths :(` [NEED THE TREE FOR THAT]
+    - Find the length from thermal to capture. Gonna need the interim path lengths :( [NEED THE TREE FOR THAT]
+#    ~~ Done. Plot made.
     - Could they be shorted from 10 m to 2 cm? It means all our neutrons get stopped
+#    ~~ Yeah... looks like most of them do in fact get stopped...
   * {CHRIS} _Lower threshold for ions in G4 printing_
   * {CHRIS} _CRAB IT!_
 
