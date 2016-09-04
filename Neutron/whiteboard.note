@@ -1,0 +1,41 @@
+== September 1, 2016 ==
+
+=== First Look at Neutron Background Logs
+  * What is the spike at 1.1 keV? [See the iron cross section from Bob's email]
+  * Why do the neutrons cool to 1% of thermal? Process = hadElastic [GEANT is simulating P5 at 0K -- LOL]
+
+Neutron ID 843103 -- a neutron that only has a deuteron and a gamma
+Neutron ID 641453 -- the neutron we were looking at when we figured out the "lifetime" vs "death" thing
+85.48     56.7     2291
+
+== September 2, 2016 ==
+
+  * _Find a level diagram of Iron 57_
+  * {RIJU} _Understand nuclides ("get the lay of the land")_
+#    - loosen pos requirement (floating point thing)
+#    - Find the 1 nucleus
+#    - Do a "lego plot" of A vs Z
+     - _Make photon total energy spectrum by daughter nucleus_
+     - Photon total energy spectrums are now corrected for neutron energy [MAKE COMMIT]
+#    ~~ Now based on distance tolerance; not all nuclei daughters are available in log; need to lower threshold
+  * {CHRIS} _Start looking at position_
+#    ~~ x-z, y-z, x-y, r-z, 3D plots made of capture location, cutting out the forward shielding which is uninteresting to our studies
+  * _Find electron in volume and trace it back -- see if it came from a gamma which came from a captured neutron_
+    - Think about positions of CSC volumes
+  * {CHRIS} _Where do the neutrons that turn into deuterons get captured?_
+#    ~~ same plots made with green dots for capture that led to deuterons (black for everything else)
+  * {RIJU} _How many gammas are born from non captured neutrons?_
+    - We can do this for non captured neutrons, but what about the gammas in between?
+    - Veto gammas near the capture point
+  * {RIJU} _Make a ROOT Tree for "E1" files_
+#    ~~ Done. In fact, we have the option of pickling only from E1 files, if we want.
+  * _How far does the neutron travel from 10^m11 GeV to capture?_
+    - (GEANT might be making a mess of things by lowering the energy since cross section increase with decreasing energy)
+    - Find the length from thermal to capture. Gonna need the interim path lengths :( [NEED THE TREE FOR THAT]
+#    ~~ Done. Plot made.
+    - Could they be shorted from 10 m to 2 cm? It means all our neutrons get stopped
+#    ~~ Yeah... looks like most of them do in fact get stopped...
+  * {CHRIS} _Lower threshold for ions in G4 printing_
+  * {CHRIS} _CRAB IT!_
+
+  * Of captured neutrons with gamma energy sums > 7 MeV, what percent don't have nucleon daughters? [MOST OF THEM!]
