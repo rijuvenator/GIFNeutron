@@ -19,4 +19,10 @@ for n in neutrons:
 			captured.append(n)
 
 for n in captured:
-    print n.pos_final[0], n.pos_final[1], n.pos_final[2]
+    deut = False
+    for nd in n.daughters:
+        if parts[nd].name == 'deuteron': deut = True
+    if deut:
+        print n.pos_final[0], n.pos_final[1], n.pos_final[2], parts[nd].name
+    else:
+        print n.pos_final[0], n.pos_final[1], n.pos_final[2], 'No'
