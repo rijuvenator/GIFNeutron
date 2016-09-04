@@ -37,5 +37,7 @@ Neutron ID 641453 -- the neutron we were looking at when we figured out the "lif
 #    ~~ Yeah... looks like most of them do in fact get stopped...
   * {CHRIS} _Lower threshold for ions in G4 printing_
   * {CHRIS} _CRAB IT!_
+    [So I was able to get CRAB to do the jobs just fine, but getting the g4out to print is harder... need to think a bit harder]
+    [Good news though, by chance I generated an event that has neutron-induced hits in the endcap muon system! /afs/cern.ch/work/c/cschnaib/public/neutronInCSC.txt]
 
   * Of captured neutrons with gamma energy sums > 7 MeV, what percent don't have nucleon daughters? [MOST OF THEM!]
