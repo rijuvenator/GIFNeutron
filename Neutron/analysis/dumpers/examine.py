@@ -1,4 +1,12 @@
-from Gif.Neutron.Particle import parts
+import sys
+from Gif.Neutron.Particle import Unpickle
+
+# Requires 1 argument, the suffix used when making the tree
+if len(sys.argv) < 2:
+	print 'usage: script.py suffix'
+	exit()
+
+parts = Unpickle(sys.argv[1])
 
 print 'Starting analysis'
 # === Work with Neutrons

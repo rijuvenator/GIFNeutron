@@ -4,6 +4,8 @@ import cPickle as pickle
 from Gif.Neutron.ParticleClass import Particle
 import commands
 
+# I think we're going to make this obsolete soon, so focus on pickleTree.py
+
 user = commands.getoutput('echo $USER')
 f = open('/afs/cern.ch/work/%s/%s/Neutron/parts'%(user[0],user))
 

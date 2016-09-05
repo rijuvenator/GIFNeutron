@@ -1,12 +1,18 @@
 import sys
 import ROOT as R
 
+# Requires 2 arguments now: the event log file and a suffix
+if len(sys.argv) < 3:
+	print 'Usage: makeTree.py EVENTFILE SUFFIX'
+	exit()
+
 # Makes a TTree from a GEANT Event Log ending in a line with ***
-f = open('/afs/cern.ch/work/a/adasgupt/Neutron/E1')
+#f = open('/afs/cern.ch/work/a/adasgupt/Neutron/E1')
+f = open(sys.argv[1])
 
 # Declare output file and tree
 # Just to be safe, stop Python from managing the tree's memory
-outfile = R.TFile('partTree.root','RECREATE')
+outfile = R.TFile('partTree_'+sys.argv[2]+'.root','RECREATE')
 t = R.TTree('partTree','partTree')
 R.SetOwnership(t, False)
 

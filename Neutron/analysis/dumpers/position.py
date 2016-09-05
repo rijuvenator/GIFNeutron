@@ -1,5 +1,13 @@
+import sys
 from itertools import groupby
-from Gif.Neutron.Particle import parts
+from Gif.Neutron.Particle import Unpickle
+
+# Requires 1 argument, the suffix used when making the tree
+if len(sys.argv) < 2:
+	print 'usage: script.py suffix'
+	exit()
+
+parts = Unpickle(sys.argv[1])
 
 # Print out final positions
 

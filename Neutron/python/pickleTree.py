@@ -4,11 +4,16 @@ import cPickle as pickle
 from Gif.Neutron.ParticleClass import Particle
 import ROOT as R
 
+# Requires 1 argument: the suffix given to makeTree.py
+if len(sys.argv) < 2:
+	print 'Usage: pickleTree.py SUFFIX'
+	exit()
+
 # This is the same thing as pickle.py, except it uses the ROOT Tree to make the dictionaries.
 # It's syntactically better, and it doesn't depend on the 'parts' file
 # It seems to be slower, but this is to be expected since the entire tree is loaded...
 
-ft = R.TFile.Open('partTree.root')
+ft = R.TFile.Open('partTree_'+sys.argv[1]+'.root')
 t = ft.Get('partTree')
 
 # === Fill initial dictionary and "parent list"
@@ -77,5 +82,5 @@ for key in parts.keys():
 
 # Now save this dictionary using pickle
 print 'Pickling particles...'
-pickle.dump(cparts, open('particles.pickle','wb'), 2)
+pickle.dump(cparts, open('particles'+sys.argv[1]+'.pickle','wb'), 2)
 print 'Done.'

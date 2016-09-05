@@ -1,5 +1,12 @@
 import sys
-from Gif.Neutron.Particle import parts
+from Gif.Neutron.Particle import Unpickle
+
+# Requires 1 argument, the suffix used when making the tree
+if len(sys.argv) < 2:
+	print 'Usage: script.py SUFFIX'
+	exit()
+
+parts = Unpickle(sys.argv[1])
 
 # For printing to stderr. Use to print anything you don't want in output.
 def eprint(string):
