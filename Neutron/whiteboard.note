@@ -36,8 +36,17 @@ Neutron ID 641453 -- the neutron we were looking at when we figured out the "lif
     - Could they be shorted from 10 m to 2 cm? It means all our neutrons get stopped
 #    ~~ Yeah... looks like most of them do in fact get stopped...
   * {CHRIS} _Lower threshold for ions in G4 printing_
+#    ~~ Done, m_EkinThreshold is commented out and I hardcoded 0.0 in as the minimum threshold.
   * {CHRIS} _CRAB IT!_
-    [So I was able to get CRAB to do the jobs just fine, but getting the g4out to print is harder... need to think a bit harder]
+#    ~~ Done, CRAB now saves both the output text and ROOT file. Finalizing desired output before doing lots of events.
+
+== September 5, 2016 == 
+
+  * {????} _Set up tree-making/pickling/dumper scripts so that reproducing plots for any arbitrary event is quick and easy_
+    - The idea being we need to be able to have a fast workflow if we're going to be analyzing _many_ events
+    - Raw log file --> Cleaned event file --> tree/dict/pickle --> dumper scripts --> plotting scripts --> plots
+    - Whatever is conivient/easy/fast will do; something where minimal (if not zero) script editing is necessary
+
     [Good news though, by chance I generated an event that has neutron-induced hits in the endcap muon system! /afs/cern.ch/work/c/cschnaib/public/neutronInCSC.txt]
 
   * Of captured neutrons with gamma energy sums > 7 MeV, what percent don't have nucleon daughters? [MOST OF THEM!]
