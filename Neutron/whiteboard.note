@@ -46,6 +46,9 @@ Neutron ID 641453 -- the neutron we were looking at when we figured out the "lif
     - The idea being we need to be able to have a fast workflow if we're going to be analyzing _many_ events
     - Raw log file --> Cleaned event file --> tree/dict/pickle --> dumper scripts --> plotting scripts --> plots
     - Whatever is conivient/easy/fast will do; something where minimal (if not zero) script editing is necessary
+#    ~~ It is now possible to make a tree out of any event file from the command line, after which a pickle may be made from any tree
+#    ~~ Then any of the dumpers will now take an argument specifying which pickle to unpickle
+    [TO DO: There might be a better way of producing "files" than just piping out. Probably a simple bash script will do.]
 
     [Good news though, by chance I generated an event that has neutron-induced hits in the endcap muon system! /afs/cern.ch/work/c/cschnaib/public/neutronInCSC.txt]
 
