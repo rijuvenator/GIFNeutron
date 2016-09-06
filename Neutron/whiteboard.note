@@ -1,12 +1,28 @@
-== September 1, 2016 ==
+== September 6, 2016 ==
 
-=== First Look at Neutron Background Logs
-  * What is the spike at 1.1 keV? [See the iron cross section from Bob's email]
-  * Why do the neutrons cool to 1% of thermal? Process = hadElastic [GEANT is simulating P5 at 0K -- LOL]
+  * Make `pantry` and `forest` directories
+#   Done
+  * Update tree and pickle with new logger info and daughter classes
+#   Tree updated; Daughter class created
+!   Still need to incorporate daughter classes into pickleTree.py
+  * Automate workflow (see below)
+#   Flexibility for any event
+!   makeAllFiles.sh and the thermal paths dumper need some work still
+  * Continue thinking about talk outlines
 
-Neutron ID 843103 -- a neutron that only has a deuteron and a gamma
-Neutron ID 641453 -- the neutron we were looking at when we figured out the "lifetime" vs "death" thing
-85.48     56.7     2291
+== September 5, 2016 == 
+
+  * {????} _Set up tree-making/pickling/dumper scripts so that reproducing plots for any arbitrary event is quick and easy_
+    - The idea being we need to be able to have a fast workflow if we're going to be analyzing _many_ events
+    - Raw log file --> Cleaned event file --> tree/dict/pickle --> dumper scripts --> plotting scripts --> plots
+    - Whatever is conivient/easy/fast will do; something where minimal (if not zero) script editing is necessary
+#    ~~ It is now possible to make a tree out of any event file from the command line, after which a pickle may be made from any tree
+#    ~~ Then any of the dumpers will now take an argument specifying which pickle to unpickle
+    [TO DO: There might be a better way of producing "files" than just piping out. Probably a simple bash script will do.]
+
+    [Good news though, by chance I generated an event that has neutron-induced hits in the endcap muon system! /afs/cern.ch/work/c/cschnaib/public/neutronInCSC.txt]
+
+  * Of captured neutrons with gamma energy sums > 7 MeV, what percent don't have nucleon daughters? [MOST OF THEM!]
 
 == September 2, 2016 ==
 
@@ -40,16 +56,13 @@ Neutron ID 641453 -- the neutron we were looking at when we figured out the "lif
   * {CHRIS} _CRAB IT!_
 #    ~~ Done, CRAB now saves both the output text and ROOT file. Finalizing desired output before doing lots of events.
 
-== September 5, 2016 == 
+== September 1, 2016 ==
 
-  * {????} _Set up tree-making/pickling/dumper scripts so that reproducing plots for any arbitrary event is quick and easy_
-    - The idea being we need to be able to have a fast workflow if we're going to be analyzing _many_ events
-    - Raw log file --> Cleaned event file --> tree/dict/pickle --> dumper scripts --> plotting scripts --> plots
-    - Whatever is conivient/easy/fast will do; something where minimal (if not zero) script editing is necessary
-#    ~~ It is now possible to make a tree out of any event file from the command line, after which a pickle may be made from any tree
-#    ~~ Then any of the dumpers will now take an argument specifying which pickle to unpickle
-    [TO DO: There might be a better way of producing "files" than just piping out. Probably a simple bash script will do.]
+=== First Look at Neutron Background Logs
+  * What is the spike at 1.1 keV? [See the iron cross section from Bob's email]
+  * Why do the neutrons cool to 1% of thermal? Process = hadElastic [GEANT is simulating P5 at 0K -- LOL]
 
-    [Good news though, by chance I generated an event that has neutron-induced hits in the endcap muon system! /afs/cern.ch/work/c/cschnaib/public/neutronInCSC.txt]
+Neutron ID 843103 -- a neutron that only has a deuteron and a gamma
+Neutron ID 641453 -- the neutron we were looking at when we figured out the "lifetime" vs "death" thing
+85.48     56.7     2291
 
-  * Of captured neutrons with gamma energy sums > 7 MeV, what percent don't have nucleon daughters? [MOST OF THEM!]

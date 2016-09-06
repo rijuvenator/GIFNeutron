@@ -1,9 +1,10 @@
 import sys
 from Gif.Neutron.Particle import Unpickle
+from Gif.Neutron.Tools import eprint
 
 # Requires 1 argument, the suffix used when making the tree
 if len(sys.argv) < 2:
-	print 'Usage: script.py SUFFIX'
+	eprint('Usage: script.py SUFFIX')
 	exit()
 
 parts = Unpickle(sys.argv[1])
@@ -57,7 +58,7 @@ for nID in captured:
 
 import ROOT as R
 
-f = R.TFile.Open('../../python/partTree.root')
+f = R.TFile.Open('../../python/partTree'+sys.argv[1]+'.root')
 t = f.Get('partTree')
 
 count = 0
@@ -73,7 +74,5 @@ for i in range(t.GetEntries()):
 			idx -= 1
 		# it turns out for all relevant cases, they go from thermal to capture in one particle
 		#print '%s %s %.4e' % (t.ID, nID, t.track[-1] - t.track[idx] + rests[thermals.index(t.ID)])
-		print '%.4e' % (t.track[-1] - t.track[idx] + rests[thermals.index(t.ID)])
+		print '%.4e' % (t.track[-1] - t.track[idx] + (nID == t.ID)*rests[thermals.index(t.ID)])
 		sys.stdout.flush()
-	if count == 9050:
-		break
