@@ -1,13 +1,19 @@
+import sys
 import ROOT as R
 import Gif.TestBeamAnalysis.Plotter as Plotter
 import numpy as np
+
+# Requires 1 argument, the suffix used when making the tree
+if len(sys.argv) < 2:
+	eprint('Usage: script.py SUFFIX')
+	exit()
 
 # makes a plot of the distance travelled between thermal and capture
 # note that the x axis is log scale, and the bins are equally spaced on a log scale
 
 nBins = 100
 h = R.TH1F('spectrum','',nBins,np.linspace(0.,200.,nBins+1))
-f = open('../files/paths')
+f = open('../files/paths_'+sys.argv[1])
 for line in f:
 	h.Fill(float(line.strip('\n')))
 
@@ -30,4 +36,4 @@ h.SetFillColor(R.kOrange)
 
 canvas.finishCanvas()
 
-canvas.c.SaveAs('../pdfs/hPath.pdf')
+canvas.c.SaveAs('../pdfs/hPath_'+sys.argv[1]+'.pdf')

@@ -4,33 +4,37 @@ from Gif.Neutron.Tools import eprint
 
 # Requires 1 argument, the suffix used when making the tree
 if len(sys.argv) < 2:
-	eprint('usage: script.py suffix')
+	eprint('Usage: script.py SUFFIX')
 	exit()
 
 parts = Unpickle(sys.argv[1])
 
 # Print out final positions
 
+# Changed to have IDs instead of copying classes
 eprint('Starting analysis')
-neutrons = [parts[p] for p in parts.keys() if parts[p].name == 'neutron']
+neutrons = [parts[p].ID for p in parts.keys() if parts[p].name == 'neutron']
 uneutrons = []
 captured = []
-for n in neutrons:
+for nID in neutrons:
 	foundN = False
-	for nd in n.daughters:
-		if parts[nd].name == 'neutron':
+	for d in parts[nID].daughters:
+		if d.name == 'neutron':
 			foundN = True
 			break
 	if not foundN:
-		uneutrons.append(n)
-		if n.process == 'nCapture':
-			captured.append(n)
+		uneutrons.append(nID)
+		if parts[nID].process == 'nCapture':
+			captured.append(nID)
 
-for n in captured:
+for nID in captured:
     deut = False
-    for nd in n.daughters:
-        if parts[nd].name == 'deuteron': deut = True
+	# Changed for new daughter class
+    if parts[nID].daughters[-1].name == 'deuteron':
+        deut = True
+	# Bug in your code, Chris; nd should be out of scope by now. However, it is always the last daughter in python.
+	# Check an older commit or ask me if you don't know what I'm talking about. I'm fixing it.
     if deut:
-        print n.pos_final[0], n.pos_final[1], n.pos_final[2], parts[nd].name
+        print '%.4f %.4f %.4f %s' % (parts[nID].pos_final[0], parts[nID].pos_final[1], parts[nID].pos_final[2], 'deuteron')
     else:
-        print n.pos_final[0], n.pos_final[1], n.pos_final[2], 'No'
+        print '%.4f %.4f %.4f %s' % (parts[nID].pos_final[0], parts[nID].pos_final[1], parts[nID].pos_final[2], 'No')

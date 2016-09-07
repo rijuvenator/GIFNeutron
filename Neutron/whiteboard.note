@@ -1,13 +1,17 @@
 == September 6, 2016 ==
 
   * Make `pantry` and `forest` directories
-#   Done
+#   Done: Organization fully incorporated
   * Update tree and pickle with new logger info and daughter classes
-#   Tree updated; Daughter class created
-!   Still need to incorporate daughter classes into pickleTree.py
+#   Done: Tree updated; Daughter class created; Daughter class fully incorporated
   * Automate workflow (see below)
-#   Flexibility for any event
-!   makeAllFiles.sh and the thermal paths dumper need some work still
+#   Done: Workflow = Log > Tree > Pickle > Dumpers > Lists > Plotters > PDFs: fully incorporated
+#   Some details to be addressed; see below
+!   Chris needs to update nCapturePos.py to use the new naming conventions (suffixes as arguments and in all filenames)
+!   Riju needs to fix the thermal paths dumper -- it needs some work still
+!   Maybe we need a script to run all plotters (wrap the following in a .sh, perhaps?)
+    `for i in *.py; do python $i $SUFFIX -b; done`
+  * _Make the fabled A vs Z plots_ [which we can do now that we actually have all the captured nuclei!]
   * Continue thinking about talk outlines
 
 == September 5, 2016 == 

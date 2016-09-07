@@ -135,13 +135,13 @@ for line in f:
 			process.push_back(l[9])
 	elif state == 3:
 		dCount += 1
-		l = line.strip('\n').split()
-		Dx     .push_back(float(l[1]           ))
-		Dy     .push_back(float(l[2]           ))
-		Dz     .push_back(float(l[3].strip(')')))
-		Denergy.push_back(float(l[5]           ))
-		Dtime  .push_back(float(l[7]           ))
-		Dname  .push_back(l[9]                  )
+		l = line.strip('\n').lstrip('      (').split() # damn you, GEANT!
+		Dx     .push_back(float(l[0]           ))
+		Dy     .push_back(float(l[1]           ))
+		Dz     .push_back(float(l[2].strip(')'))) # damn you, GEANT!
+		Denergy.push_back(float(l[4]           ))
+		Dtime  .push_back(float(l[6]           ))
+		Dname  .push_back(l[8]                  )
 	elif state == 4:
 		dCount += 1
 		l = line.strip('\n').split()

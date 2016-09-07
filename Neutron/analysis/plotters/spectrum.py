@@ -1,13 +1,19 @@
+import sys
 import ROOT as R
 import Gif.TestBeamAnalysis.Plotter as Plotter
 import numpy as np
+
+# Requires 1 argument, the suffix used when making the tree
+if len(sys.argv) < 2:
+	eprint('Usage: script.py SUFFIX')
+	exit()
 
 # makes a plot of the captured neutron energy spectrum
 # note that the x axis is log scale, and the bins are equally spaced on a log scale
 
 nBins = 1000
 h = R.TH1F('spectrum','',nBins,np.logspace(-15.,-2.,nBins+1))
-f = open('../files/energies')
+f = open('../files/energies_'+sys.argv[1])
 for line in f:
 	h.Fill(float(line.strip('\n')))
 
@@ -38,4 +44,4 @@ line = R.TLine(0.025e-9,0.,0.025e-9,h.GetMaximum()*1.05)
 line.SetLineStyle(2)
 line.Draw()
 
-canvas.c.SaveAs('../pdfs/hSpectrum.pdf')
+canvas.c.SaveAs('../pdfs/hSpectrum_'+sys.argv[1]+'.pdf')
