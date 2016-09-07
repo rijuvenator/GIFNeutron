@@ -357,4 +357,4 @@ class Canvas:
 	# save canvas as file
 	def save(self, name, extList=['.pdf']):
 		for ext in extList:
-			canvas.c.SaveAs(name+ext)
+			self.c.SaveAs(name+ext)
