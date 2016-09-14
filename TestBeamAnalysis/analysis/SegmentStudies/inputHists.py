@@ -162,9 +162,9 @@ colorsBad = {
  }
 # Map attenuations to colors
 colors = {
-    '10'    : (ROOT.kYellow+1),
-    '15'    : (ROOT.kGreen),
-    '46'    : (ROOT.kTeal),
+    '10'    : (ROOT.kRed),
+    '15'    : (ROOT.kOrange),
+    '46'    : (ROOT.kGreen+1),
     '100'   : (ROOT.kCyan+1),
     '1000'  : (ROOT.kBlue),
     '0'     : (ROOT.kBlack),
@@ -253,7 +253,7 @@ class segHisto:
         if self.m.dAtt == '0': leg = 'No Source'
         else: 
             leg = 'Att = %s'%self.m.dAtt
-            if self.m.dAtt == '10': leg += ' (%s)'%self.m.uAtt
+            #if self.m.dAtt == '10': leg += ' (%s)'%self.m.uAtt
         return leg
 
 
