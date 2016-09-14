@@ -5,18 +5,18 @@ import ROOT as R
 
 # PARAMETERS
 cham = 2
-numer = 'ALCT*CLCT'
-denom = 'L1A'
+numer = 'CFEB Sum'
+denom = None
 
 data = []
-quants = ['CFEB', 'CLCT0', 'CLCT1', 'ALCT', 'ALCT*CLCT', 'L1A']
+quants = ['CFEB Sum', 'CLCT0', 'CLCT1', 'ALCT', 'ALCT*CLCT', 'L1A']
 fftypes = ['Original', 'TightPreCLCT', 'TightCLCT', 'TightALCT']
 
 ylist = [numer+'-'+ff for ff in fftypes]
 if denom is not None: nlist = [denom+'-'+ff for ff in fftypes]
 
 awkStrings = {}
-awkStrings['CFEB']      = '$3 + $4 + $5 + $6 + $7 + $8 + $9'
+awkStrings['CFEB Sum']      = '$3 + $4 + $5 + $6 + $7 + $8 + $9'
 awkStrings['CLCT0']     = '$10'
 awkStrings['CLCT1']     = '$11'
 awkStrings['ALCT*CLCT'] = '$12'
@@ -139,11 +139,11 @@ def makePlot(x, y, ytit, fn, extra, makeFit, norm=None):
 	gr3plot = Plotter.Plot(gr3, "TightALCT"   , "p","P")
 
 	# Step 2
-	canvas = Plotter.Canvas(extra, False, 0., "Internal", 800, 700)
-	#canvas = Plotter.Canvas(extra, True, 0., "Internal", 800, 700)
+	#canvas = Plotter.Canvas(extra, False, 0., "Internal", 800, 700)
+	canvas = Plotter.Canvas(extra, True, 0., "Internal", 800, 700)
 
 	# Step 3
-	canvas.makeLegend(.2,0.15,'tr',0.04, 0.03)
+	canvas.makeLegend(.2,0.15,'tl',0.04, 0.03)
 
 	# Step 4
 	canvas.addMainPlot(gr0plot,True ,True)
@@ -154,6 +154,7 @@ def makePlot(x, y, ytit, fn, extra, makeFit, norm=None):
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
 #	canvas.mainPad.SetLogx(True)
+	gr0.GetYaxis().SetTitleOffset(gr0.GetYaxis().GetTitleOffset()*1.4)
 	gr0.GetYaxis().SetTitle(ytit)
 	gr0.GetXaxis().SetTitle('Mean Current [#muA]')
 	gr0plot.scaleTitles(0.8)

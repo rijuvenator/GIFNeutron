@@ -11,7 +11,8 @@ if __name__ == '__main__' and 'submit' in sys.argv:
     import Gif.TestBeamAnalysis.Measurements as Meas
     #measurements = [Meas.meas[m] for m in ['2312','2095','2262','2064','2079','2224','2333']]
     #measList = [3084,3086,3088,3090,3092,3094,3095,3097,3099,3101,3103,3105,3107,3109,3111,3113,3115,3117,3119,3121,3123,3125,3127,3129,3131,3133]
-    measList = [3092, 3103, 3113, 3123, 2758, 3094, 3080, 2970, 2843, 2756]
+    #measList = [3092, 3103, 3113, 3123, 2758, 3094, 3080, 2970, 2843, 2756]
+    measList = [3084,3086,3088,3090,3095,3097,3099,3101,3105,3107,3109,3111,3115,3117,3119,3121,3125,3127,3129,3131,3133]
     measurements = [Meas.meas[str(m)] for m in measList]
     for TBM in measurements:
         chamber = TBM.cham

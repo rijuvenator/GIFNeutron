@@ -7,14 +7,14 @@ import Gif.TestBeamAnalysis.Plotter as Plotter
 #3092, 3103, 3113, 3123, 2758
 #3094, 3080, 2970, 2843, 2756
 
-nCat = 6
+nCat = 4
 
 measList = [\
-		3084,3086,3088,3090,     3092,3094,
-		3095,3097,3099,3101,     3103,3080,
-		3105,3107,3109,3111,     3113,2970,
-		3115,3117,3119,3121,     3123,2843,
-		3125,3127,3129,3131,3133,2758,2756
+		3084,3086,3088,3090,    # 3092,3094,
+		3095,3097,3099,3101,    # 3103,3080,
+		3105,3107,3109,3111,    # 3113,2970,
+		3115,3117,3119,3121,    # 3123,2843,
+		3125,3127,3129,3131,3133#,2758,2756
 		]
 
 curr = {}
@@ -31,17 +31,17 @@ for i,m in enumerate(measList):
 	elif m==3131:
 		f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/GIF/data/ana_'+str(m)+'.root')
 		t = f.Get('GIFTree/GIFDigiTree')
-		nLCT = t.Draw('n_lcts','n_alcts>0','goff')
+		nLCT = t.Draw('n_lcts','n_lcts>0','goff')
 		nTot = t.GetEntries()
 		f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/GIF/data/ana_3133.root')
 		t = f.Get('GIFTree/GIFDigiTree')
-		nLCT += t.Draw('n_lcts','n_alcts>0','goff')
+		nLCT += t.Draw('n_lcts','n_lcts>0','goff')
 		nTot += t.GetEntries()
 		#print '%4i %5i %5i' % (m, nLCT, nTot)
 	else:
 		f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/GIF/data/ana_'+str(m)+'.root')
 		t = f.Get('GIFTree/GIFDigiTree')
-		nLCT = t.Draw('n_lcts','n_alcts>0','goff')
+		nLCT = t.Draw('n_lcts','n_lcts>0','goff')
 		nTot = t.GetEntries()
 		#print '%4i %5i %5i' % (m, nLCT, nTot)
 
@@ -90,16 +90,16 @@ def makePlot(x, y):
 	gr1 = R.TGraph(len(x), np.array(x), np.array(y[:,1]))
 	gr2 = R.TGraph(len(x), np.array(x), np.array(y[:,2]))
 	gr3 = R.TGraph(len(x), np.array(x), np.array(y[:,3]))
-	gr4 = R.TGraph(len(x), np.array(x), np.array(y[:,4]))
-	gr5 = R.TGraph(len(x), np.array(x), np.array(y[:,5]))
+#	gr4 = R.TGraph(len(x), np.array(x), np.array(y[:,4]))
+#	gr5 = R.TGraph(len(x), np.array(x), np.array(y[:,5]))
 
 	# Step 1
 	gr0plot = Plotter.Plot(gr0, "Original"    , "p","AP")
 	gr1plot = Plotter.Plot(gr1, "TightPreCLCT", "p","P")
 	gr2plot = Plotter.Plot(gr2, "TightCLCT"   , "p","P")
 	gr3plot = Plotter.Plot(gr3, "TightALCT"   , "p","P")
-	gr4plot = Plotter.Plot(gr4, "TightPreID"  , "p","P")
-	gr5plot = Plotter.Plot(gr5, "TightID"     , "p","P")
+#	gr4plot = Plotter.Plot(gr4, "TightPreID"  , "p","P")
+#	gr5plot = Plotter.Plot(gr5, "TightID"     , "p","P")
 
 	# Step 2
 	canvas = Plotter.Canvas('ME2/1 External Trigger', False, 0., "Internal", 800, 700)
@@ -113,14 +113,14 @@ def makePlot(x, y):
 	canvas.addMainPlot(gr1plot,False,True)
 	canvas.addMainPlot(gr2plot,False,True)
 	canvas.addMainPlot(gr3plot,False,True)
-	canvas.addMainPlot(gr4plot,False,True)
-	canvas.addMainPlot(gr5plot,False,True)
+#	canvas.addMainPlot(gr4plot,False,True)
+#	canvas.addMainPlot(gr5plot,False,True)
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
 #	canvas.mainPad.SetLogx(True)
-#	gr0.GetYaxis().SetTitle('LCT Efficiency')
-	gr0.GetYaxis().SetTitle('Normalized LCT Efficiency')
+	gr0.GetYaxis().SetTitle('LCT Efficiency')
+#	gr0.GetYaxis().SetTitle('Normalized LCT Efficiency')
 	gr0.GetXaxis().SetTitle('Mean Current [#muA]')
 	gr0plot.scaleTitles(0.8)
 	gr0plot.scaleLabels(0.8)
@@ -131,22 +131,22 @@ def makePlot(x, y):
 	gr1.SetMarkerColor(cols[1])
 	gr2.SetMarkerColor(cols[2])
 	gr3.SetMarkerColor(cols[3])
-	gr4.SetMarkerColor(cols[4])
-	gr5.SetMarkerColor(cols[5])
+#	gr4.SetMarkerColor(cols[4])
+#	gr5.SetMarkerColor(cols[5])
 
 	gr0.SetMarkerStyle(mars[0])
 	gr1.SetMarkerStyle(mars[1])
 	gr2.SetMarkerStyle(mars[2])
 	gr3.SetMarkerStyle(mars[3])
-	gr4.SetMarkerStyle(mars[4])
-	gr5.SetMarkerStyle(mars[5])
+#	gr4.SetMarkerStyle(mars[4])
+#	gr5.SetMarkerStyle(mars[5])
 
 	gr0.SetMarkerSize(2.2)
 	gr1.SetMarkerSize(2.2)
 	gr2.SetMarkerSize(2.2)
 	gr3.SetMarkerSize(2.2)
-	gr4.SetMarkerSize(2.2)
-	gr5.SetMarkerSize(2.2)
+#	gr4.SetMarkerSize(2.2)
+#	gr5.SetMarkerSize(2.2)
 
 	# Step 6
 
@@ -157,5 +157,5 @@ def makePlot(x, y):
 	canvas.c.SaveAs('LCT.pdf')
 	R.SetOwnership(canvas.c, False)
 
-#makePlot(data[:,1], data[:,2:])
-makePlot(data[:,1], ndata)
+makePlot(data[:,1], data[:,2:])
+#makePlot(data[:,1], ndata)
