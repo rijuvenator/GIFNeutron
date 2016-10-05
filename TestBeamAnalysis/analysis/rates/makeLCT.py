@@ -121,7 +121,8 @@ def makePlot(x, y):
 #	canvas.mainPad.SetLogx(True)
 	gr0.GetYaxis().SetTitle('LCT Efficiency')
 #	gr0.GetYaxis().SetTitle('Normalized LCT Efficiency')
-	gr0.GetXaxis().SetTitle('Mean Current [#muA]')
+#	gr0.GetXaxis().SetTitle('Mean Current [#muA]')
+	gr0.GetXaxis().SetTitle('Luminosity [Hz/cm^{2}]')
 	gr0plot.scaleTitles(0.8)
 	gr0plot.scaleLabels(0.8)
 	gr0.SetMinimum(0.4)
@@ -157,5 +158,5 @@ def makePlot(x, y):
 	canvas.c.SaveAs('LCT.pdf')
 	R.SetOwnership(canvas.c, False)
 
-makePlot(data[:,1], data[:,2:])
+makePlot(5.e33 * data[:,1], data[:,2:])
 #makePlot(data[:,1], ndata)

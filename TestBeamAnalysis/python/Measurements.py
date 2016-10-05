@@ -62,16 +62,19 @@ class Meas():
 			self.star = False
                 
 		# get test beam #
-		measNum = int(self.meas)
-		if measNum >= 1926 and measNum <=2432 and self.cham=='ME11':
-			self.TB = '1'
-		elif measNum >= 2062 and measNum <=2432 and self.cham=='ME21':
-			self.TB = '1'
-		elif measNum >=2433 and measNum <=2588:
-			self.TB = '2'
-		elif measNum >=2590 and measNum <= 3134:
-			self.TB = '3'
-		else:
+		try:
+			measNum = int(self.meas)
+			if measNum >= 1926 and measNum <=2432 and self.cham=='ME11':
+				self.TB = '1'
+			elif measNum >= 2062 and measNum <=2432 and self.cham=='ME21':
+				self.TB = '1'
+			elif measNum >=2433 and measNum <=2588:
+				self.TB = '2'
+			elif measNum >=2590 and measNum <= 3134:
+				self.TB = '3'
+			else:
+				self.TB = 'bad'
+		except:
 			self.TB = 'bad'
 	
 	# --- repr; what to print

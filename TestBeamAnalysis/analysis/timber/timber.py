@@ -42,6 +42,18 @@ def sinceFirst(t):
 times = np.array([sinceFirst(t) for t in rtimes])
 scalars = np.array(scalars)
 
+for i in scalars[:,3]:
+	print i
+
+#print "%4s %2i %6i %8.3f %8.3f %8.3f %5.2f%%" % (\
+#		outputFN,
+#		len(scalars[:,0]),
+#		sum(scalars[:,3]),
+#		(rtimes[-1]-rtimes[0]).seconds,
+#		float(sum(scalars[:,3]))/(rtimes[-1]-rtimes[0]).seconds,
+#		np.std(scalars[:,3]),
+#		np.std(scalars[:,3])/np.mean(scalars[:,3])*100.0)
+
 import Gif.TestBeamAnalysis.Plotter as Plotter
 from ROOT import *
 
@@ -97,18 +109,22 @@ def timePlot():
 	gr1.GetXaxis().SetTitle("Time [CET]")
 	gr1.SetMarkerColor(kRed-3)
 	gr1.SetLineColor  (kRed-3)
+	gr1.SetMarkerSize(3)
 	gr2.SetMarkerColor(kBlue-2)
 	gr2.SetLineColor  (kBlue-2)
+	gr2.SetMarkerSize(3)
 	gr3.SetMarkerColor(kGreen-3)
 	gr3.SetLineColor  (kGreen-3)
+	gr3.SetMarkerSize(3)
 	gr4.SetMarkerColor(kMagenta)
 	gr4.SetLineColor  (kMagenta)
+	gr4.SetMarkerSize(3)
 	gr1plot.scaleTitles(0.8)
 	gr1plot.scaleLabels(0.8)
 	gr1.GetYaxis().SetTitleOffset(gr1.GetYaxis().GetTitleOffset()*0.7)
 	gr1.GetXaxis().SetTitleOffset(gr1.GetXaxis().GetTitleOffset()*1.1)
 	#gr1.GetXaxis().SetRangeUser(200000., 700000.)
-	gr1.GetYaxis().SetRangeUser(0., 30000.)
+	gr1.GetYaxis().SetRangeUser(0., 18000.)
 	canvas.mainPad.SetLeftMargin(canvas.mainPad.GetLeftMargin() * 0.5)
 
 	# Step 6
