@@ -1,7 +1,7 @@
 #!/bin/bash
 
 FILE="meta"
-let CUTOFF=2719
+let CUTOFF=4000
 
 for m in $(awk '/\*/ {print $1}' $FILE)
 #for m in 2720 2729 2730 2731 2732

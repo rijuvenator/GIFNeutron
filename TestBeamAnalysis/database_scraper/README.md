@@ -5,7 +5,6 @@ For scraping the [CSC GIF Measurements Database](https://oraweb.cern.ch/pls/cms_
     * Do `./scrape.py > meta` to update *meta* and save all TMB dumps in *tmb/*.
     * Any quirks will print to the terminal (to `stderr`). Follow up on these.
   * *meta* is the scraped database. Each line's format is `Meas Cham HV Source Beam Up Down FF File`.
-    * *meta_cam* are Cameron's measurements, along with the modified register values.
   * *starlord.sh* finds the number of files for each raw file with a `*` in it.
     * Update *starlord.sh* with the cutoff for `/raid/` vs. `/mnt/backup/raid/`.
     * Do `./starlord.sh > star_exploded` to update *star_exploded*.
