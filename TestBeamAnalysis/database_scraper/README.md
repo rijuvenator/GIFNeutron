@@ -1,5 +1,17 @@
 # Database Scraper
 
+## New in TB5 Dual Chamber:
+
+Most of the lines below apply, but note the following slightly different procedure:
+
+  * Fill *tmb/* with the Automated TMB Dump text files by running *downloadTMB.sh* from *database_scraper/*
+    * I used to have to do with while scraping; since they are their own files now, it's no longer necessary.
+  * Create *trigdata* by running *makeTrigData.py* from *tmb/* and redirecting
+    * Specifically, `for i in *.tmb; do python ../makeTrigData.py $i; done`
+	* The TMB dumps are in a different format, so a new script for making the table was necessary
+
+## Documentation
+
 For scraping the [CSC GIF Measurements Database](https://oraweb.cern.ch/pls/cms_emu_fast.pro/gif_log.top_page):
   * *scrape.py* is the main engine.
     * Do `./scrape.py > meta` to update *meta* and save all TMB dumps in *tmb/*.
@@ -11,8 +23,7 @@ For scraping the [CSC GIF Measurements Database](https://oraweb.cern.ch/pls/cms_
   * *star_exploded* is a list of measurements with how many files are associated with them.
   * *autopass.sh* is an `expect` script for ssh'ing or scp'ing automatically.
     * Usage is `./autopass.sh PASSWORD COMMAND`
-  * *trig.sh* makes a table from the TMB dumps in `tmb/`, output to `trigdata`.
-    * *trig_cam.sh* reads Cameron's measurements and makes a table, output to `trigdata_cam`
+  * **DEPRECATED BY ABOVE**: *trig.sh* makes a table from the TMB dumps in `tmb/`, output to `trigdata`.
   * *byFilter.sh* makes a list of TMB dumps by chamber and downstream attenuation. Good for sorting.
   * *kat* contains the script for the silly renaming scheme and some filenames split up somehow. I haven't looked at this in a while.
   * *notes* contains a record of quirks.

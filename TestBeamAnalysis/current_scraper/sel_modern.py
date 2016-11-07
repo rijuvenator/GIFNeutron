@@ -16,14 +16,13 @@ rawdata = []
 for line in f:
 	arr = line.strip("\n").split()
 	dic = {}
-	dic["startdate"] = arr[2]
-	dic["starttime"] = arr[3]
-	dic["stopdate"] = arr[0]
-	dic["stoptime"] = arr[1]
-	dic["cham"] = arr[4]
+	dic["startdate"] = arr[0]
+	dic["starttime"] = arr[1]
+	dic["stopdate"] = arr[2]
+	dic["stoptime"] = arr[3]
 	dic["detailed"] = globDet
-	dic["startm"] = arr[6]
-	dic["endm"] = arr[5]
+	dic["meas"] = arr[4]
+	dic["cham"] = arr[5]
 	rawdata.append(dic)
 
 # test data dictionaries
@@ -32,30 +31,27 @@ dataTest1 = {
 		"starttime" : "00:00",
 		"stopdate" : "10.5.2016",
 		"stoptime" : "04:00",
-		"cham" : "1",
 		"detailed" : True,
-		"startm" : "0",
-		"endm" : "0"
+		"meas" : "0",
+		"cham" : "1"
 		}
 dataTest2 = {
 		"startdate" : "9.5.2016",
 		"starttime" : "00:00",
 		"stopdate" : "9.5.2016",
 		"stoptime" : "04:00",
-		"cham" : "2",
 		"detailed" : True,
-		"startm" : "0",
-		"endm" : "0"
+		"meas" : "0",
+		"cham" : "1"
 		}
 dataTest3 = {
 		"startdate" : "8.5.2016",
 		"starttime" : "00:00",
 		"stopdate" : "8.5.2016",
 		"stoptime" : "04:00",
-		"cham" : "1",
 		"detailed" : False,
-		"startm" : "0",
-		"endm" : "0"
+		"meas" : "0",
+		"cham" : "1"
 		}
 
 # For modern desktops, i.e. Firefox 45+, Marionette is required;
@@ -77,7 +73,7 @@ def turnOff(elem):
 		elem.click()
 
 # the main engine
-def getCurrents(data):
+def getCurrents(data,out):
 	# if using a single browser, instead of destroying and recreating,
 	# make "out" global and move it outside the function
 	#out = "output here"
@@ -103,8 +99,8 @@ def getCurrents(data):
 	# This is to prevent "Other element would receive the click" errors;
 	# I expect it is because of the date picker pop-up covering the buttons
 	# so click and unclick elsewhere on the form
-	turnOff(b.find_element_by_id("section1"))
-	turnOn(b.find_element_by_id("section1"))
+	turnOn(b.find_element_by_id("chamber1"))
+	turnOn(b.find_element_by_id("chamber1"))
 
 	# Click chamber and turn on section 2 and 3 for ME2/1
 	if data["cham"] == "1":
@@ -148,11 +144,10 @@ def getCurrents(data):
 		try:
 			thisOut = b.find_element_by_id("printout").get_attribute("innerHTML")
 		except:
-			print "#%s-%s didn't work." % (data["startm"], data["endm"])
+			print "#%s didn't work." % (data["meas"])
 			b.quit()
 			return
-		#if thisOut == out:
-		if thisOut == "output here":
+		if thisOut == out:
 			pass
 		else:
 			waitingForData = False
@@ -160,7 +155,7 @@ def getCurrents(data):
 
 	# Everything has worked well. Print out the measurement range and the data,
 	# replacing all the <br> tags with real linebreaks.
-	print "#%s-%s" % (data["startm"], data["endm"])
+	print "#%s : %s" % (data["meas"], data["cham"])
 	print out.replace("<br>","\n")
 
 	# Go back to parent page. It was more important when I was trying to save screenshots, and/or
@@ -170,15 +165,15 @@ def getCurrents(data):
 	#b.quit()
 
 # Test data
-#getCurrents(dataTest1)
-#getCurrents(dataTest2)
-#getCurrents(dataTest3)
+#getCurrents(dataTest1,out)
+#getCurrents(dataTest2,out)
+#getCurrents(dataTest3,out)
 
 # The count is just for progress report purposes while the script runs.
 # It gets printed to stderr and is lost.
 c = 0
 for data in rawdata:
-	getCurrents(data)
+	getCurrents(data, out)
 	c = c + 1
 	print >> sys.stderr, c
 

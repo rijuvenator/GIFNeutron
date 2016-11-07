@@ -10,6 +10,9 @@ for line in f:
 		atten = line.split()[0].split('=')[1]
 		print "%5s" % atten,
 	if line[0] == 'I':
-		print "%5s" % line.split('=')[1].strip('\n'), 
+		if 'no data' not in line:
+			print "%5s" % line.split('=')[1].strip('\n'), 
+		else:
+			print "     ",
 	if line[0] == 'P':
 		print ""
