@@ -3,7 +3,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import *
 #from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import sys
-import time
 
 globDet = True
 
@@ -17,14 +16,13 @@ rawdata = []
 for line in f:
 	arr = line.strip("\n").split()
 	dic = {}
-	dic["startdate"] = arr[2]
-	dic["starttime"] = arr[3]
-	dic["stopdate"] = arr[0]
-	dic["stoptime"] = arr[1]
-	dic["cham"] = arr[4]
+	dic["startdate"] = arr[0]
+	dic["starttime"] = arr[1]
+	dic["stopdate"] = arr[2]
+	dic["stoptime"] = arr[3]
 	dic["detailed"] = globDet
-	dic["startm"] = arr[6]
-	dic["endm"] = arr[5]
+	dic["meas"] = arr[4]
+	dic["cham"] = arr[5]
 	rawdata.append(dic)
 
 # test data dictionaries
@@ -33,30 +31,27 @@ dataTest1 = {
 		"starttime" : "00:00",
 		"stopdate" : "10.5.2016",
 		"stoptime" : "04:00",
-		"cham" : "1",
 		"detailed" : True,
-		"startm" : "0",
-		"endm" : "0"
+		"meas" : "0",
+		"cham" : "1"
 		}
 dataTest2 = {
 		"startdate" : "9.5.2016",
 		"starttime" : "00:00",
 		"stopdate" : "9.5.2016",
 		"stoptime" : "04:00",
-		"cham" : "2",
 		"detailed" : True,
-		"startm" : "0",
-		"endm" : "0"
+		"meas" : "0",
+		"cham" : "1"
 		}
 dataTest3 = {
 		"startdate" : "8.5.2016",
 		"starttime" : "00:00",
 		"stopdate" : "8.5.2016",
 		"stoptime" : "04:00",
-		"cham" : "1",
 		"detailed" : False,
-		"startm" : "0",
-		"endm" : "0"
+		"meas" : "0",
+		"cham" : "1"
 		}
 
 # For modern desktops, i.e. Firefox 45+, Marionette is required;
@@ -66,6 +61,7 @@ dataTest3 = {
 #b = webdriver.Firefox(capabilities=firefox_capabilities)
 #b = webdriver.Firefox()
 #b.get("http://emugif1.cern.ch:8080/CSC")
+#out = "output here"
 
 # two functions for turning on if off and turning off if on
 def turnOn(elem):
@@ -102,12 +98,8 @@ def getCurrents(data):
 	# This is to prevent "Other element would receive the click" errors;
 	# I expect it is because of the date picker pop-up covering the buttons
 	# so click and unclick elsewhere on the form
-	turnOff(b.find_element_by_id("section1"))
-	turnOn(b.find_element_by_id("section1"))
-	turnOff(b.find_element_by_id("section1"))
-	turnOn(b.find_element_by_id("section1"))
-	turnOff(b.find_element_by_id("section1"))
-	turnOn(b.find_element_by_id("section1"))
+	turnOn(b.find_element_by_id("chamber1"))
+	turnOn(b.find_element_by_id("chamber1"))
 
 	# Click chamber and turn on section 2 and 3 for ME2/1
 	if data["cham"] == "1":
@@ -117,9 +109,9 @@ def getCurrents(data):
 	elif data["cham"] == "2":
 		# For unknown reasons, the turnOn(chamber2) here gets "Other element would receive the click" errors sometimes;
 		# For this action only I put in an action chain; radio buttons are idempotent, so it doesn't matter
-		action = ActionChains(b)
-		action.move_to_element(b.find_element_by_id("chamber2")).click().perform()
-		#turnOn(b.find_element_by_id("chamber2"))
+		#action = ActionChains(b)
+		#action.move_to_element(b.find_element_by_id("chamber2")).click().perform()
+		turnOn(b.find_element_by_id("chamber2"))
 		turnOn(b.find_element_by_id("section2"))
 		turnOn(b.find_element_by_id("section3"))
 
@@ -151,7 +143,7 @@ def getCurrents(data):
 		try:
 			thisOut = b.find_element_by_id("printout").get_attribute("innerHTML")
 		except:
-			print "#%s-%s didn't work." % (data["startm"], data["endm"])
+			print "#%s didn't work." % (data["meas"])
 			b.quit()
 			return
 		if thisOut == out:
@@ -162,7 +154,7 @@ def getCurrents(data):
 
 	# Everything has worked well. Print out the measurement range and the data,
 	# replacing all the <br> tags with real linebreaks.
-	print "#%s-%s" % (data["startm"], data["endm"])
+	print "#%s : %s" % (data["meas"], data["cham"])
 	print out.replace("<br>","\n")
 
 	# Go back to parent page. It was more important when I was trying to save screenshots, and/or
