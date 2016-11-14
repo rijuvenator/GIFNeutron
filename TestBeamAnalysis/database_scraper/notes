@@ -37,3 +37,6 @@ Added filename      : 3306
 Removed Datafiles   : 3322, 3326
 Back to starfiles   : 3362, 3365, 3366
 Changed 47000       : 3355
+
+== November 14, 2016 ==
+3372, 3373, 3382, 3383 : added a space before + to get the number as the last character
