@@ -59,7 +59,7 @@ cshort = [\
 cmd = "select "
 cmd += ", ".join(cnames)
 cmd += " from gif_table"
-cmd += " where MEASUR_NUM>3218 and MEASUR_NUM<3400"
+cmd += " where MEASUR_NUM>3218 and MEASUR_NUM<3461"
 cmd += " order by MEASUR_NUM"
 
 empty = [3408]
@@ -119,6 +119,7 @@ while row is not None:
 		elif 'HV1' in data['ehv'+cham+'1']:
 			hv = 'HV1'
 		# for a handful of cases I don't want to edit -- the text in "except" is not HV0:
+		# note, this is not important for TB5
 		elif data['hv'+cham+'1'] is not None:
 			hv = str(data['hv'+cham+'1'])
 		else:
@@ -191,12 +192,7 @@ while row is not None:
 		sys.stderr.write('%s: No downstream attenuation\n' % meas)
 		attdown = 'X'
 
-	# find run type; if TMB write TMB, else write file name; default to X if not found
-	if data['type'] is None:
-		dtyp = ''
-	else:
-		dtyp = data['type']
-	
+	# find filename
 	if data['file'] is not None:
 		if 'emugif2' in data['file']:
 			mtype = data['file']
@@ -212,12 +208,12 @@ while row is not None:
 		if not hasErred:
 			hasErred = True
 			sys.stderr.write("\n")
-		sys.stderr.write("%s: Neither TMB dump nor file found\n" % meas)
+		sys.stderr.write("%s: No filename found\n" % meas)
 		mtype = 'X'
 
 	# find FastFilterScan setting
 	if data['comment'] is not None:
-		if 'Beam' in data['comment']:
+		if 'Beam' in data['comment'] or 'Algo' in data['comment']:
 			byline = data['comment'].split('\n')
 			for line in byline:
 				if 'Beam_' in line:
@@ -233,6 +229,20 @@ while row is not None:
 						sys.stderr.write('%s: FF not an int\n' % meas)
 				elif 'Beam' in line:
 					ff = '0'
+				elif 'Algo_' in line:
+					ffraw = [i for i in line.split() if 'Algo_' in i]
+					ff = ffraw[0][-1] 
+					# make sure it's a number
+					try:
+						x = int(ff)
+					except ValueError:
+						if not hasErred:
+							hasErred = True
+							sys.stderr.write("\n")
+						sys.stderr.write('%s: FF not an int\n' % meas)
+					ff = 'A' + ff
+				elif 'Algo' in line:
+					ff = 'A0'
 		else:
 			ff = 'N'
 	else:
