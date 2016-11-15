@@ -242,7 +242,19 @@ while row is not None:
 						sys.stderr.write('%s: FF not an int\n' % meas)
 					ff = 'A' + ff
 				elif 'Algo' in line:
-					ff = 'A0'
+					ffraw = [i for i in line.split() if 'Algo' in i]
+					if ffraw[0] == 'Algo':
+						ff = 'A0'
+					else:
+						ff = ffraw[0][-1]
+						try:
+							x = int(ff)
+						except ValueError:
+							if not hasErred:
+								hasErred = True
+								sys.stderr.write("\n")
+							sys.stderr.write('%s: FF not an int\n' % meas)
+						ff = 'A' + ff
 		else:
 			ff = 'N'
 	else:
