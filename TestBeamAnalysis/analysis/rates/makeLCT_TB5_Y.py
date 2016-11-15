@@ -199,7 +199,7 @@ def makePlot(x, y,cham, xtitle, ytitle, title):
 # Make plots with Luminosity on x-axis
 lctEff = 'LCT Efficiency'
 lumi = 'Luminosity [Hz/cm^{2}]'
-makePlot(5.e33 * dataY[:,1], dataY[:,2:], '11', lumi, lctEff, 'lumi_yuiry')
+makePlot(3.3e33 * dataY[:,1], dataY[:,2:], '11', lumi, lctEff, 'lumi_yuiry')
 
 # Make plots with current on x-axis
 currlabel = 'Mean Current [#muA]'
@@ -207,7 +207,7 @@ makePlot(dataY[:,1], dataY[:,2:], '11', currlabel, lctEff, 'curr_yuiry')
 
 # Normalized efficiency to original
 lctNorm = 'Normalized LCT Efficiency'
-makePlot(5.e33 * dataY[:,1], ndataY,'11', lumi, lctNorm, 'lumi_norm_yuiry')
+makePlot(3.3e33 * dataY[:,1], ndataY,'11', lumi, lctNorm, 'lumi_norm_yuiry')
 makePlot(dataY[:,1], ndataY,'11', currlabel, lctNorm, 'curr_norm_yuiry')
 
 # Source intensity on x-axis

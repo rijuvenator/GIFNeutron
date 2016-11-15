@@ -93,7 +93,7 @@ data21 = np.array(data21)
 ndata11 = data11[:,2:] / np.transpose(np.tile(data11[:,2], (nCat,1)))
 ndata21 = data21[:,2:] / np.transpose(np.tile(data21[:,2], (nCat,1)))
 
-def makePlot(x, y,cham, xtitle, ytitle, title):
+def makePlot(x, y,cham, xtitle, ytitle, title, title2):
 	# *** USAGE:
 	#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 	#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
@@ -194,26 +194,28 @@ def makePlot(x, y,cham, xtitle, ytitle, title):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('LCT_'+cham+'_'+title+'.pdf')
+	canvas.c.SaveAs('LCT_'+cham+'_'+title+'_'+title2+'.pdf')
 	R.SetOwnership(canvas.c, False)
+
+title2 = 'CLCT'
 
 # Make plots with Luminosity on x-axis
 lctEff = 'LCT Efficiency'
 lumi = 'Luminosity [Hz/cm^{2}]'
-makePlot(5.e33 * data11[:,1], data11[:,2:], '11', lumi, lctEff, 'lumi')
-makePlot(5.e33 * data21[:,1], data21[:,2:], '21', lumi, lctEff, 'lumi')
+makePlot(3.3e33 * data11[:,1], data11[:,2:], '11', lumi, lctEff, 'lumi',title2)
+makePlot(5.e33 * data21[:,1], data21[:,2:], '21', lumi, lctEff, 'lumi',title2)
 
 # Make plots with current on x-axis
 currlabel = 'Mean Current [#muA]'
-makePlot(data11[:,1], data11[:,2:], '11', currlabel, lctEff, 'curr')
-makePlot(data21[:,1], data21[:,2:], '21', currlabel, lctEff, 'curr')
+makePlot(data11[:,1], data11[:,2:], '11', currlabel, lctEff, 'curr',title2)
+makePlot(data21[:,1], data21[:,2:], '21', currlabel, lctEff, 'curr',title2)
 
 # Normalized efficiency to original
 lctNorm = 'Normalized LCT Efficiency'
-makePlot(5.e33 * data11[:,1], ndata11,'11', lumi, lctNorm, 'lumi_norm')
-makePlot(5.e33 * data21[:,1], ndata21,'21', lumi, lctNorm, 'lumi_norm')
-makePlot(data11[:,1], ndata11,'11', currlabel, lctNorm, 'curr_norm')
-makePlot(data21[:,1], ndata21,'21', currlabel, lctNorm, 'curr_norm')
+makePlot(3.3e33 * data11[:,1], ndata11,'11', lumi, lctNorm, 'lumi_norm',title2)
+makePlot(5.e33 * data21[:,1], ndata21,'21', lumi, lctNorm, 'lumi_norm',title2)
+makePlot(data11[:,1], ndata11,'11', currlabel, lctNorm, 'curr_norm',title2)
+makePlot(data21[:,1], ndata21,'21', currlabel, lctNorm, 'curr_norm',title2)
 
 # Source intensity on x-axis
 att11 = []
@@ -226,7 +228,7 @@ for a21 in data21[:,0]:
     else: att21.append(1./a21)
 
 srclabel = 'Source Intensity 1/A'
-makePlot(att11, data11[:,2:],'11', srclabel, lctEff, 'att')
-makePlot(att21, data21[:,2:],'21', srclabel, lctEff, 'att')
-makePlot(att11, ndata11,'11', srclabel, lctNorm, 'att_norm')
-makePlot(att21, ndata21,'21', srclabel, lctNorm, 'att_norm')
+makePlot(att11, data11[:,2:],'11', srclabel, lctEff, 'att',title2)
+makePlot(att21, data21[:,2:],'21', srclabel, lctEff, 'att',title2)
+makePlot(att11, ndata11,'11', srclabel, lctNorm, 'att_norm',title2)
+makePlot(att21, ndata21,'21', srclabel, lctNorm, 'att_norm',title2)
