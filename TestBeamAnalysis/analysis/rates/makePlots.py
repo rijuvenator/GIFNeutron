@@ -1,7 +1,6 @@
 import sys
 import numpy as np
 import Gif.TestBeamAnalysis.Plotter as Plotter
-import commands # python 2.6 on UNIX only
 import ROOT as R
 
 R.gROOT.SetBatch(True)
@@ -16,6 +15,7 @@ R.gROOT.SetBatch(True)
 fftypes = ['Original', 'TightPreCLCT', 'TightCLCT', 'TightALCT','TightPrePID','TightPrePostPID','7','8']
 colors = [R.kRed-3, R.kBlue-1, R.kOrange, R.kGreen+2, R.kMagenta, R.kCyan, R.kGray, R.kViolet]
 markers = [R.kFullCircle, R.kFullSquare, R.kFullTriangleUp, R.kFullCross, R.kFullTriangleDown, R.kFullDiamond, R.kFullStar, R.kFullCircle]
+ntypes = len(fftypes)
 
 class MegaStruct():
 	def __init__(self):
@@ -191,79 +191,13 @@ for cham in [1, 2]:
 			('L1A',None,False)
 			]:
 		makePlot(\
-				[data.currentVector(cham, ff) for ff in range(len(fftypes))],
-				[data.regVector(cham, ff, numer) for ff in range(len(fftypes))],
+				[data.currentVector(cham, ff) for ff in range(ntypes)],
+				[data.regVector(cham, ff, numer) for ff in range(ntypes)],
 				numer + ('' if denom is None else '/'+denom),
-				'me'+str(cham)+'1-'+numer+('' if denom is not None else '-N')+'.pdf',
+				'pdfs/me'+str(cham)+'1-'+numer+('' if denom is not None else '-N')+'.pdf',
 				'ME'+str(cham)+'/1',
 				logy,
-				#norm = None if denom is None else [data.regVector(cham, ff, denom)*data.regVector(cham, ff, 'Duration') for ff in range(len(fftypes))]
-				#norm = [(1 if denom is None else data.regVector(cham, ff, denom))*data.regVector(cham, ff, 'Duration') for ff in range(len(fftypes))]
-				norm = None if denom is None else [data.regVector(cham, ff, denom) for ff in range(len(fftypes))]
+				#norm = None if denom is None else [data.regVector(cham, ff, denom)*data.regVector(cham, ff, 'Duration') for ff in range(ntypes)]
+				#norm = [(1 if denom is None else data.regVector(cham, ff, denom))*data.regVector(cham, ff, 'Duration') for ff in range(ntypes)]
+				norm = None if denom is None else [data.regVector(cham, ff, denom) for ff in range(ntypes)]
 				)
-
-#	if makeFit:
-#		fit0 = R.TF1("fit0", "[0] * pow(x,[1])", 0.0, 50.0)
-#		fit0.SetParName(0,'c')
-#		fit0.SetParName(1,'e')
-#		fit0.SetParameter(0,1.0)
-#		fit0.SetParameter(1,2.0)
-#		gr0.Fit('fit0')
-#		fit1 = R.TF1("fit1", "[0] * pow(x,[1])", 0.0, 50.0)
-#		fit1.SetParName(0,'c')
-#		fit1.SetParName(1,'e')
-#		fit1.SetParameter(0,1.0)
-#		fit1.SetParameter(1,2.0)
-#		gr1.Fit('fit1')
-#		fit2 = R.TF1("fit2", "[0] * pow(x,[1])", 0.0, 50.0)
-#		fit2.SetParName(0,'c')
-#		fit2.SetParName(1,'e')
-#		fit2.SetParameter(0,1.0)
-#		fit2.SetParameter(1,2.0)
-#		gr2.Fit('fit2')
-#		fit3 = R.TF1("fit3", "[0] * pow(x,[1])", 0.0, 50.0)
-#		fit3.SetParName(0,'c')
-#		fit3.SetParName(1,'e')
-#		fit3.SetParameter(0,1.0)
-#		fit3.SetParameter(1,2.0)
-#		gr3.Fit('fit3')
-#
-#	if makeFit:
-#		# bl, +0.05 for linear; br, +0.0 for log
-#		#loc = 'bl'
-#		#add = 0.05
-#		loc = 'br'
-#		add = 0.0
-#		fit0.Draw("same")
-#		fit1.Draw("same")
-#		fit2.Draw("same")
-#		fit3.Draw("same")
-#		fit0.SetLineColor(cols[0])
-#		fit1.SetLineColor(cols[1])
-#		fit2.SetLineColor(cols[2])
-#		fit3.SetLineColor(cols[3])
-#		canvas.setFitBoxStyle(gr0,0.3,0.1,loc,0.05,0.02)
-#		s0 = gr0.FindObject('stats')
-#		s0.SetTextColor(cols[0])
-#		s0.SetY1NDC(s0.GetY1NDC()+add)
-#		s0.SetY2NDC(s0.GetY2NDC()+add)
-#		canvas.setFitBoxStyle(gr1,0.3,0.1,loc,0.05,0.02)
-#		s1 = gr1.FindObject('stats')
-#		s1.SetTextColor(cols[1])
-#		s1.SetY1NDC(s1.GetY1NDC()+.11+add)
-#		s1.SetY2NDC(s1.GetY2NDC()+.11+add)
-#		canvas.setFitBoxStyle(gr2,0.3,0.1,loc,0.05,0.02)
-#		s2 = gr2.FindObject('stats')
-#		s2.SetTextColor(cols[2])
-#		s2.SetY1NDC(s2.GetY1NDC()+.22+add)
-#		s2.SetY2NDC(s2.GetY2NDC()+.22+add)
-#		canvas.setFitBoxStyle(gr3,0.3,0.1,loc,0.05,0.02)
-#		s3 = gr3.FindObject('stats')
-#		s3.SetTextColor(cols[3])
-#		s3.SetY1NDC(s3.GetY1NDC()+.33+add)
-#		s3.SetY2NDC(s3.GetY2NDC()+.33+add)
-#
-#		f = R.TLatex()
-#		f.SetTextFont(42)
-#		f.SetTextAlign(13)
-#		f.DrawLatexNDC(0.6,0.7,"R = c I^{e}")
