@@ -4,13 +4,13 @@ import ROOT as R
 
 R.gROOT.SetBatch(True)
 
-chamlist = [1, 2]
-f_measgrid = 'measgrid'
-f_attenhut = 'attenhut'
+chamlist = [1]
+f_measgrid = 'measgrid_Y'
+f_attenhut = 'attenhut_Y'
 
-fftypes = ['Original', 'TightPreCLCT', 'TightCLCT', 'TightALCT','TightPrePID','TightPrePostPID','7','8']
-colors = [R.kRed-3, R.kBlue-1, R.kOrange, R.kGreen+2, R.kMagenta, R.kCyan, R.kGray, R.kViolet]
-markers = [R.kFullCircle, R.kFullSquare, R.kFullTriangleUp, R.kFullCross, R.kFullTriangleDown, R.kFullDiamond, R.kFullStar, R.kFullCircle]
+fftypes = ['Original', 'Algo0', 'Algo1', 'Algo2', 'Algo3', 'Algo4']
+colors = [R.kRed-3, R.kBlue-1, R.kOrange, R.kGreen+2, R.kMagenta, R.kCyan]
+markers = [R.kFullCircle, R.kFullSquare, R.kFullTriangleUp, R.kFullCross, R.kFullTriangleDown, R.kFullDiamond]
 ntypes = len(fftypes)
 
 ### DATA STRUCTURE CLASS
@@ -142,7 +142,7 @@ def makePlot(x, y, cham, xtitle, ytitle, title, fftypes=fftypes, cols=colors, ma
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/LCT_'+str(cham)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('pdfs/LCT_'+str(cham)+'1_'+title+'_Y.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS
