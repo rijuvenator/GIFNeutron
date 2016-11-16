@@ -15,10 +15,16 @@ f_attenhut = 'attenhut'
 #logy = True if sys.argv[4] == '1' else False
 
 #quants = ['CFEB Sum', 'CLCT0', 'CLCT1', 'ALCT0', 'ALCT1', 'ALCT*CLCT', 'L1A']
-fftypes = ['Original', 'TightPreCLCT', 'TightCLCT', 'TightALCT','TightPrePID','TightPrePostPID','TightP&A','TightP&A&C']
-colors = [R.kRed-3, R.kBlue-1, R.kOrange, R.kGreen+2, R.kMagenta, R.kAzure+8, R.kGray, R.kBlack]
-markers = [R.kFullCircle, R.kFullSquare, R.kFullTriangleUp, R.kFullCross, R.kFullTriangleDown, R.kFullDiamond, R.kFullStar, R.kFullCircle]
-ntypes = len(fftypes)
+pretty = {
+    0:['Original',        R.kRed-3,   R.kFullCircle],
+    1:['TightPreCLCT',    R.kBlue-1,  R.kFullSquare],
+    2:['TightCLCT',       R.kOrange,  R.kFullTriangleUp],
+    3:['TightALCT',       R.kGreen+2, R.kFullCross],
+    4:['TightPrePID',     R.kMagenta, R.kFullTriangleDown],
+    5:['TightPrePostPID', R.kAzure+8, R.kFullDiamond],
+    6:['TightPA',         R.kGray,    R.kFullStar],
+    7:['TightAll',        R.kBlack,   R.kFullCircle]
+}
 
 class MegaStruct():
 	def __init__(self,measgrid,attenhut):
@@ -118,7 +124,7 @@ class MegaStruct():
 
 data = MegaStruct(f_measgrid, f_attenhut)
 
-def makePlot(x, y, ytit, fn, extra, logy, norm=None, cols=colors, mars=markers, fftypes=fftypes):
+def makePlot(x, y, ytit, fn, extra, logy, norm=None, pretty=pretty):
 	# *** USAGE:
 	#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 	#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
@@ -137,7 +143,7 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, cols=colors, mars=markers, 
 	# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
 	#
 
-	ntypes = len(fftypes)
+	ntypes = len(pretty.keys())
 
 	ry = np.array(y)
 	yrange = [(ry/norm).min(), (ry/norm).max()] if norm is not None else [ry.min(), ry.max()]
@@ -154,7 +160,7 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, cols=colors, mars=markers, 
 	# Step 1
 	plots = []
 	for i in range(ntypes):
-		plots.append(Plotter.Plot(graphs[i], fftypes[i], 'p', 'AP' if i==0 else 'P'))
+		plots.append(Plotter.Plot(graphs[i], pretty[i][0], 'p', 'AP' if i==0 else 'P'))
 
 	# Step 2
 	canvas = Plotter.Canvas(extra, logy, 0., "Internal", 800, 700)
@@ -178,10 +184,10 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, cols=colors, mars=markers, 
 	plots[0].scaleTitles(0.8)
 	plots[0].scaleLabels(0.8)
 
-	for i in range(ntypes):
-		graphs[i].SetMarkerColor(cols[i])
-		graphs[i].SetMarkerStyle(mars[i])
-		graphs[i].SetMarkerSize(2.2)
+    for i,p in enumerate(pretty.keys()):
+        graphs[i].SetMarkerColor(pretty[i][1])
+        graphs[i].SetMarkerStyle(pretty[i][2])
+        graphs[i].SetMarkerSize(2.2)
 
 	# Step 6
 
@@ -201,13 +207,13 @@ for cham in chamlist:
 			('L1A',None,False)
 			]:
 		makePlot(\
-				[data.currentVector(cham, ff) for ff in range(ntypes)],
-				[data.regVector(cham, ff, numer) for ff in range(ntypes)],
+				[data.currentVector(cham, ff) for ff in pretty.keys()],
+				[data.regVector(cham, ff, numer) for ff in pretty.keys()],
 				numer + ('' if denom is None else '/'+denom),
 				'pdfs/me'+str(cham)+'1-'+numer+('' if denom is not None else '-N')+'.pdf',
 				'ME'+str(cham)+'/1',
 				logy,
-				#norm = None if denom is None else [data.regVector(cham, ff, denom)*data.regVector(cham, ff, 'Duration') for ff in range(ntypes)]
-				#norm = [(1 if denom is None else data.regVector(cham, ff, denom))*data.regVector(cham, ff, 'Duration') for ff in range(ntypes)]
-				norm = None if denom is None else [data.regVector(cham, ff, denom) for ff in range(ntypes)]
+				#norm = None if denom is None else [data.regVector(cham, ff, denom)*data.regVector(cham, ff, 'Duration') for ff in pretty.keys()]
+				#norm = [(1 if denom is None else data.regVector(cham, ff, denom))*data.regVector(cham, ff, 'Duration') for ff in pretty.keys()]
+				norm = None if denom is None else [data.regVector(cham, ff, denom) for ff in pretty.keys()]
 				)
