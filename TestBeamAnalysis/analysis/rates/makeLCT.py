@@ -8,8 +8,8 @@ chamlist = [1, 2]
 f_measgrid = 'measgrid'
 f_attenhut = 'attenhut'
 
-fftypes = ['Original', 'TightPreCLCT', 'TightCLCT', 'TightALCT','TightPrePID','TightPrePostPID','7','8']
-colors = [R.kRed-3, R.kBlue-1, R.kOrange, R.kGreen+2, R.kMagenta, R.kCyan, R.kGray, R.kViolet]
+fftypes = ['Original', 'TightPreCLCT', 'TightCLCT', 'TightALCT','TightPrePID','TightPrePostPID','TightP&A','TightP&A&C']
+colors = [R.kRed-3, R.kBlue-1, R.kOrange, R.kGreen+2, R.kMagenta, R.kAzure+8, R.kGray, R.kBlack]
 markers = [R.kFullCircle, R.kFullSquare, R.kFullTriangleUp, R.kFullCross, R.kFullTriangleDown, R.kFullDiamond, R.kFullStar, R.kFullCircle]
 ntypes = len(fftypes)
 
@@ -71,7 +71,7 @@ class MegaStruct():
 		return np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
 	def lumiVector(self, cham, ff):
-		factor = 5.e33 if cham == 1 else 3.e33
+		factor = 5.e33 if cham == 2 else 3.e33
 		return factor * np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
 	def effVector(self, cham, ff):

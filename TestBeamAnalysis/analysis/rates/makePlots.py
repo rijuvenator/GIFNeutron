@@ -6,27 +6,30 @@ import ROOT as R
 R.gROOT.SetBatch(True)
 
 # PARAMETERS
+chamlist = [1, 2]
+f_measgrid = 'measgrid'
+f_attenhut = 'attenhut'
 #cham = int(sys.argv[1])
 #numer = sys.argv[2]
 #denom = None if sys.argv[3] == 'None' else sys.argv[3]
 #logy = True if sys.argv[4] == '1' else False
 
 #quants = ['CFEB Sum', 'CLCT0', 'CLCT1', 'ALCT0', 'ALCT1', 'ALCT*CLCT', 'L1A']
-fftypes = ['Original', 'TightPreCLCT', 'TightCLCT', 'TightALCT','TightPrePID','TightPrePostPID','7','8']
-colors = [R.kRed-3, R.kBlue-1, R.kOrange, R.kGreen+2, R.kMagenta, R.kCyan, R.kGray, R.kViolet]
+fftypes = ['Original', 'TightPreCLCT', 'TightCLCT', 'TightALCT','TightPrePID','TightPrePostPID','TightP&A','TightP&A&C']
+colors = [R.kRed-3, R.kBlue-1, R.kOrange, R.kGreen+2, R.kMagenta, R.kAzure+8, R.kGray, R.kBlack]
 markers = [R.kFullCircle, R.kFullSquare, R.kFullTriangleUp, R.kFullCross, R.kFullTriangleDown, R.kFullDiamond, R.kFullStar, R.kFullCircle]
 ntypes = len(fftypes)
 
 class MegaStruct():
-	def __init__(self):
-		f = open('tmb')
+	def __init__(self,measgrid,attenhut):
+		f = open(measgrid)
 		self.FFFMeas = {}
 		for line in f:
 			cols = line.strip('\n').split()
 			self.FFFMeas[float(cols[0])] = [int(j) for j in cols[1:]]
 		f.close()
 
-		f = open('attenhut')
+		f = open(attenhut)
 		self.Currs = { 1 : {}, 2 : {} }
 		currentCham = 1
 		for line in f:
@@ -100,13 +103,20 @@ class MegaStruct():
 			elif name == 'Duration':
 				return self.Regs[cham][meas][dump][13]
 	
+	def attVector(self):
+		return np.array(sorted(self.FFFMeas.keys()))
+	
 	def currentVector(self, cham, ff):
-		return np.array([self.current(cham, self.FFFMeas[att][ff]) for att in sorted(self.FFFMeas.keys())[1:]])
+		return np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
+
+	def lumiVector(self, cham, ff):
+		factor = 5.e33 if cham == 2 else 3.e33
+		return factor * np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
 	def regVector(self, cham, ff, name):
-		return np.array([self.register(cham, self.FFFMeas[att][ff], name) for att in sorted(self.FFFMeas.keys())[1:]])
+		return np.array([self.register(cham, self.FFFMeas[att][ff], name) for att in self.attVector()])
 
-data = MegaStruct()
+data = MegaStruct(f_measgrid, f_attenhut)
 
 def makePlot(x, y, ytit, fn, extra, logy, norm=None, cols=colors, mars=markers, fftypes=fftypes):
 	# *** USAGE:
@@ -182,7 +192,7 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, cols=colors, mars=markers, 
 	canvas.c.SaveAs(fn)
 	R.SetOwnership(canvas.c, False)
 
-for cham in [1, 2]:
+for cham in chamlist:
 	for numer, denom, logy in [\
 			('ALCT*CLCT','L1A',False),
 			('CFEB Sum',None,True),
