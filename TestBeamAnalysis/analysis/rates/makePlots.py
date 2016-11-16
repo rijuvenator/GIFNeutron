@@ -159,8 +159,8 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, pretty=pretty):
 
 	# Step 1
 	plots = []
-	for i in range(ntypes):
-		plots.append(Plotter.Plot(graphs[i], pretty[i][0], 'p', 'AP' if i==0 else 'P'))
+    for i,p in enumerate(pretty.keys()):
+		plots.append(Plotter.Plot(graphs[i], pretty[p][0], 'p', 'AP' if i==0 else 'P'))
 
 	# Step 2
 	canvas = Plotter.Canvas(extra, logy, 0., "Internal", 800, 700)
@@ -185,8 +185,8 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, pretty=pretty):
 	plots[0].scaleLabels(0.8)
 
     for i,p in enumerate(pretty.keys()):
-        graphs[i].SetMarkerColor(pretty[i][1])
-        graphs[i].SetMarkerStyle(pretty[i][2])
+        graphs[i].SetMarkerColor(pretty[p][1])
+        graphs[i].SetMarkerStyle(pretty[p][2])
         graphs[i].SetMarkerSize(2.2)
 
 	# Step 6
