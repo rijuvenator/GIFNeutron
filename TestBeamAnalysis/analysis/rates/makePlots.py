@@ -1,31 +1,26 @@
-import sys
 import numpy as np
 import Gif.TestBeamAnalysis.Plotter as Plotter
 import ROOT as R
 
 R.gROOT.SetBatch(True)
 
-# PARAMETERS
+### PARAMETERS
 chamlist = [1, 2]
 f_measgrid = 'measgrid'
 f_attenhut = 'attenhut'
-#cham = int(sys.argv[1])
-#numer = sys.argv[2]
-#denom = None if sys.argv[3] == 'None' else sys.argv[3]
-#logy = True if sys.argv[4] == '1' else False
 
-#quants = ['CFEB Sum', 'CLCT0', 'CLCT1', 'ALCT0', 'ALCT1', 'ALCT*CLCT', 'L1A']
 pretty = {
-    0:['Original',        R.kRed-3,   R.kFullCircle],
-    1:['TightPreCLCT',    R.kBlue-1,  R.kFullSquare],
-    2:['TightCLCT',       R.kOrange,  R.kFullTriangleUp],
-    3:['TightALCT',       R.kGreen+2, R.kFullCross],
-    4:['TightPrePID',     R.kMagenta, R.kFullTriangleDown],
-    5:['TightPrePostPID', R.kAzure+8, R.kFullDiamond],
-    6:['TightPA',         R.kGray,    R.kFullStar],
-    7:['TightAll',        R.kBlack,   R.kFullCircle]
+		0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
+		1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+		2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+		3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+		4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+		5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+		6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
+		7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
+### DATA STRUCTURE CLASS
 class MegaStruct():
 	def __init__(self,measgrid,attenhut):
 		f = open(measgrid)
@@ -110,8 +105,8 @@ class MegaStruct():
 				return self.Regs[cham][meas][dump][13]
 	
 	def attVector(self):
-		return np.array(sorted(self.FFFMeas.keys()))
-	
+		return np.array(sorted(self.FFFMeas.keys()))[1:]
+
 	def currentVector(self, cham, ff):
 		return np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
@@ -124,7 +119,8 @@ class MegaStruct():
 
 data = MegaStruct(f_measgrid, f_attenhut)
 
-def makePlot(x, y, ytit, fn, extra, logy, norm=None, pretty=pretty):
+### MAKEPLOT FUNCTION
+def makePlot(x, y, ytit, fn, extra, logy, norm=None, normO=None, pretty=pretty):
 	# *** USAGE:
 	#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 	#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
@@ -146,27 +142,37 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, pretty=pretty):
 	ntypes = len(pretty.keys())
 
 	ry = np.array(y)
-	yrange = [(ry/norm).min(), (ry/norm).max()] if norm is not None else [ry.min(), ry.max()]
-	#yrange[1] = 0.6 / (1 if '2' in extra else 2)
-
 	graphs = []
-	if norm is None:
+
+	if norm is None and normO is None:
+		yrange = [ry.min(), ry.max()]
 		for i in range(ntypes):
-			graphs.append(R.TGraph(len(x[i][0:]), x[i][0:], y[i][0:]))
-	else:
+			graphs.append(R.TGraph(len(x[i]), x[i], y[i]))
+	elif norm is not None and normO is None:
+		yrange = [(ry/norm).min(), (ry/norm).max()]
 		for i in range(ntypes):
-			graphs.append(R.TGraph(len(x[i][0:]), x[i][0:], y[i][0:]/norm[i][0:]))
+			graphs.append(R.TGraph(len(x[i]), x[i], y[i]/norm[i]))
+	elif norm is not None and normO is not None:
+		yrange = [((ry/norm)/normO).min(), ((ry/norm)/normO).max()]
+		for i in range(ntypes):
+			graphs.append(R.TGraph(len(x[i]), x[i], (y[i]/norm[i])/normO[i]))
 
 	# Step 1
 	plots = []
-    for i,p in enumerate(pretty.keys()):
-		plots.append(Plotter.Plot(graphs[i], pretty[p][0], 'p', 'AP' if i==0 else 'P'))
+	for i,p in enumerate(pretty.keys()):
+		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'p', 'AP' if i==0 else 'P'))
 
 	# Step 2
 	canvas = Plotter.Canvas(extra, logy, 0., "Internal", 800, 700)
 
 	# Step 3
-	canvas.makeLegend(.2,.25,'tl',0.04, 0.03)
+	if normO is not None:
+		lstring = 'bl'
+	elif ytit[0:3] == 'L1A':
+		lstring = 'tr'
+	else:
+		lstring = 'tl'
+	canvas.makeLegend(.2,.25,lstring,0.04, 0.03)
 
 	# Step 4
 	for i in range(ntypes):
@@ -174,8 +180,6 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, pretty=pretty):
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-#	canvas.mainPad.SetLogx(True)
-
 	graphs[0].GetYaxis().SetTitleOffset(graphs[0].GetYaxis().GetTitleOffset()*1.4)
 	graphs[0].GetYaxis().SetTitle(ytit)
 	graphs[0].GetXaxis().SetTitle('Mean Current [#muA]')
@@ -184,10 +188,10 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, pretty=pretty):
 	plots[0].scaleTitles(0.8)
 	plots[0].scaleLabels(0.8)
 
-    for i,p in enumerate(pretty.keys()):
-        graphs[i].SetMarkerColor(pretty[p][1])
-        graphs[i].SetMarkerStyle(pretty[p][2])
-        graphs[i].SetMarkerSize(2.2)
+	for i,p in enumerate(pretty.keys()):
+		graphs[i].SetMarkerColor(pretty[p]['color'])
+		graphs[i].SetMarkerStyle(pretty[p]['marker'])
+		graphs[i].SetMarkerSize(2.2)
 
 	# Step 6
 
@@ -198,22 +202,25 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, pretty=pretty):
 	canvas.c.SaveAs(fn)
 	R.SetOwnership(canvas.c, False)
 
+### MAKE ALL PLOTS
 for cham in chamlist:
-	for numer, denom, logy in [\
-			('ALCT*CLCT','L1A',False),
-			('CFEB Sum',None,True),
-			('ALCT0','L1A',True),
-			('CLCT0','L1A',False),
-			('L1A',None,False)
+	for numer, denom, logy, normO in [\
+			('ALCT*CLCT','L1A',False, False),
+			('CFEB Sum' ,None ,True , False),
+			('ALCT0'    ,'L1A',True , False),
+			('CLCT0'    ,'L1A',True , False),
+			('L1A'      ,None ,False, False),
+			('ALCT*CLCT','L1A',False, True )
 			]:
 		makePlot(\
 				[data.currentVector(cham, ff) for ff in pretty.keys()],
 				[data.regVector(cham, ff, numer) for ff in pretty.keys()],
-				numer + ('' if denom is None else '/'+denom),
-				'pdfs/me'+str(cham)+'1-'+numer+('' if denom is not None else '-N')+'.pdf',
+				numer + ('' if denom is None else '/'+denom) + ('' if not normO else '/Original/L1A'),
+				'pdfs/me'+str(cham)+'1-'+numer+('' if denom is not None else '-N')+('' if not normO else '-normO')+'_noHigh.pdf',
 				'ME'+str(cham)+'/1',
 				logy,
 				#norm = None if denom is None else [data.regVector(cham, ff, denom)*data.regVector(cham, ff, 'Duration') for ff in pretty.keys()]
 				#norm = [(1 if denom is None else data.regVector(cham, ff, denom))*data.regVector(cham, ff, 'Duration') for ff in pretty.keys()]
-				norm = None if denom is None else [data.regVector(cham, ff, denom) for ff in pretty.keys()]
+				norm = None if denom is None else [data.regVector(cham, ff, denom) for ff in pretty.keys()],
+				normO = None if not normO else [data.regVector(cham, 0, numer)/data.regVector(cham, 0, 'L1A') for ff in pretty.keys()]
 				)

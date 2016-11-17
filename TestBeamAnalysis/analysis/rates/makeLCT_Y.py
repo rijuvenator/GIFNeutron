@@ -4,14 +4,19 @@ import ROOT as R
 
 R.gROOT.SetBatch(True)
 
+### PARAMETERS
 chamlist = [1]
 f_measgrid = 'measgrid_Y'
 f_attenhut = 'attenhut_Y'
 
-fftypes = ['Original', 'Algo0', 'Algo1', 'Algo2', 'Algo3', 'Algo4']
-colors = [R.kRed-3, R.kBlue-1, R.kOrange, R.kGreen+2, R.kMagenta, R.kCyan]
-markers = [R.kFullCircle, R.kFullSquare, R.kFullTriangleUp, R.kFullCross, R.kFullTriangleDown, R.kFullDiamond]
-ntypes = len(fftypes)
+pretty = {
+		0 : { 'name' : 'Original',  'color' : R.kRed-3,   'marker' : R.kFullCircle      },
+		1 : { 'name' : 'Algo0'   ,  'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+		2 : { 'name' : 'Algo1'   ,  'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+		3 : { 'name' : 'Algo2'   ,  'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+		4 : { 'name' : 'Algo3'   ,  'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+		5 : { 'name' : 'Algo4'   ,  'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+}
 
 ### DATA STRUCTURE CLASS
 class MegaStruct():
@@ -71,7 +76,7 @@ class MegaStruct():
 		return np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
 	def lumiVector(self, cham, ff):
-		factor = 5.e33 if cham == 1 else 3.e33
+		factor = 5.e33 if cham == 2 else 3.e33
 		return factor * np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
 	def effVector(self, cham, ff):
@@ -83,7 +88,7 @@ class MegaStruct():
 data = MegaStruct(f_measgrid, f_attenhut)
 
 ### MAKEPLOT FUNCTION
-def makePlot(x, y, cham, xtitle, ytitle, title, fftypes=fftypes, cols=colors, mars=markers):
+def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 	# *** USAGE:
 	#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 	#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
@@ -103,14 +108,14 @@ def makePlot(x, y, cham, xtitle, ytitle, title, fftypes=fftypes, cols=colors, ma
 	#
 
 	graphs = []
-	ntypes = len(fftypes)
+	ntypes = len(pretty.keys())
 	for i in range(ntypes):
 		graphs.append(R.TGraph(len(x[i]), x[i], y[i]))
 
 	# Step 1
 	plots = []
-	for i in range(ntypes):
-		plots.append(Plotter.Plot(graphs[i], fftypes[i], 'p', 'AP' if i==0 else 'P'))
+	for i,p in enumerate(pretty.keys()):
+		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'p', 'AP' if i==0 else 'P'))
 
 	# Step 2
 	canvas = Plotter.Canvas('ME'+str(cham)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
@@ -131,9 +136,9 @@ def makePlot(x, y, cham, xtitle, ytitle, title, fftypes=fftypes, cols=colors, ma
 	plots[0].scaleTitles(0.8)
 	plots[0].scaleLabels(0.8)
 
-	for i in range(ntypes):
-		graphs[i].SetMarkerColor(cols[i])
-		graphs[i].SetMarkerStyle(mars[i])
+	for i,p in enumerate(pretty.keys()):
+		graphs[i].SetMarkerColor(pretty[p]['color'])
+		graphs[i].SetMarkerStyle(pretty[p]['marker'])
 		graphs[i].SetMarkerSize(2.2)
 
 	# Step 6
@@ -149,8 +154,8 @@ def makePlot(x, y, cham, xtitle, ytitle, title, fftypes=fftypes, cols=colors, ma
 for cham in chamlist:
 	# Plots with current on x-axis
 	makePlot(\
-			[data.currentVector(cham, ff) for ff in range(ntypes)],
-			[data.effVector(cham, ff) for ff in range(ntypes)],
+			[data.currentVector(cham, ff) for ff in pretty.keys()],
+			[data.effVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Mean Current [#muA]',
 			'LCT Efficiency',
@@ -158,8 +163,8 @@ for cham in chamlist:
 			)
 	# Normalized to 'Original'
 	makePlot(\
-			[data.currentVector(cham, ff) for ff in range(ntypes)],
-			[data.normEffVector(cham, ff) for ff in range(ntypes)],
+			[data.currentVector(cham, ff) for ff in pretty.keys()],
+			[data.normEffVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Mean Current [#muA]',
 			'LCT Efficiency',
@@ -167,8 +172,8 @@ for cham in chamlist:
 			)
 	# Plots with luminosity on x-axis
 	makePlot(\
-			[data.lumiVector(cham, ff) for ff in range(ntypes)],
-			[data.effVector(cham, ff) for ff in range(ntypes)],
+			[data.lumiVector(cham, ff) for ff in pretty.keys()],
+			[data.effVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Luminosity [Hz/cm^{2}]',
 			'LCT Efficiency',
@@ -176,8 +181,8 @@ for cham in chamlist:
 			)
 	# Normalized to 'Original'
 	makePlot(\
-			[data.lumiVector(cham, ff) for ff in range(ntypes)],
-			[data.normEffVector(cham, ff) for ff in range(ntypes)],
+			[data.lumiVector(cham, ff) for ff in pretty.keys()],
+			[data.normEffVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Luminosity [Hz/cm^{2}]',
 			'LCT Efficiency',
@@ -185,8 +190,8 @@ for cham in chamlist:
 			)
 	# Plots with 1/A on x-axis
 	makePlot(\
-			[np.reciprocal(data.attVector()) for ff in range(ntypes)],
-			[data.effVector(cham, ff) for ff in range(ntypes)],
+			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
+			[data.effVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Source Intensity 1/A',
 			'LCT Efficiency',
@@ -194,8 +199,8 @@ for cham in chamlist:
 			)
 	# Normalized to 'Original'
 	makePlot(\
-			[np.reciprocal(data.attVector()) for ff in range(ntypes)],
-			[data.normEffVector(cham, ff) for ff in range(ntypes)],
+			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
+			[data.normEffVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Source Intensity 1/A',
 			'LCT Efficiency',
