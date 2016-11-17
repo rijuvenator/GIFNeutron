@@ -84,6 +84,8 @@ class MegaStruct():
 				x = [z[12] for z in self.Regs[cham][meas][:]]
 			elif name == 'Duration':
 				x = [z[13] for z in self.Regs[cham][meas][:]]
+			elif name == 'Window':
+				x = [z[14] for z in self.Regs[cham][meas][:]]
 			x = np.array(x)
 			return x.mean()
 		else:
@@ -103,6 +105,8 @@ class MegaStruct():
 				return self.Regs[cham][meas][dump][12]
 			elif name == 'Duration':
 				return self.Regs[cham][meas][dump][13]
+			elif name == 'Window':
+				return self.Regs[cham][meas][dump][14]
 	
 	def attVector(self):
 		return np.array(sorted(self.FFFMeas.keys()))[1:]
@@ -166,7 +170,7 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, normO=None, pretty=pretty):
 	canvas = Plotter.Canvas(extra, logy, 0., "Internal", 800, 700)
 
 	# Step 3
-	if normO is not None:
+	if normO is not None or ytit[0:3] == 'Win':
 		lstring = 'bl'
 	elif ytit[0:3] == 'L1A':
 		lstring = 'tr'
@@ -202,6 +206,21 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, normO=None, pretty=pretty):
 	canvas.c.SaveAs(fn)
 	R.SetOwnership(canvas.c, False)
 
+### TPRINT FUNCTION
+def tprint(cols):
+	x = np.transpose(np.array([data.attVector()] + cols))
+	man = len(str(int(np.array(cols).max())))
+	names = ['Orig', 'TPreC', 'TC', 'TA', 'TPID', 'TPPID', 'TPA', 'TAll']
+	print '\033[1;4m Filter | ',
+	for name in names:
+		print '%*s | ' % (man + 6, name),
+	print '\033[m'
+	for i in x:
+		print '%7.1f | ' % i[0],
+		for j in i[1:]:
+			print '%*.5f | ' % (man + 6, j),
+		print ''
+
 ### MAKE ALL PLOTS
 for cham in chamlist:
 	for numer, denom, logy, normO in [\
@@ -210,8 +229,10 @@ for cham in chamlist:
 			('ALCT0'    ,'L1A',True , False),
 			('CLCT0'    ,'L1A',True , False),
 			('L1A'      ,None ,False, False),
-			('ALCT*CLCT','L1A',False, True )
+			('ALCT*CLCT','L1A',False, True ),
+			('Window'   ,'L1A',False, False)
 			]:
+		if numer == 'Window': tprint([data.regVector(cham, ff, numer)/(1 if denom is None else data.regVector(cham, ff, denom)) for ff in pretty.keys()])
 		makePlot(\
 				[data.currentVector(cham, ff) for ff in pretty.keys()],
 				[data.regVector(cham, ff, numer) for ff in pretty.keys()],

@@ -19,9 +19,10 @@ class Dump():
 		self.clct1 = 0
 		self.lct = 0
 		self.l1a = 0
+		self.window = 0
 	
 	def Print(self):
-		print "%4s %1s %9s %9s %9s %9s %9s %9s %9s %9s %9s %9s %9s %9s %9s %.1f" % (\
+		print "%4s %1s %9s %9s %9s %9s %9s %9s %9s %9s %9s %9s %9s %9s %9s %.1f %9s" % (\
 				self.meas,
 				'1' if 'ME+1' in self.cham else '2',
 				self.alct0,
@@ -37,7 +38,8 @@ class Dump():
 				self.clct1,
 				self.lct,
 				self.l1a,
-				self.duration
+				self.duration,
+				self.window
 				)
 		if 'ME+2' in self.cham: print ""
 
@@ -97,6 +99,8 @@ for line in f:
 		dump.lct = int(cols[-1])
 	elif cols[0] == '55L1A:':
 		dump.l1a = int(cols[-1])
+	elif cols[0] == '56L1A:':
+		dump.window = int(cols[-1])
 		dumplist.append(dump)
 		dump.Print()
 
