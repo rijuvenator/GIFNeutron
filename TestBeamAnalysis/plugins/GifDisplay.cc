@@ -137,27 +137,48 @@ class GifDisplay : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       virtual void beginJob() override;
       virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
       virtual void endJob() override;
+	  int getChamberSerial( CSCDetId id ) {
+		  int st = id.station();
+		  int ri = id.ring();
+		  int ch = id.chamber();
+		  int ec = id.endcap();
+		  int kSerial = ch;
+		  if (st == 1 && ri == 1) kSerial = ch;
+		  if (st == 1 && ri == 2) kSerial = ch + 36;
+		  if (st == 1 && ri == 3) kSerial = ch + 72;
+		  if (st == 1 && ri == 4) kSerial = ch;
+		  if (st == 2 && ri == 1) kSerial = ch + 108;
+		  if (st == 2 && ri == 2) kSerial = ch + 126;
+		  if (st == 3 && ri == 1) kSerial = ch + 162;
+		  if (st == 3 && ri == 2) kSerial = ch + 180;
+		  if (st == 4 && ri == 1) kSerial = ch + 216;
+		  if (st == 4 && ri == 2) kSerial = ch + 234;  // one day...
+		  if (ec == 2) kSerial = kSerial + 300;
+		  return kSerial;
+	  }
 
-// ----------member data ---------------------------
-edm::InputTag stripDigiTag;
-edm::InputTag wireDigiTag;
-edm::InputTag comparatorDigiTag;
-//edm::InputTag compDigiTag;
-edm::InputTag cscRecHitTag;
-//edm::InputTag cscSegTag;
-//edm::InputTag saMuonTag;
-//edm::InputTag l1aTag;
-edm::InputTag alctDigiTag;
-edm::InputTag clctDigiTag;
-edm::InputTag corrlctDigiTag;
-//edm::InputTag hltTag;
 
-//std::string theRootFileName,pdf;
-std::string eventDisplayDir;
-std::vector<int> eventList;
-std::string eventlistFile;
-
-std::string chamberType;
+	  // ----------member data ---------------------------
+	  edm::InputTag stripDigiTag;
+	  edm::InputTag wireDigiTag;
+	  edm::InputTag comparatorDigiTag;
+	  //edm::InputTag compDigiTag;
+	  edm::InputTag cscRecHitTag;
+	  //edm::InputTag cscSegTag;
+	  //edm::InputTag saMuonTag;
+	  //edm::InputTag l1aTag;
+	  edm::InputTag alctDigiTag;
+	  edm::InputTag clctDigiTag;
+	  edm::InputTag corrlctDigiTag;
+	  //edm::InputTag hltTag;
+	  
+	  //std::string theRootFileName,pdf;
+	  std::string eventDisplayDir;
+	  std::vector<int> eventList;
+	  std::string eventlistFile;
+	  
+	  std::string chamberType;
+	  int thisChamber=0;
 
 };
 
@@ -259,6 +280,8 @@ if (chamberType == "ME11"){
    chamberID.Station = 1;
    chamberID.Ring = 1;
    chamberID.Chamber = 1;
+   thisChamber = 1;
+
 
    }else if(chamberType == "ME21"){
 
@@ -266,6 +289,7 @@ if (chamberType == "ME11"){
            chamberID.Station = 2;
            chamberID.Ring = 1;
            chamberID.Chamber = 2;
+		   thisChamber = 110;
 
            }
 //========================== WIRES ========================
@@ -276,6 +300,8 @@ for (CSCWireDigiCollection::DigiRangeIterator wi=wires->begin(); wi!=wires->end(
     CSCDetId id = (CSCDetId)(*wi).first;
     std::vector<CSCWireDigi>::const_iterator wireIt = (*wi).second.first;
     std::vector<CSCWireDigi>::const_iterator lastWire = (*wi).second.second;
+
+    if (thisChamber!=getChamberSerial(id)) continue;
 
     CSCDetID tmpID;
     WIRE tmpWIRE;
@@ -314,6 +340,8 @@ for (CSCStripDigiCollection::DigiRangeIterator si=strips->begin(); si!=strips->e
     CSCDetId id = (CSCDetId)(*si).first;
     std::vector<CSCStripDigi>::const_iterator stripIt = (*si).second.first;
     std::vector<CSCStripDigi>::const_iterator lastStrip = (*si).second.second;
+
+    if (thisChamber!=getChamberSerial(id)) continue;
 
     CSCDetID tmpID;
     STRIP tmpSTRIP;
@@ -375,7 +403,9 @@ for (CSCComparatorDigiCollection::DigiRangeIterator com=comparators->begin(); co
     CSCDetId id = (CSCDetId)(*com).first;
     std::vector<CSCComparatorDigi>::const_iterator comparatorIt = (*com).second.first;
     std::vector<CSCComparatorDigi>::const_iterator lastComparator = (*com).second.second;
-   
+
+    if (thisChamber!=getChamberSerial(id)) continue;
+
     CSCDetID tmpID;
     
     COMPARATOR tmpCOMPARATOR;
@@ -456,6 +486,7 @@ GifDisplay::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   desc.setUnknown();
   descriptions.addDefault(desc);
 }
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(GifDisplay);
