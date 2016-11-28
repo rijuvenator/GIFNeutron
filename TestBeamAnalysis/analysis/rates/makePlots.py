@@ -67,7 +67,7 @@ class MegaStruct():
 			return sum(self.Currs[cham][meas][6:12])/6.0
 	
 	def register(self, cham, meas, name, dump=0):
-		if dump == 'all':
+		if dump == 'all' or dump == 'sum':
 			if name == 'CFEB Sum':
 				x = [sum(z[2:9]) for z in self.Regs[cham][meas][:]]
 			elif name == 'ALCT0':
@@ -87,7 +87,10 @@ class MegaStruct():
 			elif name == 'Window':
 				x = [z[14] for z in self.Regs[cham][meas][:]]
 			x = np.array(x)
-			return x.mean()
+			if dump == 'all':
+				return x.mean()
+			elif dump == 'sum':
+				return x.sum()
 		else:
 			if name == 'CFEB Sum':
 				return sum(self.Regs[cham][meas][dump][2:9])

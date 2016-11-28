@@ -1,15 +1,25 @@
 import numpy as np
 import Gif.TestBeamAnalysis.Plotter as Plotter
 import ROOT as R
+import sys
 
 R.gROOT.SetBatch(True)
 
 ### PARAMETERS
+# Which chambers to do; which file contains the relevant list of measurements and currents
 chamlist = [1, 2]
+# chamlist = [1]
 f_measgrid = 'measgrid'
 f_attenhut = 'attenhut'
 
-title2 = 'all'
+# Whether or not to get the data from a file. None if not; filename if so.
+#fromFile = None
+fromFile = 'LCTData'
+
+# Additional filename
+title2 = 'cast'
+
+### BEGIN CODE
 pretty = {
 		0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
 		1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
@@ -44,22 +54,62 @@ class MegaStruct():
 		f.close()
 
 		self.Effs = { 1 : {}, 2 : {} }
-		for att in self.FFFMeas.keys():
-			for meas in self.FFFMeas[att]:
-				f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/TestBeam5/ana_'+str(meas)+'.root')
-				t = f.Get('GIFTree/GIFDigiTree')
-				nLCT_11 = 0
-				nLCT_21 = 0
-				# Count number of entries with at least one LCT
-				for entry in t:
-					# ID for ME1/1/GIF = 1
-					if list(t.lct_id).count(1)>0: nLCT_11 = nLCT_11 + 1
-					# ID for ME2/1/GIF = 110
-					if list(t.lct_id).count(110)>0: nLCT_21 = nLCT_21 + 1
+		if fromFile is None:
+			for att in self.FFFMeas.keys():
+				for meas in self.FFFMeas[att]:
+					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/TestBeam5/ana_'+str(meas)+'.root')
+					t = f.Get('GIFTree/GIFDigiTree')
+					nLCT_11 = 0
+					nLCT_21 = 0
+					nPaddle_11 = 0
+					nPaddle_21 = 0
+					# Count number of entries with at least one LCT
+					for entry in t:
+						# ID for ME1/1/GIF = 1
+						if list(t.lct_id).count(1)>0: nLCT_11 = nLCT_11 + 1
+						# ID for ME2/1/GIF = 110
+						if list(t.lct_id).count(110)>0: nLCT_21 = nLCT_21 + 1
 
-				nTot = t.GetEntries()
-				print '%4i %5i %5i %5i' % (meas, nLCT_11, nLCT_21, nTot)
+						# is at least one LCT within the paddle?
+						i1 = [i for i,x in enumerate(list(t.lct_id)) if x == 1]
+						i2 = [i for i,x in enumerate(list(t.lct_id)) if x == 110]
+						for i in i1:
+							if      ord(t.lct_keyHalfStrip[i]) >=  25\
+								and ord(t.lct_keyHalfStrip[i]) <=  72\
+								and ord(t.lct_keyWireGroup[i]) >=  37\
+								and ord(t.lct_keyWireGroup[i]) <=  43:
+								nPaddle_11 += 1
+								break
+						for i in i2:
+							if      ord(t.lct_keyHalfStrip[i]) >=   8\
+								and ord(t.lct_keyHalfStrip[i]) <=  38\
+								and ord(t.lct_keyWireGroup[i]) >=  55\
+								and ord(t.lct_keyWireGroup[i]) <=  65:
+								nPaddle_21 += 1
+								break
+					nTot = t.GetEntries()
+					print '%4i %5i %5i %5i %5i %5i %.4f %.4f' % (\
+							meas,
+							nLCT_11,
+							nLCT_21,
+							nTot,
+							nPaddle_11,
+							nPaddle_21,
+							float(nPaddle_11)/nLCT_11,
+							float(nPaddle_21)/nLCT_21
+						)
+					sys.stdout.flush()
 
+					self.Effs[1][meas] = float(nLCT_11)/float(nTot)
+					self.Effs[2][meas] = float(nLCT_21)/float(nTot)
+		else:
+			f = open(fromFile)
+			for line in f:
+				cols = line.strip('\n').split()
+				meas = int(cols[0])
+				nLCT_11 = int(cols[1])
+				nLCT_21 = int(cols[2])
+				nTot = int(cols[3])
 				self.Effs[1][meas] = float(nLCT_11)/float(nTot)
 				self.Effs[2][meas] = float(nLCT_21)/float(nTot)
 
@@ -74,6 +124,7 @@ class MegaStruct():
 
 	def attVector(self):
 		return np.array(sorted(self.FFFMeas.keys()))
+		#return np.array([33., 46., 100., float('inf')])
 
 	def currentVector(self, cham, ff):
 		return np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])

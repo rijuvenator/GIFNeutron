@@ -2,15 +2,15 @@ import ROOT as R
 import numpy as n
 
 # setStyle function, based on TDRStyle, but more flexible
-def setStyle(width_=800, height_=600, font_=42, tsize_=0.04):
+def setStyle(width=800, height=600, font=42, tsize=0.04):
 	style = R.TStyle("style","Style")
 
-	width = width_
-	height = height_
-	font = font_
+	width = width
+	height = height
+	font = font
 	tMargin = 0.1
 	lMargin = 0.125
-	tsize = float(tsize_)
+	tsize = float(tsize)
 
 	rMargin = tMargin * float(height) / float(width)
 	bMargin = lMargin
@@ -21,101 +21,103 @@ def setStyle(width_=800, height_=600, font_=42, tsize_=0.04):
 	style.SetLineWidth(2)
 
 	# canvas
-	style.SetCanvasBorderMode(0)			# off
-	style.SetCanvasColor(R.kWhite)			# white
-	style.SetCanvasDefW(width)				# width
-	style.SetCanvasDefH(height)				# height
+	style.SetCanvasBorderMode(0)             # off
+	style.SetCanvasColor(R.kWhite)           # white
+	style.SetCanvasDefW(width)               # width
+	style.SetCanvasDefH(height)              # height
 
 	# pad
-	style.SetPadBorderMode(0)				# off
-	style.SetPadColor(R.kWhite)				# white
-	style.SetPadGridX(R.kFALSE)				# grid x
-	style.SetPadGridY(R.kFALSE)				# grid y
-	style.SetGridColor(R.kGray)				# gray
-	style.SetGridStyle(3)					# dotted
-	style.SetGridWidth(1)					# pixels
+	style.SetPadBorderMode(0)                # off
+	style.SetPadColor(R.kWhite)              # white
+	style.SetPadGridX(R.kFALSE)              # grid x
+	style.SetPadGridY(R.kFALSE)              # grid y
+	style.SetGridColor(R.kGray)              # gray
+	style.SetGridStyle(3)                    # dotted
+	style.SetGridWidth(1)                    # pixels
 
 	# pad margins
-	style.SetPadTopMargin(tMargin)			# default 0.1
-	style.SetPadBottomMargin(bMargin)		# default 0.1
-	style.SetPadLeftMargin(lMargin)			# default 0.1
-	style.SetPadRightMargin(rMargin)		# default 0.1
+	style.SetPadTopMargin(tMargin)           # default 0.1
+	style.SetPadBottomMargin(bMargin)        # default 0.1
+	style.SetPadLeftMargin(lMargin)          # default 0.1
+	style.SetPadRightMargin(rMargin)         # default 0.1
 
 	# frame
-	style.SetFrameBorderMode(0)				# off
-	style.SetFrameFillColor(R.kWhite)			# white
-	style.SetFrameFillStyle(0)				# hollow
-	style.SetFrameLineColor(R.kWhite)			# white
-	style.SetFrameLineStyle(1)				# solid
-	style.SetFrameLineWidth(0)				# pixels
+	style.SetFrameBorderMode(0)              # off
+	style.SetFrameFillColor(R.kWhite)        # white
+	style.SetFrameFillStyle(0)               # hollow
+	style.SetFrameLineColor(R.kWhite)        # white
+	style.SetFrameLineStyle(1)               # solid
+	style.SetFrameLineWidth(0)               # pixels
 
 	# legend
-	style.SetLegendBorderSize(0)			# off
-	style.SetLegendFont(font)				# helvetica normal
+	style.SetLegendBorderSize(0)             # off
+	style.SetLegendFont(font)                # helvetica normal
 
 	# hist
-	style.SetHistLineColor(R.kBlack)			# black
-	style.SetHistLineStyle(1)				# solid
-	style.SetHistLineWidth(2)				# pixels
-	style.SetMarkerStyle(R.kFullDotLarge)		# marker
-	style.SetMarkerColor(R.kBlack)			# black
-	style.SetEndErrorSize(0)				# no little lines on errors
+	style.SetHistLineColor(R.kBlack)         # black
+	style.SetHistLineStyle(1)                # solid
+	style.SetHistLineWidth(2)                # pixels
+	style.SetMarkerStyle(R.kFullDotLarge)    # marker
+	style.SetMarkerColor(R.kBlack)           # black
+	style.SetEndErrorSize(0)                 # no little lines on errors
 
 	# stats box
-	style.SetOptStat(0)						# off
+	style.SetOptStat(0)                      # off
 
 	# fit box
-	style.SetOptFit(1)						# on
+	style.SetOptFit(1)                       # on
 
 	# title
-	style.SetOptTitle(0)					# off
-	style.SetTitleFont(font,"")				# helvetica normal
-	style.SetTitleTextColor(R.kBlack)			# black
-	style.SetTitleFontSize(tsize+0.02)		# default 0
-	style.SetTitleStyle(0)					# hollow
-	style.SetTitleFillColor(R.kWhite)			# white
-	style.SetTitleBorderSize(0)				# default 2
-	style.SetTitleAlign(22)					# center top
-	style.SetTitleX(titleX)					# center title horizontally with respect to frame
-	style.SetTitleY(titleY)					# center title vertically within margin
+	style.SetOptTitle(0)                     # off
+	style.SetTitleFont(font,"")              # helvetica normal
+	style.SetTitleTextColor(R.kBlack)        # black
+	style.SetTitleFontSize(tsize+0.02)       # default 0
+	style.SetTitleStyle(0)                   # hollow
+	style.SetTitleFillColor(R.kWhite)        # white
+	style.SetTitleBorderSize(0)              # default 2
+	style.SetTitleAlign(22)                  # center top
+	style.SetTitleX(titleX)                  # center title horizontally with respect to frame
+	style.SetTitleY(titleY)                  # center title vertically within margin
 
 	# axis titles
-	style.SetTitleFont(font, "XYZ")			# helvetica normal
-	style.SetTitleColor(R.kBlack, "XYZ")		# black
-	style.SetTitleSize(tsize+0.005,"XYZ")	# default 0.02
-	style.SetTitleOffset(1,"X")				# default 1
-	style.SetTitleOffset(1,"Y")				# default 1
+	style.SetTitleFont(font, "XYZ")          # helvetica normal
+	style.SetTitleColor(R.kBlack, "XYZ")     # black
+	style.SetTitleSize(tsize+0.005,"XYZ")    # default 0.02
+	style.SetTitleOffset(1,"X")              # default 1
+	style.SetTitleOffset(1,"Y")              # default 1
 
 	# axis labels
-	style.SetLabelFont(font, "XYZ")			# helvetica normal
-	style.SetLabelColor(R.kBlack, "XYZ")		# black
-	style.SetLabelSize(tsize, "XYZ")		# default 0.04
-	style.SetLabelOffset(0.005,"XYZ")		# default 0.005
+	style.SetLabelFont(font, "XYZ")          # helvetica normal
+	style.SetLabelColor(R.kBlack, "XYZ")     # black
+	style.SetLabelSize(tsize, "XYZ")         # default 0.04
+	style.SetLabelOffset(0.005,"XYZ")        # default 0.005
 
 	# axis
-	style.SetAxisColor(R.kBlack, "XYZ")		# black
-	style.SetStripDecimals(R.kTRUE)			# strip decimals
-	style.SetPadTickX(1)					# opposite x ticks
-	style.SetPadTickY(1)					# opposite y ticks
+	style.SetAxisColor(R.kBlack, "XYZ")      # black
+	style.SetStripDecimals(R.kTRUE)          # strip decimals
+	style.SetPadTickX(1)                     # opposite x ticks
+	style.SetPadTickY(1)                     # opposite y ticks
 
 	style.cd()
 
 # holds a plot object; expected to be a hist, graph, or hstack
 # legName is the legend display name, legType is the legend symbol draw option, option is the draw option
 class Plot:
-	def __init__(self, plot_, legName_="hist", legType_="felp", option_=""):
-		self.plot = plot_
-		self.legName = legName_
-		self.legType = legType_
-		self.option = option_
+	def __init__(self, plot, legName="hist", legType="felp", option=""):
+		self.plot = plot
+		self.legName = legName
+		self.legType = legType
+		self.option = option
 
-	def scaleTitles(self, factor):
-		self.plot.GetXaxis().SetTitleSize(self.plot.GetXaxis().GetTitleSize() * float(factor))
-		self.plot.GetYaxis().SetTitleSize(self.plot.GetYaxis().GetTitleSize() * float(factor))
+	def scaleTitles(self, factor, axes='XY'):
+		if 'X' in axes: self.plot.GetXaxis().SetTitleSize(self.plot.GetXaxis().GetTitleSize() * float(factor))
+		if 'Y' in axes: self.plot.GetYaxis().SetTitleSize(self.plot.GetYaxis().GetTitleSize() * float(factor))
+		if 'Z' in axes: self.plot.GetZaxis().SetTitleSize(self.plot.GetZaxis().GetTitleSize() * float(factor))
 
-	def scaleLabels(self, factor):
-		self.plot.GetXaxis().SetLabelSize(self.plot.GetXaxis().GetLabelSize() * float(factor))
-		self.plot.GetYaxis().SetLabelSize(self.plot.GetYaxis().GetLabelSize() * float(factor))
+	def scaleLabels(self, factor, axes='XY'):
+		if 'X' in axes: self.plot.GetXaxis().SetLabelSize(self.plot.GetXaxis().GetLabelSize() * float(factor))
+		if 'Y' in axes: self.plot.GetYaxis().SetLabelSize(self.plot.GetYaxis().GetLabelSize() * float(factor))
+		if 'Z' in axes: self.plot.GetZaxis().SetLabelSize(self.plot.GetZaxis().GetLabelSize() * float(factor))
 
 # canvas class
 # lumi is lumi text (top right), logy is if canvas should be log y scale, ratiofactor is fraction of canvas devoted to ratio plot
@@ -137,15 +139,15 @@ class Canvas:
 #	TGraph *gr;
 
 	# the user calls this constructor
-	def __init__(self, lumi_="40 pb^{-1} (13 TeV)", logy_=0, ratioFactor_=0, extra_="Preliminary", cWidth_=800, cHeight_=600, font_=42, tsize_=0.05):
-		self.cWidth = cWidth_
-		self.cHeight = cHeight_
-		self.font = font_
-		self.tsize = float(tsize_)
-		self.lumi = lumi_
-		self.extra = extra_
-		self.logy = logy_
-		self.ratioFactor = float(ratioFactor_)
+	def __init__(self, lumi="30 fb^{-1} (13 TeV)", logy=0, ratioFactor=0, extra="Internal", cWidth=800, cHeight=600, font=42, tsize=0.05):
+		self.cWidth = cWidth
+		self.cHeight = cHeight
+		self.font = font
+		self.tsize = float(tsize)
+		self.lumi = lumi
+		self.extra = extra
+		self.logy = logy
+		self.ratioFactor = float(ratioFactor)
 
 		setStyle(self.cWidth,self.cHeight,self.font,self.tsize)
 
@@ -187,13 +189,13 @@ class Canvas:
 		self.mainPad.cd()
 
 		if (pos == "tr"):
-			self.leg = R.TLegend(1-rMargin-lOffset-lWidth, 1-tMargin-lOffset-lHeight, 1-rMargin-lOffset,		  1-tMargin-lOffset        )
+			self.leg = R.TLegend(1-rMargin-lOffset-lWidth, 1-tMargin-lOffset-lHeight, 1-rMargin-lOffset,          1-tMargin-lOffset        )
 		elif (pos == "tl"):
-			self.leg = R.TLegend(  lMargin+lOffset,        1-tMargin-lOffset-lHeight,   lMargin+lOffset+lWidth, 1-tMargin-lOffset        )
+			self.leg = R.TLegend(  lMargin+lOffset,        1-tMargin-lOffset-lHeight,   lMargin+lOffset+lWidth,   1-tMargin-lOffset        )
 		elif (pos == "br"):
-			self.leg = R.TLegend(1-rMargin-lOffset-lWidth,   bMargin+lOffset,         1-rMargin-lOffset,		    bMargin+lOffset+lHeight)
+			self.leg = R.TLegend(1-rMargin-lOffset-lWidth,   bMargin+lOffset,         1-rMargin-lOffset,            bMargin+lOffset+lHeight)
 		elif (pos == "bl"):
-			self.leg = R.TLegend(  lMargin+lOffset,          bMargin+lOffset,			  lMargin+lOffset+lWidth,   bMargin+lOffset+lHeight)
+			self.leg = R.TLegend(  lMargin+lOffset,          bMargin+lOffset,           lMargin+lOffset+lWidth,     bMargin+lOffset+lHeight)
 		else:
 			print "Invalid legend position string; defaulting to top-right"
 			self.leg = R.TLegend(1-rMargin-lOffset-lWidth, 1-tMargin-lOffset-lHeight, 1-rMargin-lOffset, 1-tMargin-lOffset)
@@ -266,7 +268,7 @@ class Canvas:
 			sbox.SetY2NDC(  bMargin+lOffset+lHeight)
 		elif (pos == "bl"):
 			sbox.SetX1NDC(  lMargin+lOffset        )
-			sbox.SetY1NDC(  bMargin+lOffset		   )
+			sbox.SetY1NDC(  bMargin+lOffset        )
 			sbox.SetX2NDC(  lMargin+lOffset+lWidth )
 			sbox.SetY2NDC(  bMargin+lOffset+lHeight)
 		else:
@@ -324,6 +326,11 @@ class Canvas:
 
 		self.ratPad.RedrawAxis()
 
+	# the user calls this; makes background transparent
+	def makeTransparent(self):
+		self.c.SetFillStyle(4000)
+		self.mainPad.SetFillStyle(4000)
+
 	# the user calls this last; it draws the lumi text, "CMS", extra text, and legend 
 	def finishCanvas(self):
 		tMargin = float(self.mainPad.GetTopMargin())
@@ -355,6 +362,12 @@ class Canvas:
 		self.mainPad.RedrawAxis()
 	
 	# save canvas as file
-	def save(self, name, extList=['.pdf']):
-		for ext in extList:
-			self.c.SaveAs(name+ext)
+	def save(self, name, extList=''):
+		if type(extList) == str:
+			if extList == '':
+				self.c.SaveAs(name)
+			else:
+				self.c.SaveAs(name+extList)
+		if type(extList) == list:
+			for ext in extList:
+				self.c.SaveAs(name+ext)
