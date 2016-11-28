@@ -4,31 +4,41 @@ Script for running gifDisplays.py
 
 import os,sys
 import argparse
+import ROOT as R
+import Gif.TestBeamAnalysis.DualMeasurements as Meas
 import commands
 parser = argparse.ArgumentParser(description='Draw event displays of GIF++ data')
 parser.add_argument('--tag',dest='tag',help='Tagged directory name for output plots',default=None)
 parser.add_argument('--eventList',dest='eventList',help='Event list to draw',default=None)
 parser.add_argument('--meas',dest='meas',help='Measurement number to draw from',default=None)
+parser.add_argument('--cham',dest='cham',help='Chamber to draw event from',default=None)
 parser.add_argument('--dryrun',dest='dryrun',action='store_true',help='Flag for dry-running',default=False)
 parser.add_argument('--extra',dest='extra',help='Extra info about event displays (e.g. noSegments, twoMuons)',default=None)
 parser.add_argument('--outdir',dest='outdir',help='Output directory name',default=None)
 args = parser.parse_args()
-if (args.eventList is None) or (args.meas is None):
-    raise ValueError('Need to specify event list and measurement number.\
-                      Ex: --eventList list.txt --meas mXXXX')
+if (args.eventList is None) or (args.meas is None) or (args.cham is None):
+    raise ValueError('Need to specify event list and measurement number and chamber type.\
+                      Ex: --eventList list.txt --meas XXXX --cham 21')
+'''
 if args.tag:
 	TAG = args.tag + ('/' if args.tag[-1]!='/' else '')
 else:
 	TAG = 'TEST/'
+'''
 LIST = args.eventList
 MEAS = args.meas
+CHAM = 'ME'+args.cham
 DRYRUN = args.dryrun
 EXTRA = args.extra
+'''
 if args.outdir:
 	OUTDIR = args.outdir + ('/' if args.outdir[-1]!='/' else '')
 else:
 	user = commands.getoutput('echo $USER')
 	OUTDIR = '/afs/cern.ch/work/'+user[0]+'/'+user+'/GIF/eventDisplay/'
+'''
+OUTDIR = ''
+TAG = 'test'
 
 # Set list input and output root/png file paths
 listFile = LIST
@@ -38,22 +48,26 @@ displaysDir = OUTDIR+TAG
 if not os.path.isdir(displaysDir):
     raise ValueError('%s is not a tagged directory' % displaysDir)
 
+TBM = Meas.meas[MEAS]
+fn = TBM.ROOTFile(prefix='/store/user/cschnaib/GIF/')
+'''
 # Get Measurement information
 from Gif.TestBeamAnalysis.TestBeamMeasurements import *
 TBM = eval(MEAS)
-chamber = TBM.CSC
-test = TBM.test
+'''
+chamber = CHAM
+test = 'test40'
 HV = TBM.HV
 beam = TBM.beam
 uAtt = TBM.uAtt
 dAtt = TBM.dAtt
-meas = TBM.meas
-fn = TBM.fn
+#meas = TBM.meas
+#fn = TBM.fn
 if EXTRA:
-    displayRootFile =  'displays_%s_%s_%s_%s.root'%(chamber,test,meas,EXTRA)
+    displayRootFile =  'displays_%s_%s_%s_%s.root'%(chamber,test,MEAS,EXTRA)
 else:
-    displayRootFile =  'displays_%s_%s_%s.root'%(chamber,test,meas)
-print chamber, test, HV, beam, uAtt, dAtt, meas
+    displayRootFile =  'displays_%s_%s_%s.root'%(chamber,test,MEAS)
+print chamber, test, HV, beam, uAtt, dAtt, MEAS
 print fn
 print displaysDir+displayRootFile
 print listFile

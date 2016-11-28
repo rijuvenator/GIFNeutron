@@ -110,6 +110,14 @@ public:
     book("rh_strip_3"     ,rh_strip_3 );
     book("rh_pos_strip"   ,rh_pos_strip   );
     book("rh_n_wiregroups",rh_n_wiregroups);
+	book("rh_energy"	  ,rh_energy);
+	book("rh_wireGrp" 	  ,rh_wireGrp);
+	book("rh_n_timebins"  ,rh_n_timebins);
+	book("rh_n_strips"    ,rh_n_strips);
+	book("rh_adc3x3_Qsum" ,rh_adc3x3_Qsum);
+	book("rh_lr_Qratio"   ,rh_lr_Qratio);
+	book("rh_time"		  ,rh_time);
+	book("rh_adc_max"     ,rh_adc_max);
     book("n_rhs",nRH,"I");
 
 
@@ -126,6 +134,14 @@ private:
   std::vector<size8>    rh_strip_3  ;
   std::vector<float>    rh_pos_strip   ;
   std::vector<size8>    rh_n_wiregroups;
+  std::vector<float>	rh_energy;
+  std::vector<size8>	rh_wireGrp;
+  std::vector<size8>	rh_n_timebins;
+  std::vector<size8>	rh_n_strips;
+  std::vector<float>	rh_adc3x3_Qsum;
+  std::vector<float>	rh_lr_Qratio;
+  std::vector<float>	rh_time;
+  std::vector<int>      rh_adc_max;
   int nRH;
 
 
@@ -139,6 +155,14 @@ private:
     rh_strip_3  .clear();
     rh_pos_strip   .clear();
     rh_n_wiregroups.clear();
+	rh_energy.clear();
+	rh_wireGrp.clear();
+	rh_n_timebins.clear();
+	rh_n_strips.clear();
+	rh_adc3x3_Qsum.clear();
+	rh_lr_Qratio.clear();
+	rh_time.clear();
+	rh_adc_max.clear();
     nRH = -1;
   }
 
@@ -155,6 +179,7 @@ public:
     book("strip_id"           ,strip_id           );
     book("strip_lay"          ,strip_lay          );
     book("strip_number"       ,strip_number      );
+	book("strip_ADC"		  ,strip_ADC		);
     book("n_strips", nStrip,"I");
 
 
@@ -166,6 +191,7 @@ private:
   std::vector<size16>   strip_id     ;
   std::vector<size8>    strip_lay    ;
   std::vector<size8>    strip_number ;
+  std::vector<std::vector <int>> strip_ADC;
   int nStrip; 
 
 
@@ -173,6 +199,7 @@ private:
     strip_id     .clear();
     strip_lay    .clear();
     strip_number .clear();
+	strip_ADC    .clear();
     nStrip = -1;
   }
 
@@ -190,6 +217,8 @@ public:
     book("comp_lay"     ,comp_lay         );
     book("comp_strip"   ,comp_strip       );
     book("comp_comp"    ,comp_comp        );
+    book("comp_time"    ,comp_time        );
+    book("comp_timeOn"  ,comp_timeOn      );
 
 
 
@@ -201,6 +230,8 @@ private:
   std::vector<size8>  comp_lay   ;
   std::vector<size8>  comp_strip ;
   std::vector<size8>  comp_comp  ;
+  std::vector<size8>  comp_time  ;
+  std::vector<std::vector<int>>  comp_timeOn;
 
 
   virtual void reset(){
@@ -208,6 +239,8 @@ private:
     comp_lay   .clear();
     comp_strip .clear();
     comp_comp  .clear();
+    comp_time  .clear();
+    comp_timeOn.clear();
   }
 
   public:

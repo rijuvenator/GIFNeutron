@@ -26,8 +26,38 @@ void FillGIFRecHitInfo::fill(const CSCRecHit2DCollection& recHits){
       rh_strip_1 .push_back(GIFHelper::convertTo<size8>(hiti->channels(0),"rh_strip_1"));
       rh_strip_2 .push_back(GIFHelper::convertTo<size8>(hiti->channels(1),"rh_strip_2"));
       rh_strip_3 .push_back(GIFHelper::convertTo<size8>(hiti->channels(2),"rh_strip_3"));
-      rh_pos_strip   .push_back(hiti->positionWithinStrip());
-      rh_n_wiregroups.push_back(GIFHelper::convertTo<size8>(hiti->nWireGroups(),"rh_n_wiregroups"));
+      rh_pos_strip		.push_back(hiti->positionWithinStrip());
+	  rh_wireGrp		.push_back(GIFHelper::convertTo<size8>(hiti->hitWire(),"rh_wireGrp"));
+      rh_n_wiregroups	.push_back(GIFHelper::convertTo<size8>(hiti->nWireGroups(),"rh_n_wiregroups"));
+	  rh_n_timebins		.push_back(GIFHelper::convertTo<size8>(hiti->nTimeBins(),"rh_n_timebins"));
+	  rh_n_strips		.push_back(GIFHelper::convertTo<size8>(hiti->nStrips(),"rh_n_strips"));
+
+	  // Find the charge associated with this hit
+	  int centerID = hiti->nStrips()/2;
+	  float rhMax = -999.;
+	  for (unsigned int it=0; it<hiti->nTimeBins()-1; it++) {
+		  if (hiti->adcs(centerID,it) > rhMax) rhMax = hiti->adcs(centerID,it);
+	  }
+	  rh_adc_max.push_back(rhMax);
+	  float rHSumQ = 0;
+	  float sumsides=0.;
+	  int adcsize=hiti->nStrips()*hiti->nTimeBins();
+	  for ( unsigned int i=0; i< hiti->nStrips(); i++) {
+		  for ( unsigned int j=0; j< hiti->nTimeBins()-1; j++) {
+			  rHSumQ+=hiti->adcs(i,j); 
+			  if (i!=1) sumsides+=hiti->adcs(i,j);
+		  }
+	  }
+	  rh_adc3x3_Qsum.push_back(rHSumQ);
+	  // (Ql+Qr)/Qt ratio
+      float rHratioQ = sumsides/rHSumQ;
+      if (adcsize != 12) rHratioQ = -99;
+	  rh_lr_Qratio.push_back(rHratioQ);
+	  // RH energy
+	  rh_energy.push_back(hiti->energyDepositedInLayer());
+	  // RH time
+	  rh_time.push_back(hiti->tpeak());
+
   }
   nRH = nRHs;
 }
@@ -56,6 +86,7 @@ void FillGIFStripInfo::fill(const CSCStripDigiCollection& strips){
       strip_id.push_back(GIFHelper::chamberSerial(id));
       strip_lay.push_back(GIFHelper::convertTo<size8>(id.layer(),"strip_lay"));
       strip_number.push_back(GIFHelper::convertTo<size8>(stripIter->getStrip(),"strip_number"));
+	  strip_ADC.push_back(myADCVals);
     }
   } // end strip loop
   nStrip = nStrips;
@@ -74,6 +105,8 @@ void FillGIFCompInfo::fill(const CSCComparatorDigiCollection& comps){
       comp_lay   .push_back(GIFHelper::convertTo<size8>(id.layer(),"comp_lay"));
       comp_strip .push_back(GIFHelper::convertTo<size8>((*digiItr).getStrip(),"comp_strip"));
       comp_comp  .push_back(GIFHelper::convertTo<size8>((*digiItr).getComparator(),"comp_comp"));
+      comp_time  .push_back(GIFHelper::convertTo<size8>((*digiItr).getTimeBin(),"comp_time"));
+      comp_timeOn.push_back((*digiItr).getTimeBinsOn());
     }
   }
 
