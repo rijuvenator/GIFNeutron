@@ -2,13 +2,15 @@ import numpy as np
 import Gif.TestBeamAnalysis.Plotter as Plotter
 import ROOT as R
 
-R.gROOT.SetBatch(True)
-
 ### PARAMETERS
+# Which chambers to do; to compare to Yuriy only use ME1/1
 chamlist = [1, 2]
+
+# Which files contain the relevant list of measurements and currents
 f_measgrid = 'measgrid'
 f_attenhut = 'attenhut'
 
+# Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
 		0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
 		1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
@@ -20,9 +22,15 @@ pretty = {
 		7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
+R.gROOT.SetBatch(True)
+
+###############################################################################################
+### BEGIN CODE
 ### DATA STRUCTURE CLASS
 class MegaStruct():
 	def __init__(self,measgrid,attenhut):
+
+		# Fill dictionary connecting attenuation to list of measurement numbers, ordered by FF
 		f = open(measgrid)
 		self.FFFMeas = {}
 		for line in f:
@@ -30,6 +38,7 @@ class MegaStruct():
 			self.FFFMeas[float(cols[0])] = [int(j) for j in cols[1:]]
 		f.close()
 
+		# Fill dictionary connecting chamber and measurement number to list of currents
 		f = open(attenhut)
 		self.Currs = { 1 : {}, 2 : {} }
 		currentCham = 1
@@ -42,6 +51,7 @@ class MegaStruct():
 			self.Currs[currentCham][currentMeas] = [float(i) for i in cols[2:]]
 		f.close()
 
+		# Fill dictionary connecting chamber and measurement number to list of TMB registers
 		f = open('trigdata')
 		self.Regs = { 1 : {}, 2 : {} }
 		currentMeas = 0
@@ -60,12 +70,15 @@ class MegaStruct():
 				self.Regs[currentCham][currentMeas].append([float(i) for i in cols[2:]])
 		f.close()
 	
+	# get a current measurement given a chamber and measurement number
 	def current(self, cham, meas):
 		if cham == 1:
 			return sum(self.Currs[cham][meas])/6.0
 		elif cham == 2:
 			return sum(self.Currs[cham][meas][6:12])/6.0
 	
+	# get a register given a chamber, measurement number, and register name
+	# optionally specify which dump, or 'all' for mean, or 'sum' for sum
 	def register(self, cham, meas, name, dump=0):
 		if dump == 'all' or dump == 'sum':
 			if name == 'CFEB Sum':
@@ -111,16 +124,20 @@ class MegaStruct():
 			elif name == 'Window':
 				return self.Regs[cham][meas][dump][14]
 	
+	# get a vector of attenuations
 	def attVector(self):
 		return np.array(sorted(self.FFFMeas.keys()))[1:]
 
+	# get a vector of currents
 	def currentVector(self, cham, ff):
 		return np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
+	# get a vector of equivalent luminosities
 	def lumiVector(self, cham, ff):
 		factor = 5.e33 if cham == 2 else 3.e33
 		return factor * np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
+	# get a vector of registers
 	def regVector(self, cham, ff, name):
 		return np.array([self.register(cham, self.FFFMeas[att][ff], name) for att in self.attVector()])
 

@@ -44,13 +44,13 @@ class MegaStruct():
 			self.Currs[currentCham][currentMeas] = [float(i) for i in cols[2:]]
 		f.close()
 
-		f = open('meh')
+		f = open('LCTData')
 		self.Effs = { 1 : {}, 2 : {} }
 		for line in f:
 			cols = line.strip('\n').split()
 			meas = int(cols[0])
-			self.Effs[1][meas] = float(cols[-2])
-			self.Effs[2][meas] = float(cols[-1])
+			self.Effs[1][meas] = float(cols[3])/float(cols[2])
+			self.Effs[2][meas] = float(cols[6])/float(cols[5])
 
 	def current(self, cham, meas):
 		if cham == 1:

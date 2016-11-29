@@ -2,15 +2,15 @@ import numpy as np
 import Gif.TestBeamAnalysis.Plotter as Plotter
 import ROOT as R
 
-R.gROOT.SetBatch(True)
-
 ### PARAMETERS
-# Which chambers to do; which file contains the relevant list of measurements and currents
+# Which chambers to do
 chamlist = [1]
+
+# Which files contain the relevant list of measurements and currents
 f_measgrid = 'measgrid_Y'
 f_attenhut = 'attenhut_Y'
 
-### BEGIN CODE
+# Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
 		0 : { 'name' : 'Original',  'color' : R.kRed-3,   'marker' : R.kFullCircle      },
 		1 : { 'name' : 'Algo0'   ,  'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
@@ -20,9 +20,15 @@ pretty = {
 		5 : { 'name' : 'Algo4'   ,  'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
 }
 
+R.gROOT.SetBatch(True)
+
+###############################################################################################
+### BEGIN CODE
 ### DATA STRUCTURE CLASS
 class MegaStruct():
 	def __init__(self,measgrid,attenhut):
+
+		# Fill dictionary connecting attenuation to list of measurement numbers, ordered by FF
 		f = open(measgrid)
 		self.FFFMeas = {}
 		for line in f:
@@ -30,6 +36,7 @@ class MegaStruct():
 			self.FFFMeas[float(cols[0])] = [int(j) for j in cols[1:]]
 		f.close()
 
+		# Fill dictionary connecting chamber and measurement number to list of currents
 		f = open(attenhut)
 		self.Currs = { 1 : {}, 2 : {} }
 		currentCham = 1
@@ -42,6 +49,7 @@ class MegaStruct():
 			self.Currs[currentCham][currentMeas] = [float(i) for i in cols[2:]]
 		f.close()
 
+		# Fill dictionary connecting chamber and measurement number to efficiency value
 		self.Effs = { 1 : {}, 2 : {} }
 		for att in self.FFFMeas.keys():
 			for meas in self.FFFMeas[att]:
@@ -62,30 +70,37 @@ class MegaStruct():
 				self.Effs[1][meas] = float(nLCT_11)/float(nTot)
 				self.Effs[2][meas] = float(nLCT_21)/float(nTot)
 
+	# get a current measurement given a chamber and measurement number
 	def current(self, cham, meas):
 		if cham == 1:
 			return sum(self.Currs[cham][meas])/6.0
 		elif cham == 2:
 			return sum(self.Currs[cham][meas][6:12])/6.0
 	
+	# get an efficiency value given a chamber, measurement number, and efftype
 	def eff(self, cham, meas):
 		return self.Effs[cham][meas]
 
+	# get a vector of attenuations
 	def attVector(self):
 		return np.array(sorted(self.FFFMeas.keys()))
 
+	# get a vector of currents
 	def currentVector(self, cham, ff):
 		return np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
+	# get a vector of equivalent luminosities
 	def lumiVector(self, cham, ff):
 		factor = 5.e33 if cham == 2 else 3.e33
 		return factor * np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
+	# get a vector of efficiencies
 	def effVector(self, cham, ff):
-		return np.array([self.eff    (cham, self.FFFMeas[att][ff]) for att in self.attVector()])
+		return np.array([self.eff(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
+	# get a vector of efficiencies normalized to Original
 	def normEffVector(self, cham, ff):
-		return np.array([self.eff    (cham, self.FFFMeas[att][ff])/self.eff(cham, self.FFFMeas[att][0]) for att in self.attVector()])
+		return np.array([self.eff(cham, self.FFFMeas[att][ff])/self.eff(cham, self.FFFMeas[att][0]) for att in self.attVector()])
 
 data = MegaStruct(f_measgrid, f_attenhut)
 
