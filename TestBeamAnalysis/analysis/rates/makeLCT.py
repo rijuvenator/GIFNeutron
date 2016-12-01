@@ -271,6 +271,7 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 	graphs[0].SetMaximum(1.1)
 	plots[0].scaleTitles(0.8)
 	plots[0].scaleLabels(0.8)
+	canvas.makeTransparent()
 
 	for i,p in enumerate(pretty.keys()):
 		graphs[i].SetMarkerColor(pretty[p]['color'])
