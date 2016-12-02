@@ -1,6 +1,6 @@
 import numpy as np
 import ROOT as R
-import Primitives          # primitives classes
+import Gif.TestBeamAnalysis.Primitives as Primitives
 import DisplayHelper as ED # "Event Display"
 
 ##########
@@ -12,7 +12,7 @@ import DisplayHelper as ED # "Event Display"
 R.gROOT.SetBatch(True)
 
 ##### PARAMETERS #####
-# Measurement List, Chamber IDs (1, 110), Event List (1 indexed), ADC Time Bin (1 indexed)
+# Measurement List, Chamber IDs (1, 110), Event List (1 indexed)
 MEASLIST = [3284, 3384]
 CHAMS    = [1, 110]
 EVENTS   = [1, 2, 3, 4, 5]
@@ -32,17 +32,18 @@ for MEAS in MEASLIST:
 	t = f.Get('GIFTree/GIFDigiTree')
 
 	for EVENT in EVENTS:
+		# Get the event, make the ETree, and make lists of primitives objects
 		t.GetEntry(EVENT-1)
+		E = Primitives.ETree(t) # default DecList
+		wires   = [Primitives.Wire  (E, i) for i in range(len(E.wire_cham ))]
+		strips  = [Primitives.Strip (E, i) for i in range(len(E.strip_cham))]
+		comps   = [Primitives.Comp  (E, i) for i in range(len(E.comp_cham ))]
+		rechits = [Primitives.RecHit(E, i) for i in range(len(E.rh_cham   ))]
+
 		for CHAM in CHAMS:
 			# Upper limits for wire group numbers and half strip numbers
 			WIRE_MAX = 50   if CHAM == 1 else 113
 			HS_MAX   = 230  if CHAM == 1 else 164
-
-			# Make lists of primitives objects
-			wires   = [Primitives.Wire  (t, i) for i in range(len(list(t.wire_id )))]
-			strips  = [Primitives.Strip (t, i) for i in range(len(list(t.strip_id)))]
-			comps   = [Primitives.Comp  (t, i) for i in range(len(list(t.comp_id )))]
-			rechits = [Primitives.RecHit(t, i) for i in range(len(list(t.rh_id   )))]
 
 			if DODISPLAYS:
 				##### PRIMITIVES DISPLAY #####
