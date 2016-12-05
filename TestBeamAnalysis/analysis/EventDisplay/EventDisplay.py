@@ -17,8 +17,7 @@ MEASLIST = [3284, 3384]
 CHAMS    = [1, 110]
 EVENTS   = [1, 2, 3, 4, 5]
 
-# ADC Time Bin (1 indexed), RecHit Strip List (1 indexed; must be improper subset of [1, 2, 3])
-TIMEBIN      = 3
+# RecHit Strip List (1 indexed; must be improper subset of [1, 2, 3])
 RECHITSTRIPS = [2]
 
 # Which displays to plot
@@ -26,6 +25,8 @@ DODISPLAYS = True
 DORECHITS  = True
 
 ##### BEGIN CODE #####
+THRESHOLD = 13.3
+
 for MEAS in MEASLIST:
 	# Get file and tree
 	f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/test/ana_'+str(MEAS)+'.root')
@@ -51,12 +52,6 @@ for MEAS in MEASLIST:
 				# Instantiate canvas
 				canvas = ED.Canvas('primitives')
 
-				# Calculate pedestal
-				try:
-					PEDESTAL = min([min([i for i in strip.ADC]) for strip in strips if strip.cham == CHAM])
-				except:
-					PEDESTAL = 0
-
 				# Wires histogram: 2D, wire group vs. layer, weighted by time bin
 				hWires = R.TH2F('wires', 'ANODE HIT TIMING;Wire Group Number;Layer;Timing', WIRE_MAX, 0, WIRE_MAX, 6, 1, 7)
 				hWires.GetZaxis().SetRangeUser(0,16)
@@ -76,11 +71,14 @@ for MEAS in MEASLIST:
 				hComps.Draw('colz')
 
 				# ADC Count histogram: 2D, staggered strip vs. layer, weighted by ADC count minus pedestal (smallest ADC count for this measurement)
-				hADC = R.TH2F('adc', 'CATHODE STRIP ADC COUNT, BIN '+str(TIMEBIN+1)+';Strip Number;Layer;ADC #minus '+str(PEDESTAL), HS_MAX, 0, HS_MAX/2, 6, 1, 7)
+				hADC = R.TH2F('adc', 'CATHODE STRIP ADC COUNT;Strip Number;Layer;ADC Count', HS_MAX, 0, HS_MAX/2, 6, 1, 7)
 				for strip in strips:
 					if strip.cham != CHAM: continue
-					hADC.Fill(strip.staggeredNumber      , strip.layer, strip.ADC[TIMEBIN]-PEDESTAL)
-					hADC.Fill(strip.staggeredNumber + 0.5, strip.layer, strip.ADC[TIMEBIN]-PEDESTAL)
+					PEDESTAL = 0.5 * (strip.ADC[0] + strip.ADC[1])
+					ADC_COUNT = max([x-PEDESTAL for x in strip.ADC[2:]])
+					if ADC_COUNT < THRESHOLD: continue
+					hADC.Fill(strip.staggeredNumber      , strip.layer, ADC_COUNT)
+					hADC.Fill(strip.staggeredNumber + 0.5, strip.layer, ADC_COUNT)
 				canvas.pads[0].cd()
 				hADC.Draw('colz')
 
