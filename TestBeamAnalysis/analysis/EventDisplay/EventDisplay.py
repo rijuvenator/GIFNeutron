@@ -2,6 +2,7 @@ import numpy as np
 import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import DisplayHelper as ED # "Event Display"
+import Patterns
 
 ##########
 # This file gets the data, makes the histograms, makes the objects, and makes the plots
@@ -15,14 +16,15 @@ R.gROOT.SetBatch(True)
 # Measurement List, Chamber IDs (1, 110), Event List (1 indexed)
 MEASLIST = [3284, 3384]
 CHAMS    = [1, 110]
-EVENTS   = [1, 2, 3, 4, 5]
+EVENTS   = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 # RecHit Strip List (1 indexed; must be improper subset of [1, 2, 3])
 RECHITSTRIPS = [2]
 
 # Which displays to plot
 DODISPLAYS = True
-DORECHITS  = True
+DOPATTERN  = True
+DORECHITS  = False
 
 ##### BEGIN CODE #####
 THRESHOLD = 13.3
@@ -35,11 +37,22 @@ for MEAS in MEASLIST:
 	for EVENT in EVENTS:
 		# Get the event, make the ETree, and make lists of primitives objects
 		t.GetEntry(EVENT-1)
-		E = Primitives.ETree(t) # default DecList
-		wires   = [Primitives.Wire  (E, i) for i in range(len(E.wire_cham ))]
-		strips  = [Primitives.Strip (E, i) for i in range(len(E.strip_cham))]
-		comps   = [Primitives.Comp  (E, i) for i in range(len(E.comp_cham ))]
-		rechits = [Primitives.RecHit(E, i) for i in range(len(E.rh_cham   ))]
+		DecList = []
+		if DODISPLAYS:
+			DecList.extend(['WIRE', 'STRIP', 'COMP'])
+		if DORECHITS:
+			DecList.extend(['RECHIT'])
+		if DOPATTERN:
+			DecList.extend(['LCT'])
+		E = Primitives.ETree(t)
+		if DODISPLAYS:
+			wires   = [Primitives.Wire  (E, i) for i in range(len(E.wire_cham ))]
+			strips  = [Primitives.Strip (E, i) for i in range(len(E.strip_cham))]
+			comps   = [Primitives.Comp  (E, i) for i in range(len(E.comp_cham ))]
+		if DORECHITS:
+			rechits = [Primitives.RecHit(E, i) for i in range(len(E.rh_cham   ))]
+		if DOPATTERN:
+			lcts   =  [Primitives.LCT   (E, i) for i in range(len(E.lct_cham  ))]
 
 		for CHAM in CHAMS:
 			# Upper limits for wire group numbers and half strip numbers
@@ -70,8 +83,22 @@ for MEAS in MEASLIST:
 				canvas.pads[1].cd()
 				hComps.Draw('colz')
 
+				# CLCT Pattern TGraphs: staggered half strip vs. layer
+				if DOPATTERN:
+					canvas.pads[1].cd()
+					B = []
+					for lct in lcts:
+						if lct.cham != CHAM: continue
+						x1, y1, x2, y2 = Patterns.Pattern(lct.pattern, lct.keyHalfStrip)
+						for pos in zip(x1, y1, x2, y2):
+							B.append(R.TBox(pos[0], pos[1], pos[2], pos[3]))
+					for box in B:
+						box.SetFillStyle(0)
+						box.Draw('same')
+
 				# ADC Count histogram: 2D, staggered strip vs. layer, weighted by ADC count minus pedestal (smallest ADC count for this measurement)
 				hADC = R.TH2F('adc', 'CATHODE STRIP ADC COUNT;Strip Number;Layer;ADC Count', HS_MAX, 0, HS_MAX/2, 6, 1, 7)
+				hADC.GetZaxis().SetRangeUser(0,500)
 				for strip in strips:
 					if strip.cham != CHAM: continue
 					PEDESTAL = 0.5 * (strip.ADC[0] + strip.ADC[1])
