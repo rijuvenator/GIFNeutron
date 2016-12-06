@@ -123,10 +123,12 @@ class Canvas():
 
 			self.pads[i].Draw()
 
-	def drawLumiText(self, TEXT):
-		self.pads[self.numPads-1].cd()
+	def drawLumiText(self, TEXT, PAD=None):
+		if PAD is None:
+			PAD = self.numPads-1
+		self.pads[PAD].cd()
 		text = R.TLatex()
 		text.SetTextFont(62)
 		text.SetTextAlign(31)
 		text.SetTextSize(16./200.)
-		text.DrawLatexNDC(1-self.pads[self.numPads-1].GetRightMargin(), 1-self.pads[self.numPads-1].GetTopMargin() + 10./self.height, TEXT)
+		text.DrawLatexNDC(1-self.pads[PAD].GetRightMargin(), 1-self.pads[PAD].GetTopMargin() + 10./self.height, TEXT)

@@ -10,7 +10,7 @@
 # DecList is for turning on or off some declarations. No need to declare everything
 # if we're not going to use them.
 class ETree():
-	def __init__(self, t, DecList=('COMP', 'STRIP', 'WIRE', 'RECHIT', 'LCT')):
+	def __init__(self, t, DecList=('COMP', 'STRIP', 'WIRE', 'RECHIT', 'LCT', 'SEGMENT')):
 		if 'COMP' in DecList:
 			self.comp_cham    = list(t.comp_id)
 			self.comp_layer   = [ord(x) for x in list(t.comp_lay)  ]
@@ -42,8 +42,20 @@ class ETree():
 
 		if 'LCT' in DecList:
 			self.lct_cham         = list(t.lct_id)
-			self.lct_pattern      = [ord(x) for x in list(t.lct_pattern)      ]
-			self.lct_keyHalfStrip = [ord(x) for x in list(t.lct_keyHalfStrip) ]
+			self.lct_pattern      = [ord(x) for x in list(t.lct_pattern)     ]
+			self.lct_keyHalfStrip = [ord(x) for x in list(t.lct_keyHalfStrip)]
+			self.lct_keyWireGroup = [ord(x) for x in list(t.lct_keyWireGroup)]
+
+		if 'SEGMENT' in DecList:
+			self.seg_cham      = list(t.segment_id)
+			self.seg_pos_x     = list(t.segment_pos_x)
+			self.seg_pos_y     = list(t.segment_pos_y)
+			self.seg_dxdz      = list(t.segment_dxdz)
+			self.seg_dydz      = list(t.segment_dydz)
+			self.seg_dx        = list(t.segment_dx)
+			self.seg_dy        = list(t.segment_dy)
+			self.seg_strip     = list(t.segment_pos_strip_x)
+			self.seg_wireGroup = list(t.segment_pos_wire_y)
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 class Comp():
@@ -89,3 +101,18 @@ class LCT():
 		self.cham         = t.lct_cham[i]
 		self.pattern      = t.lct_pattern[i]
 		self.keyHalfStrip = t.lct_keyHalfStrip[i]
+		self.keyWireGroup = t.lct_keyWireGroup[i]
+
+class Segment():
+	def __init__(self, t, i):
+		self.cham      = t.seg_cham[i]
+		self.pos_x     = t.seg_pos_x[i]
+		self.pos_y     = t.seg_pos_y[i]
+		self.dxdz      = t.seg_dxdz[i]
+		self.dydz      = t.seg_dydz[i]
+		self.dx        = t.seg_dx[i]
+		self.dy        = t.seg_dy[i]
+		self.strip     = t.seg_strip[i]
+		self.wireGroup = t.seg_wireGroup[i]
+
+		self.halfStrip = int(float(2 * self.strip))
