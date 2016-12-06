@@ -11,6 +11,8 @@
 #include <DataFormats/CSCRecHit/interface/CSCSegmentCollection.h>
 #include <DataFormats/CSCDigi/interface/CSCCLCTDigiCollection.h>
 #include <DataFormats/CSCDigi/interface/CSCALCTDigiCollection.h>
+#include "Geometry/CSCGeometry/interface/CSCGeometry.h"
+#include "Geometry/Records/interface/MuonGeometryRecord.h"
 #include "Gif/TestBeamAnalysis/include/GIFHelper.h"
 
 #include "TFile.h"
@@ -347,8 +349,12 @@ public:
     book("segment_id"          ,segment_id         );
     book("segment_pos_x"       ,segment_pos_x      );
     book("segment_pos_y"       ,segment_pos_y      );
+    book("segment_pos_strip_x"       ,segment_pos_strip_x      );
+    book("segment_pos_wire_y"       ,segment_pos_wire_y      );
     book("segment_dxdz"        ,segment_dxdz  );
     book("segment_dydz"        ,segment_dydz    );
+    //book("segment_strip_dxdz"        ,segment_strip_dxdz  );
+    //book("segment_wire_dydz"        ,segment_wire_dydz    );
     book("segment_dx"        ,segment_dx  );
     book("segment_dy"        ,segment_dy    );
     book("segment_chisq"       ,segment_chisq      );
@@ -372,8 +378,12 @@ private:
      std::vector<size16>  segment_id             ;
      std::vector<float>   segment_pos_x          ;
      std::vector<float>   segment_pos_y          ;
+     std::vector<float>   segment_pos_strip_x          ;
+     std::vector<float>   segment_pos_wire_y          ;
      std::vector<float>   segment_dxdz      ;
      std::vector<float>   segment_dydz        ;
+     //std::vector<float>   segment_strip_dxdz      ;
+     //std::vector<float>   segment_wire_dydz        ;
      std::vector<float>   segment_dx      ;
      std::vector<float>   segment_dy        ;
      std::vector<float>   segment_chisq          ;
@@ -393,8 +403,12 @@ private:
     segment_id          .clear();
     segment_pos_x       .clear();
     segment_pos_y       .clear();
+    segment_pos_strip_x       .clear();
+    segment_pos_wire_y       .clear();
     segment_dxdz        .clear();
     segment_dydz        .clear();
+    //segment_strip_dxdz        .clear();
+    //segment_wire_dydz        .clear();
     segment_dx        .clear();
     segment_dy        .clear();
     segment_chisq       .clear();
@@ -413,7 +427,7 @@ private:
 
   public:
 
-  void fill(const CSCSegmentCollection& segments, const CSCRecHit2DCollection * recHits = 0);
+  void fill(const CSCGeometry * theCSC,const CSCSegmentCollection& segments, const CSCRecHit2DCollection * recHits = 0);
   size16 findRecHitIdx(const CSCRecHit2D& hit, const CSCRecHit2DCollection* allRecHits);
 
   int segmentQuality(edm::OwnVector<CSCSegment>::const_iterator segment);

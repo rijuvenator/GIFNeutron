@@ -5,6 +5,8 @@
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+
 
 
 #include "Gif/TestBeamAnalysis/include/FillGIFInfo.h"
@@ -15,6 +17,7 @@ using namespace std;
 
 class MakeSimpleGIFTree : public edm::EDAnalyzer {
     public:
+		const CSCGeometry *theCSC;
         explicit MakeSimpleGIFTree(const edm::ParameterSet&);
         ~MakeSimpleGIFTree();
 
@@ -106,10 +109,12 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   iEvent.getByToken(ld_token, cscLCTDigi);
   lctInfo.fill(*cscLCTDigi);
 
-
+  edm::ESHandle<CSCGeometry> cscGeom;
+  iSetup.get<MuonGeometryRecord>().get(cscGeom);
+  theCSC = cscGeom.product();
   edm::Handle<CSCSegmentCollection> cscSegments;
   iEvent.getByToken(seg_token, cscSegments);
-  segmentInfo.fill(*cscSegments,&(*recHits));
+  segmentInfo.fill(theCSC,*cscSegments,&(*recHits));
 
   edm::Handle<CSCCLCTDigiCollection> cscCLCTDigi;
   iEvent.getByToken(cd_token, cscCLCTDigi);
@@ -118,6 +123,7 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   edm::Handle<CSCALCTDigiCollection> cscALCTDigi;
   iEvent.getByToken(ad_token, cscALCTDigi);
   alctInfo.fill(*cscALCTDigi);
+
 
   tree.fill();
 }

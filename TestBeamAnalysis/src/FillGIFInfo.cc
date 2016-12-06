@@ -1,5 +1,4 @@
 #include "Gif/TestBeamAnalysis/include/FillGIFInfo.h"
-//#include "CSCUCLA/CSCDigiTuples/include/GIFHelper.h"
 #include "Gif/TestBeamAnalysis/include/GIFHelper.h"
 
 void FillGIFEventInfo::fill(const edm::Event& iEvent){
@@ -211,11 +210,43 @@ int FillGIFSegmentInfo::segmentQuality(edm::OwnVector<CSCSegment>::const_iterato
   return quality;
 }
 
-void FillGIFSegmentInfo::fill(const CSCSegmentCollection& segments, const CSCRecHit2DCollection* recHits){
+void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollection& segments, const CSCRecHit2DCollection* recHits){
   reset();
 
   int nSegs = 0;
   for(CSCSegmentCollection::const_iterator dSiter=segments.begin(); dSiter != segments.end(); dSiter++) {
+	// Specifically for segment positon in (strip,wg) units
+	// Create the ChamberId
+	DetId gid = (*dSiter).geographicalId();
+
+	CSCDetId chamberId(gid.rawId());
+	const CSCChamber *segChamber = theCSC->chamber(chamberId);
+	const CSCLayer *segLay3 = segChamber->layer(3);
+	//const CSCLayer *segLay4 = segChamber->layer(4);
+	const CSCLayerGeometry *segLay3Geo = segLay3->geometry();
+	//GlobalPoint lay4zero = segLay4->toGlobal(lzero); 
+	//LocalPoint lay4zeroIn3 = segLay3->toLocal(lay4zero);
+	//float cm2lay = fabs(lay4zeroIn3.z());
+
+	LocalPoint  segLPlayer = segLay3->toLocal(segChamber->toGlobal((*dSiter).localPosition() ));
+	LocalVector segLVlayer = segLay3->toLocal(segChamber->toGlobal((*dSiter).localDirection()));
+	float scale = -1.0*segLPlayer.z()/segLVlayer.z();
+	LocalVector tV = scale*segLVlayer;
+	LocalPoint tP = segLPlayer + tV;
+
+	float segStrip = segLay3Geo->strip(tP);
+	float segWire  = segLay3Geo->wireGroup(segLay3Geo->nearestWire(tP));
+	
+	// strip width
+	//int strI = floor(segStrip);
+	//float cm2strip = fabs( segLay3Geo->xOfStrip(strI,tP.y()) - segLay3Geo->xOfStrip(strI+1,tP.y()) );
+	// wire width
+	//int wireI = floor(segWire);
+	//float cm2wire = fabs( segLay3Geo->yOfWire(wireI,tP.x()) - segLay3Geo->yOfWire(wireI+1,tP.x()) );
+
+
+	
+	// old
     CSCDetId id  = (CSCDetId)(*dSiter).cscDetId();
     nSegs++;
 
@@ -228,8 +259,12 @@ void FillGIFSegmentInfo::fill(const CSCSegmentCollection& segments, const CSCRec
     segment_id   .push_back(GIFHelper::chamberSerial(id));
     segment_pos_x.push_back(segX);
     segment_pos_y.push_back(segY);
+	segment_pos_strip_x.push_back(segStrip);
+	segment_pos_wire_y.push_back(segWire);
     segment_dxdz.push_back(segDir.x()/segDir.z());
     segment_dydz.push_back(segDir.y()/segDir.z());
+	//segment_strip_dxdz.push_back( ( segDir.x() / cm2strip ) / ( segDir.z() / cm2lay ) );
+	//segment_wire_dydz.push_back( ( segDir.y() / cm2wire ) / ( segDir.z() / cm2lay ) );
     segment_dx.push_back(segDir.x());
     segment_dy.push_back(segDir.y());
     segment_chisq.push_back((*dSiter).chi2());

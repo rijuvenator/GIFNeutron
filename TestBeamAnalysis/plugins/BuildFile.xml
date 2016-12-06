@@ -22,6 +22,3 @@
 
 <library   name="GifAnalysis" file="MakeSimpleGIFTree.cc,GifHistos.cc">
 </library>
-
-<library name="GifDisplay" file="display.cc,GifDisplay.cc">
-</library>
