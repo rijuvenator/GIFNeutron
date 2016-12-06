@@ -7,7 +7,14 @@ import ROOT as R
 # Use setStyle for anything global; apply the rest to the pads with options
 ##########
 
-def setStyle(width, height):
+def setStyle(mode):
+	if mode == 'primitives':
+		width   = 800
+		height  = 600
+	elif mode == 'rechits':
+		width   = 800
+		height  = 400
+
 	style = R.TStyle("style","Style")
 
 	# generic line thicknesses
@@ -97,8 +104,6 @@ class Canvas():
 			self.width   = 800
 			self.height  = 400
 			self.numPads = 2
-
-		setStyle(self.width, self.height)
 
 		self.frac = 1./self.numPads
 
