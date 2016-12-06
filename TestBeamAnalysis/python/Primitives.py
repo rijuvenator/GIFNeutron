@@ -10,7 +10,7 @@
 # DecList is for turning on or off some declarations. No need to declare everything
 # if we're not going to use them.
 class ETree():
-	def __init__(self, t, DecList=('COMP', 'STRIP', 'WIRE', 'RECHIT')):
+	def __init__(self, t, DecList=('COMP', 'STRIP', 'WIRE', 'RECHIT', 'LCT')):
 		if 'COMP' in DecList:
 			self.comp_cham    = list(t.comp_id)
 			self.comp_layer   = [ord(x) for x in list(t.comp_lay)  ]
@@ -40,6 +40,11 @@ class ETree():
 			self.rh_wireGroup = [ord(x) for x in list(t.rh_wireGrp)]
 			self.rh_energy    = list(t.rh_energy)
 
+		if 'LCT' in DecList:
+			self.lct_cham         = list(t.lct_id)
+			self.lct_pattern      = [ord(x) for x in list(t.lct_pattern)      ]
+			self.lct_keyHalfStrip = [ord(x) for x in list(t.lct_keyHalfStrip) ]
+
 # The Primitives Classes: take in an ETree and an index, produces an object.
 class Comp():
 	def __init__(self, t, i):
@@ -50,7 +55,7 @@ class Comp():
 		self.timeBin = t.comp_timeBin[i]
 
 		self.halfStrip = 2*self.strip + self.comp
-		self.staggeredHalfStrip = self.halfStrip - 0.5 * (self.layer % 2 == 0)
+		self.staggeredHalfStrip = self.halfStrip - (self.cham == 110) * (0.5 * (self.layer % 2 == 0))
 
 class Strip():
 	def __init__(self, t, i):
@@ -59,7 +64,7 @@ class Strip():
 		self.number = t.strip_number[i]
 		self.ADC    = t.strip_ADC[i]
 
-		self.staggeredNumber = self.number - 0.5 * (self.layer % 2 == 0)
+		self.staggeredNumber = self.number - (self.cham == 110) * (0.5 * (self.layer % 2 == 0))
 
 class Wire():
 	def __init__(self, t, i):
@@ -78,3 +83,9 @@ class RecHit():
 		self.nStrips   = t.rh_nStrips[i]
 		self.wireGroup = t.rh_wireGroup[i]
 		self.energy    = t.rh_energy[i]
+
+class LCT():
+	def __init__(self, t, i):
+		self.cham         = t.lct_cham[i]
+		self.pattern      = t.lct_pattern[i]
+		self.keyHalfStrip = t.lct_keyHalfStrip[i]
