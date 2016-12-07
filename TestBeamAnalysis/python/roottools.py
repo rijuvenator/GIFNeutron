@@ -21,6 +21,15 @@ def DrawOverflow(hist):
     htmp.SetEntries(hist.GetEffectiveEntries())
     return htmp
 
+def poisson_interval(nobs, alpha=(1-0.6827)/2, beta=(1-0.6827)/2):
+    lower = 0
+    if nobs > 0:
+        lower = 0.5 * ROOT.Math.chisquared_quantile_c(1-alpha, 2*nobs)
+    elif nobs == 0:
+        beta *= 2
+    upper = 0.5 * ROOT.Math.chisquared_quantile_c(beta, 2*(nobs+1))
+    return lower, upper
+
 def clopper_pearson(n_on, n_tot, alpha=1-0.6827, equal_tailed=True):
     if equal_tailed:
         alpha_min = alpha/2
@@ -39,3 +48,7 @@ def clopper_pearson(n_on, n_tot, alpha=1-0.6827, equal_tailed=True):
         return 0, lower, upper
     else:
         return float(n_on)/n_tot, lower, upper
+
+def clopper_pearson_poisson_means(x, y, alpha=1-0.6827):
+	r, rl, rh = clopper_pearson(x, x+y, alpha)
+	return r/(1 - r), rl/(1 - rl), rh/(1 - rh)
