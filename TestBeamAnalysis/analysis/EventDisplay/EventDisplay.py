@@ -3,6 +3,7 @@ import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import DisplayHelper as ED # "Event Display"
 import Patterns
+import argparse
 
 ##########
 # This file gets the data, makes the histograms, makes the objects, and makes the plots
@@ -13,11 +14,21 @@ import Patterns
 R.gROOT.SetBatch(True)
 ED.setStyle('primitives') # holy crap! setStyle was taking up 99% of the computation time!
 
+parser = argparse.ArgumentParser(description='Makes event displays for given event list file and chamber')
+parser.add_argument('--cham',dest='CHAM',help='1 for ME1/1, 2 for ME2/1')
+parser.add_argument('--list',dest='FILE',help='Event list text file')
+parser.add_argument('--meas',dest='MEAS',help='Measurement number')
+args = parser.parse_args()
+
 ##### PARAMETERS #####
 # Measurement List, Chamber IDs (1, 110), Event List (1 indexed)
-MEASLIST = [3384, 3284]
-CHAMS    = [1, 110]
-EVENTS   = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+MEASLIST = [int(args.MEAS)]
+CHAMS    = [1 if int(args.CHAM)==1 else 110]
+eventFile = open(args.FILE)
+ENTRIES = []
+for event in eventFile:
+	# Make display plots 1 indexed, tree is 0 indexed
+	ENTRIES.append(int(event.strip('\n')))
 
 # Which displays to plot
 DOPATTERN  = True
@@ -31,9 +42,10 @@ for MEAS in MEASLIST:
 	f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(MEAS)+'.root')
 	t = f.Get('GIFTree/GIFDigiTree')
 
-	for EVENT in EVENTS:
+	for ENTRY in ENTRIES:
 		# Get the event, make the ETree, and make lists of primitives objects
-		t.GetEntry(EVENT-1)
+		t.GetEntry(ENTRY)
+		EVENT = t.Event_EventNumber
 		DecList = ['WIRE', 'STRIP', 'COMP']
 		if DOPATTERN or DOSEGMENTS:
 			DecList.extend(['LCT'])
@@ -104,7 +116,8 @@ for MEAS in MEASLIST:
 			hWires.GetXaxis().SetNdivisions(520 if CHAM==1 else 1020)
 			for wire in wires:
 				if wire.cham != CHAM: continue
-				hWires.Fill(wire.number, wire.layer, wire.timeBin)
+				# Don't fill a histogram with 0 weight!
+				hWires.Fill(wire.number, wire.layer, wire.timeBin if wire.timeBin!=0 else 0.1)
 			canvas.pads[2].cd()
 			hWires.Draw('colz')
 
@@ -114,7 +127,8 @@ for MEAS in MEASLIST:
 			hComps.GetXaxis().SetNdivisions(2020 if CHAM==1 else 1020)
 			for comp in comps:
 				if comp.cham != CHAM: continue
-				hComps.Fill(comp.staggeredHalfStrip, comp.layer, comp.timeBin)
+				# Don't fill a histogram with 0 weight!
+				hComps.Fill(comp.staggeredHalfStrip, comp.layer, comp.timeBin if comp.timeBin!=0 else 0.1)
 			canvas.pads[1].cd()
 			hComps.Draw('colz') # to get the axes and titles
 			hNotReadH.Draw('B same')
@@ -214,7 +228,7 @@ for MEAS in MEASLIST:
 			canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
 
 			# save as: ED_MEAS_MEX1_EVENT.pdf
-			canvas.canvas.SaveAs('pdfs/ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
+			canvas.canvas.SaveAs('test/ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
 			print '\033[1mFILE \033[32m'+'EH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
 
