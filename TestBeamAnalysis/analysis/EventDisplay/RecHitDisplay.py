@@ -3,6 +3,7 @@ import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import DisplayHelper as ED # "Event Display"
 import Patterns
+import argparse
 
 ##########
 # This file gets the data, makes the histograms, makes the objects, and makes the plots
@@ -13,11 +14,22 @@ import Patterns
 R.gROOT.SetBatch(True)
 ED.setStyle('rechits') # holy crap! setStyle was taking up 99% of the computation time!
 
+##### COMMAND LINE PARAMETERS
+parser = argparse.ArgumentParser(description='Makes event displays for given event list file and chamber')
+parser.add_argument('--cham',dest='CHAM',help='1 for ME1/1, 2 for ME2/1')
+parser.add_argument('--list',dest='FILE',help='Event list text file')
+parser.add_argument('--meas',dest='MEAS',help='Measurement number')
+args = parser.parse_args()
+
 ##### PARAMETERS #####
 # Measurement List, Chamber IDs (1, 110), Event List (1 indexed)
-MEASLIST = [3384, 3284]
-CHAMS    = [1, 110]
-EVENTS   = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+MEASLIST  = [int(args.MEAS)]
+CHAMS     = [1 if int(args.CHAM)==1 else 110]
+EVENTFILE = open(args.FILE)
+ENTRIES   = []
+for event in EVENTFILE:
+	# Make display plots 1 indexed, tree is 0 indexed
+	ENTRIES.append(int(event.strip('\n')))
 
 # RecHit Strip List (1 indexed; must be improper subset of [1, 2, 3])
 RECHITSTRIPS = [2]
@@ -26,14 +38,17 @@ RECHITSTRIPS = [2]
 DOSEGMENTS = True
 
 ##### BEGIN CODE #####
+SCINT = {1:{'HS':(25., 72.), 'WG':(37., 43.)}, 110:{'HS':(8., 38.), 'WG':(55., 65.)}}
+
 for MEAS in MEASLIST:
 	# Get file and tree
 	f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(MEAS)+'.root')
 	t = f.Get('GIFTree/GIFDigiTree')
 
-	for EVENT in EVENTS:
+	for ENTRY in ENTRIES:
 		# Get the event, make the ETree, and make lists of primitives objects
-		t.GetEntry(EVENT-1)
+		t.GetEntry(ENTRY)
+		EVENT = t.Event_EventNumber
 		DecList = ['RECHIT']
 		if DOSEGMENTS:
 			DecList.extend(['SEGMENT', 'LCT'])
@@ -54,7 +69,7 @@ for MEAS in MEASLIST:
 			# Instantiate canvas
 			canvas = ED.Canvas('rechits')
 
-			# Wires histogram: 2D, wire group vs. layer, weighted by time bin
+			# Wires histogram: 2D, wire group vs. layer
 			hRHWG = R.TH2F('rhwg', 'RECHIT WIRE GROUPS;Wire Group Number;Layer;Multiplicity', WIRE_MAX, 1, WIRE_MAX+1, 6, 1, 7)
 			hRHWG.GetXaxis().SetNdivisions(520 if CHAM==1 else 1020)
 			for rh in rechits:
@@ -63,7 +78,7 @@ for MEAS in MEASLIST:
 			canvas.pads[1].cd()
 			hRHWG.Draw('colz')
 
-			# Strips histogram: 2D, 3 strips vs. layer, weighted by time bin
+			# Strips histogram: 2D, 3 strips vs. layer
 			addOn = ', STRIP'
 			if len(RECHITSTRIPS) == 1:
 				addOn += ' ' + str(RECHITSTRIPS[0])
@@ -104,20 +119,12 @@ for MEAS in MEASLIST:
 
 			##### CLEAN UP #####
 			# scintillator region
-			if CHAM == 1:
-				SL = [\
-						R.TLine(12.5, 1, 12.5, 7),
-						R.TLine(36, 1, 36, 7),
-						R.TLine(37, 1, 37, 7),
-						R.TLine(43, 1, 43, 7)
-					]
-			elif CHAM == 110:
-				SL = [\
-						R.TLine( 4, 1,  4, 7),
-						R.TLine(19, 1, 19, 7),
-						R.TLine(55, 1, 55, 7),
-						R.TLine(65, 1, 65, 7)
-					]
+			SL = (\
+					R.TLine(SCINT[CHAM]['HS'][0]/2, 1, SCINT[CHAM]['HS'][0]/2, 7),
+					R.TLine(SCINT[CHAM]['HS'][1]/2, 1, SCINT[CHAM]['HS'][1]/2, 7),
+					R.TLine(SCINT[CHAM]['WG'][0]  , 1, SCINT[CHAM]['WG'][0]  , 7),
+					R.TLine(SCINT[CHAM]['WG'][1]  , 1, SCINT[CHAM]['WG'][1]  , 7)
+				)
 			for line in SL:
 				line.SetLineColor(R.kRed)
 				line.SetLineWidth(2)
@@ -131,7 +138,7 @@ for MEAS in MEASLIST:
 			# lumi text: m#MEAS, MEX/1, Event # EVENT
 			canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
 
-			# save as: RD_MEAS_MEX1_EVENT.pdf
+			# save as: RH_MEAS_MEX1_EVENT.pdf
 			canvas.canvas.SaveAs('pdfs/RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
 			print '\033[1mFILE \033[32m'+'RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'

@@ -13,21 +13,17 @@ for line in f:
 	MeasDict[float(cols[0])] = (cols[0], cols[FF])
 f.close()
 
-print '\033[4m{att:>5s} {meas:>4s} {cham:>4s} {tot:>7s} {LCT:>7s} {pHS:>7s} {pWG:>7s} {p:>7s} {sHS:>7s} {sWG:>7s} {s:>7s} {bHS:>7s} {bWG:>7s} {b:>7s}\033[m'.format(\
-		att  = 'Atten',
+print '\033[4m{att:>5s} {meas:>4s} {cham:>4s} {L1A:>7s} {LCT:>7s} {LSc:>7s} {LSM:>7s} {AM:>7s} {S:>7s} {SSc:>7s}\033[m'.format(\
+		att  = 'Att',
 		meas = 'Meas',
 		cham = 'Cham',
-		tot  = 'Total',
+		L1A  = 'L1A',
 		LCT  = 'LCT',
-		pHS  = 'PadHS',
-		pWG  = 'PadWG',
-		p    = 'PadBoth',
-		sHS  = 'SegHS',
-		sWG  = 'SegWG',
-		s    = 'SegBoth',
-		bHS  = 'BothHS',
-		bWG  = 'BothWG',
-		b    = 'Both'
+		LSc  = 'LSc',
+		LSM  = 'LSM',
+		AM   = 'AM',
+		S    = 'Seg',
+		SSc  = 'SSc'
 	)
 for ATT in sorted(MeasDict.keys()):
 	MEAS = MeasDict[ATT][1]
@@ -35,18 +31,13 @@ for ATT in sorted(MeasDict.keys()):
 	f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+MEAS+'.root')
 	t = f.Get('GIFTree/GIFDigiTree')
 
-	nTot = t.GetEntries()
-
-	nLCT        = {1:0, 110:0}
-	nScintHS    = {1:0, 110:0}
-	nScintWG    = {1:0, 110:0}
-	nScint      = {1:0, 110:0}
-	nSegHS      = {1:0, 110:0}
-	nSegWG      = {1:0, 110:0}
-	nSeg        = {1:0, 110:0}
-	nSegScintHS = {1:0, 110:0}
-	nSegScintWG = {1:0, 110:0}
-	nSegScint   = {1:0, 110:0}
+	nL1A         = t.GetEntries() # nL1A
+	nLCT         = {1:0, 110:0}
+	nLCTScint    = {1:0, 110:0}
+	nLCTSegMatch = {1:0, 110:0}
+	nAllMatch    = {1:0, 110:0} # AllMatch <==> LCTScintSegMatch
+	nSeg         = {1:0, 110:0}
+	nSegScint    = {1:0, 110:0}
 
 	for entry in t:
 		E = Primitives.ETree(t, DecList=('LCT', 'SEGMENT'))
@@ -54,50 +45,71 @@ for ATT in sorted(MeasDict.keys()):
 		segs = [Primitives.Segment(E, i) for i in range(len(E.seg_cham))]
 
 		for CHAM in (1, 110):
+			# nLCT
 			if CHAM in E.lct_cham:
 				nLCT[CHAM] += 1
+			# nSeg
+			if CHAM in E.seg_cham:
+				nSeg[CHAM] += 1
 
-			scintBools = {'HS':False, 'WG':False}
-			segBools   = {'HS':False, 'WG':False}
+			flag_LCTScint    = False
+			flag_LCTSegMatch = False
+			flag_AllMatch    = False
+			flag_SegScint    = False
+
 			for lct in lcts:
 				if lct.cham != CHAM: continue
-				if lct.keyHalfStrip >= SCINT[CHAM]['HS'][0] and lct.keyHalfStrip <= SCINT[CHAM]['HS'][1]:
-					scintBools['HS'] = True
+				# nLCTScint
+				if \
+					lct.keyHalfStrip >= SCINT[CHAM]['HS'][0] \
+				and lct.keyHalfStrip <= SCINT[CHAM]['HS'][1] \
+				and lct.keyWireGroup >= SCINT[CHAM]['WG'][0] \
+				and lct.keyWireGroup <= SCINT[CHAM]['WG'][1]:
+					flag_LCTScint = True
 					for seg in segs:
 						if seg.cham != CHAM: continue
-						if abs(2 * seg.strip - lct.keyHalfStrip) <= 2:
-							segBools['HS'] = True
-				if lct.keyWireGroup >= SCINT[CHAM]['WG'][0] and lct.keyWireGroup <= SCINT[CHAM]['WG'][1]:
-					scintBools['WG'] = True
+						# nAllMatch
+						if abs(2 * seg.strip - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup - lct.keyWireGroup) <= 2:
+							flag_AllMatch = True
+							break
+				if flag_AllMatch:
+					flag_LCTSegMatch = True
+				else:
 					for seg in segs:
 						if seg.cham != CHAM: continue
-						if abs(seg.wireGroup - lct.keyWireGroup) <= 2:
-							segBools['WG'] = True
+						# nLCTSegMatch
+						if abs(2 * seg.strip - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup - lct.keyWireGroup) <= 2:
+							flag_LCTSegMatch = True
+							break
 
-			nScintHS   [CHAM] += scintBools['HS']
-			nScintWG   [CHAM] += scintBools['WG']
-			nScint     [CHAM] += scintBools['HS'] and scintBools['WG']
-			nSegHS     [CHAM] += segBools  ['HS']
-			nSegWG     [CHAM] += segBools  ['WG']
-			nSeg       [CHAM] += segBools  ['HS'] and segBools  ['WG']
-			nSegScintHS[CHAM] += scintBools['HS'] and segBools  ['HS']
-			nSegScintWG[CHAM] += scintBools['WG'] and segBools  ['WG']
-			nSegScint  [CHAM] += scintBools['HS'] and segBools  ['HS'] and scintBools['WG'] and segBools  ['WG']
+			if flag_AllMatch:
+				flag_SegScint = True
+			else:
+				for seg in segs:
+					# nSegScint
+					if \
+						2 * seg.strip >= SCINT[CHAM]['HS'][0] \
+					and 2 * seg.strip <= SCINT[CHAM]['HS'][1] \
+					and seg.wireGroup >= SCINT[CHAM]['WG'][0] \
+					and seg.wireGroup <= SCINT[CHAM]['WG'][1]:
+						flag_SegScint = True
+						break
+
+			nLCTScint   [CHAM] += flag_LCTScint
+			nLCTSegMatch[CHAM] += flag_LCTSegMatch
+			nAllMatch   [CHAM] += flag_AllMatch
+			nSegScint   [CHAM] += flag_SegScint
 
 	for CHAM in (1, 110):
-		print '{att:>5s} {meas:4s} {cham:4s} {tot:7d} {LCT:7.5f} {pHS:7.5f} {pWG:7.5f} {p:7.5f} {sHS:7.5f} {sWG:7.5f} {s:7.5f} {bHS:7.5f} {bWG:7.5f} {b:7.5f}'.format(\
+		print '{att:>5s} {meas:4s} {cham:4s} {L1A:7d} {LCT:7d} {LSc:7d} {LSM:7d} {AM:7d} {S:7d} {SSc:7d}'.format(\
 				att  = ATT,
 				meas = MEAS,
 				cham = 'ME11' if CHAM==1 else 'ME21',
-				tot  = nTot,
-				LCT  = nLCT       [CHAM]/float(nTot),
-				pHS  = nScintHS   [CHAM]/float(nTot),
-				pWG  = nScintWG   [CHAM]/float(nTot),
-				p    = nScint     [CHAM]/float(nTot),
-				sHS  = nSegHS     [CHAM]/float(nTot),
-				sWG  = nSegWG     [CHAM]/float(nTot),
-				s    = nSeg       [CHAM]/float(nTot),
-				bHS  = nSegScintHS[CHAM]/float(nTot),
-				bWG  = nSegScintWG[CHAM]/float(nTot),
-				b    = nSegScint  [CHAM]/float(nTot)
+				L1A  = nL1A,
+				LCT  = nLCT        [CHAM],
+				LSc  = nLCTScint   [CHAM],
+				LSM  = nLCTSegMatch[CHAM],
+				AM   = nAllMatch   [CHAM],
+				S    = nSeg        [CHAM],
+				SSc  = nSegScint   [CHAM]
 			)

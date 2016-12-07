@@ -14,6 +14,7 @@ import argparse
 R.gROOT.SetBatch(True)
 ED.setStyle('primitives') # holy crap! setStyle was taking up 99% of the computation time!
 
+##### COMMAND LINE PARAMETERS
 parser = argparse.ArgumentParser(description='Makes event displays for given event list file and chamber')
 parser.add_argument('--cham',dest='CHAM',help='1 for ME1/1, 2 for ME2/1')
 parser.add_argument('--list',dest='FILE',help='Event list text file')
@@ -22,11 +23,11 @@ args = parser.parse_args()
 
 ##### PARAMETERS #####
 # Measurement List, Chamber IDs (1, 110), Event List (1 indexed)
-MEASLIST = [int(args.MEAS)]
-CHAMS    = [1 if int(args.CHAM)==1 else 110]
-eventFile = open(args.FILE)
-ENTRIES = []
-for event in eventFile:
+MEASLIST  = [int(args.MEAS)]
+CHAMS     = [1 if int(args.CHAM)==1 else 110]
+EVENTFILE = open(args.FILE)
+ENTRIES   = []
+for event in EVENTFILE:
 	# Make display plots 1 indexed, tree is 0 indexed
 	ENTRIES.append(int(event.strip('\n')))
 
@@ -36,6 +37,7 @@ DOSEGMENTS = True
 
 ##### BEGIN CODE #####
 THRESHOLD = 13.3
+SCINT = {1:{'HS':(25., 72.), 'WG':(37., 43.)}, 110:{'HS':(8., 38.), 'WG':(55., 65.)}}
 
 for MEAS in MEASLIST:
 	# Get file and tree
@@ -74,13 +76,13 @@ for MEAS in MEASLIST:
 			# Dark CFEBs
 			hMissingH = R.TH1F('missingH', '', HS_MAX+2, 1, HS_MAX+3  ); hMissingH.SetFillColor(15)
 			hMissingS = R.TH1F('missingS', '', HS_MAX+2, 1, HS_MAX/2+2); hMissingS.SetFillColor(15)
-			hNotReadH = R.TH1F('notReadH', '', HS_MAX+2, 1, HS_MAX+3  ); hNotReadH.SetFillColor(18)
+			#hNotReadH = R.TH1F('notReadH', '', HS_MAX+2, 1, HS_MAX+3  ); hNotReadH.SetFillColor(18)
 			hNotReadS = R.TH1F('notReadS', '', HS_MAX+2, 1, HS_MAX/2+2); hNotReadS.SetFillColor(18)
 			# Set everything to 1 to start with (bin content 1 is bottom of frame)
 			for bin_ in range(1,HS_MAX+3): # it's okay to go over bin contents in histograms
 				hMissingH.SetBinContent(bin_, 1)
 				hMissingS.SetBinContent(bin_, 1)
-				hNotReadH.SetBinContent(bin_, 1)
+				#hNotReadH.SetBinContent(bin_, 1)
 				hNotReadS.SetBinContent(bin_, 1)
 			# Loop through the strips to determine which CFEBs were read out
 			ActiveCFEBs = [0] * (7 if CHAM == 1 else 5)
@@ -98,11 +100,11 @@ for MEAS in MEASLIST:
 			for cfeb, readOut in enumerate(ActiveCFEBs):
 				if not readOut:
 					for bin_ in range(cfeb * 32 + 1, (cfeb + 1) * 32 + 1):
-						hNotReadH.SetBinContent(bin_, 7)
+						#hNotReadH.SetBinContent(bin_, 7)
 						hNotReadS.SetBinContent(bin_, 7)
 			if CHAM == 1 and ActiveCFEBs[6] == 0:
 				for bin_ in range(HS_MAX+1, HS_MAX+3):
-					hNotReadH.SetBinContent(bin_, 7)
+					#hNotReadH.SetBinContent(bin_, 7)
 					hNotReadS.SetBinContent(bin_, 7)
 			# Shade out the missing CFEB; bin content 7 is top of frame
 			MISSING = (97, 127) if CHAM == 1 else (129, 162)
@@ -131,7 +133,7 @@ for MEAS in MEASLIST:
 				hComps.Fill(comp.staggeredHalfStrip, comp.layer, comp.timeBin if comp.timeBin!=0 else 0.1)
 			canvas.pads[1].cd()
 			hComps.Draw('colz') # to get the axes and titles
-			hNotReadH.Draw('B same')
+			#hNotReadH.Draw('B same')
 			hMissingH.Draw('B same')
 			hComps.Draw('colz same')
 
@@ -195,24 +197,14 @@ for MEAS in MEASLIST:
 
 			##### CLEAN UP #####
 			# scintillator region
-			if CHAM == 1:
-				SL = [\
-						R.TLine(12.5, 1, 12.5, 7),
-						R.TLine(36, 1, 36, 7),
-						R.TLine(25, 1, 25, 7),
-						R.TLine(72, 1, 72, 7),
-						R.TLine(37, 1, 37, 7),
-						R.TLine(43, 1, 43, 7)
-					]
-			elif CHAM == 110:
-				SL = [\
-						R.TLine( 4, 1,  4, 7),
-						R.TLine(19, 1, 19, 7),
-						R.TLine( 8, 1,  8, 7),
-						R.TLine(38, 1, 38, 7),
-						R.TLine(55, 1, 55, 7),
-						R.TLine(65, 1, 65, 7)
-					]
+			SL = (\
+					R.TLine(SCINT[CHAM]['HS'][0]/2, 1, SCINT[CHAM]['HS'][0]/2, 7),
+					R.TLine(SCINT[CHAM]['HS'][1]/2, 1, SCINT[CHAM]['HS'][1]/2, 7),
+					R.TLine(SCINT[CHAM]['HS'][0]  , 1, SCINT[CHAM]['HS'][0]  , 7),
+					R.TLine(SCINT[CHAM]['HS'][1]  , 1, SCINT[CHAM]['HS'][1]  , 7),
+					R.TLine(SCINT[CHAM]['WG'][0]  , 1, SCINT[CHAM]['WG'][0]  , 7),
+					R.TLine(SCINT[CHAM]['WG'][1]  , 1, SCINT[CHAM]['WG'][1]  , 7)
+				)
 			for line in SL:
 				line.SetLineColor(R.kRed)
 				line.SetLineWidth(2)
@@ -228,8 +220,8 @@ for MEAS in MEASLIST:
 			canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
 
 			# save as: ED_MEAS_MEX1_EVENT.pdf
-			canvas.canvas.SaveAs('test/ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
+			canvas.canvas.SaveAs('pdfs/ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
-			print '\033[1mFILE \033[32m'+'EH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
+			print '\033[1mFILE \033[32m'+'ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
 
 	f.Close()
