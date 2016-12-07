@@ -56,6 +56,13 @@ class ETree():
 			self.seg_dy        = list(t.segment_dy)
 			self.seg_strip     = list(t.segment_pos_strip_x)
 			self.seg_wireGroup = list(t.segment_pos_wire_y)
+			self.seg_nHits     = list(t.segment_nHits)
+			self.seg_rhID1     = list(t.segment_recHitIdx_1)
+			self.seg_rhID2     = list(t.segment_recHitIdx_2)
+			self.seg_rhID3     = list(t.segment_recHitIdx_3)
+			self.seg_rhID4     = list(t.segment_recHitIdx_4)
+			self.seg_rhID5     = list(t.segment_recHitIdx_5)
+			self.seg_rhID6     = list(t.segment_recHitIdx_6)
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 class Comp():
@@ -114,5 +121,12 @@ class Segment():
 		self.dy        = t.seg_dy[i]
 		self.strip     = t.seg_strip[i]
 		self.wireGroup = t.seg_wireGroup[i]
+		self.nHits     = t.seg_nHits[i]
+		self.rhID1     = t.seg_rhID1[i]
+		self.rhID2     = t.seg_rhID2[i]
+		self.rhID3     = t.seg_rhID3[i]
+		self.rhID4     = t.seg_rhID4[i]
+		self.rhID5     = t.seg_rhID5[i]
+		self.rhID6     = t.seg_rhID6[i]
 
 		self.halfStrip = int(float(2 * self.strip))
