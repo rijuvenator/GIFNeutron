@@ -9,15 +9,15 @@ import sys
 chamlist = [1, 2]
 
 # Which files contain the relevant list of measurements and currents
-f_measgrid = 'measgrid'
-f_attenhut = 'attenhut'
+f_measgrid = '../datafiles/measgrid'
+f_attenhut = '../datafiles/attenhut'
 
 # Whether or not to only use Yuriy's 5 attenuations
 castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
 fromFile = None
-#fromFile = 'LCTData'
+#fromFile = '../datafiles/old_efftable'
 
 # Which efficiency to plot: 'all', 'pad', or 'seg'
 efftype = 'seg'

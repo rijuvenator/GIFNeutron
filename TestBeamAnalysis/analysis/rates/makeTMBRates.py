@@ -7,8 +7,9 @@ import ROOT as R
 chamlist = [1, 2]
 
 # Which files contain the relevant list of measurements and currents
-f_measgrid = 'measgrid'
-f_attenhut = 'attenhut'
+f_measgrid = '../datafiles/measgrid'
+f_attenhut = '../datafiles/attenhut'
+f_trigdata = '../datafiles/trigdata'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
@@ -28,7 +29,7 @@ R.gROOT.SetBatch(True)
 ### BEGIN CODE
 ### DATA STRUCTURE CLASS
 class MegaStruct():
-	def __init__(self,measgrid,attenhut):
+	def __init__(self,measgrid,attenhut,trigdata):
 
 		# Fill dictionary connecting attenuation to list of measurement numbers, ordered by FF
 		f = open(measgrid)
@@ -52,7 +53,7 @@ class MegaStruct():
 		f.close()
 
 		# Fill dictionary connecting chamber and measurement number to list of TMB registers
-		f = open('trigdata')
+		f = open(trigdata)
 		self.Regs = { 1 : {}, 2 : {} }
 		currentMeas = 0
 		for line in f:
@@ -141,7 +142,7 @@ class MegaStruct():
 	def regVector(self, cham, ff, name):
 		return np.array([self.register(cham, self.FFFMeas[att][ff], name) for att in self.attVector()])
 
-data = MegaStruct(f_measgrid, f_attenhut)
+data = MegaStruct(f_measgrid, f_attenhut, f_trigdata)
 
 ### MAKEPLOT FUNCTION
 def makePlot(x, y, ytit, fn, extra, logy, norm=None, normO=None, pretty=pretty):
