@@ -1,9 +1,10 @@
 import numpy as np
 import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
+import sys
 
-MEASGRID = '../rates/measgrid'
-FF = 1
+MEASGRID = '../datafiles/measgrid'
+FF = 1 if len(sys.argv) < 2 else int(sys.argv[1])
 SCINT = {1:{'HS':(25,72),'WG':(37,43)},110:{'HS':(8,38),'WG':(55,65)}}
 
 f = open(MEASGRID)
