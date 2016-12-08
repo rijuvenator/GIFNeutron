@@ -103,6 +103,8 @@ class RecHit():
 		self.wireGroup = t.rh_wireGroup[i]
 		self.energy    = t.rh_energy[i]
 
+		self.halfStrip = (self.strips[0 if self.nStrips == 1 else 1] + self.posStrip) * 2
+
 class LCT():
 	def __init__(self, t, i):
 		self.cham         = t.lct_cham[i]
