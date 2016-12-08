@@ -56,7 +56,7 @@ class ETree():
 			self.seg_dy        = list(t.segment_dy)
 			self.seg_strip     = list(t.segment_pos_strip_x)
 			self.seg_wireGroup = list(t.segment_pos_wire_y)
-			self.seg_nHits     = list(t.segment_nHits)
+			self.seg_nHits     = [ord(x) for x in list(t.segment_nHits)]
 			self.seg_rhID1     = list(t.segment_recHitIdx_1)
 			self.seg_rhID2     = list(t.segment_recHitIdx_2)
 			self.seg_rhID3     = list(t.segment_recHitIdx_3)

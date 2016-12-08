@@ -73,10 +73,12 @@ class MegaStruct():
 				for meas in self.FFFMeas[att]:
 					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(meas)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
-					numerator1 = 0
-					denominator1 = 0
-					numerator2 = 0
-					denominator2 = 0
+					#numerator1 = 0
+					#denominator1 = 0
+					#numerator2 = 0
+					#denominator2 = 0
+					denominator = 0
+					numerator = 0
 					for entry in t:
 						DecList = ['SEGMENT','LCT','COMP','RECHIT']#,'STRIP','WIRE']
 						E = Primitives.ETree(t, DecList)
@@ -88,13 +90,20 @@ class MegaStruct():
 						#wires   = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham  ))]
 
 						for cham in [1,110]:
+							alreadyMatchedComp = []
+							alreadyMatchedSeg = []
 							for lct in lcts:
+								# Check on chamber and LCT position
 								if lct.cham!=cham: continue
-								if not self.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham if cham==1 else 2): continue
-								for seg in segs:
+								if not self.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
+								for s,seg in enumerate(segs):
+									# Check on chamber, segment position, match the segment to the lct, and if we've already matched the segment
 									if seg.cham!=cham: continue
-									if not self.inPad(seg.halfStrip, seg.wireGroup, cham if cham==1 else 2): continue
+									if not self.inPad(seg.halfStrip, seg.wireGroup, cham): continue
 									if not self.matchSegLCT(seg,lct): continue
+									if s in alreadyMatchedSeg: continue
+									alreadyMatchedSeg.append(s)
+									# Make list of rechits from the segment
 									rhList = []
 									if seg.nHits >=1: rhList.append(seg.rhID1)
 									if seg.nHits >=2: rhList.append(seg.rhID2)
@@ -102,23 +111,39 @@ class MegaStruct():
 									if seg.nHits >=4: rhList.append(seg.rhID4)
 									if seg.nHits >=5: rhList.append(seg.rhID5)
 									if seg.nHits ==6: rhList.append(seg.rhID6)
-									if cham==1: denominator1 += len(rhList)
-									if cham==110: denominator2 += len(rhList)
+									denominator += seg.nHits
+									#denominator += len(rhList)
+									#if cham==1: denominator1 += len(rhList)
+									#if cham==110: denominator2 += len(rhList)
 									matchedRHComp = 0
-									alreadyMatched = []
 									for rhID in rhList:
+										# Check on chamber
 										if rechits[rhID].cham!=cham: continue
 										for c,comp in enumerate(comps):
+											# Check on chamber, layer, matching comp to rechit, and if we've already matched the comparator
 											if comp.cham!=cham: continue
 											if comp.layer!=rechits[rhID].layer: continue
 											if not self.matchRHComp(rechits[rhID],comp): continue
-											if c in alreadyMatched: continue
-											alreadyMatched.append(c)
+											if c in alreadyMatchedComp: continue
+											alreadyMatchedComp.append(c)
 											matchedRHComp +=1
+											# Break out of the comparator loop since we've already found the matching comparator to the rechit
 											break
-									if cham==1: numerator1 += matchedRHComp
-									if cham==110: numerator2 += matchedRHComp
+									numerator += matchedRHComp
+									#if cham==1: numerator1 += matchedRHComp
+									#if cham==110: numerator2 += matchedRHComp
+								# Break out of segment loop since we've already found the matching segment to the lct
+								break
 
+							eff,errUp,errDown = tools.clopper_pearson(numerator,denominator)
+							ch = 1 if cham==1 else 2
+							self.Effs[ch][meas] = eff
+							self.ErrsUp[ch][meas] = errUp
+							self.ErrsDown[ch][meas] = errDown
+					print meas, 
+					print self.Effs[1][meas], self.ErrsUp[1][meas], self.ErrsDown[1][meas],
+					print self.Effs[2][meas], self.ErrsUp[2][meas], self.ErrsDown[2][meas]
+					'''
 					eff1,errUp1,errDown1 = tools.clopper_pearson(numerator1,denominator1)
 					eff2,errUp2,errDown2 = tools.clopper_pearson(numerator2,denominator2)
 					print meas, eff1, errUp1, errDown1, eff2, errUp2, errDown2
@@ -129,6 +154,7 @@ class MegaStruct():
 					self.Effs[2][meas] = eff2
 					self.ErrsUp[2][meas] = errUp2
 					self.ErrsDown[2][meas] = errDown2
+					'''
 		else:
 			# this file is the output of the printout above
 			f = open(fromFile)
@@ -152,7 +178,7 @@ class MegaStruct():
 				return True
 			else:
 				return False
-		if cham == 2:
+		if cham == 110:
 			if      hs >=   8\
 				and hs <=  38\
 				and wg >=  55\
@@ -161,20 +187,18 @@ class MegaStruct():
 			else:
 				return False
 	
-	# a segment match is if the lct halfstrip is within 2 halfstrips of the segment halfstrip
+	# a segment match is if the lct halfstrip is within 2 halfstrips of the segment halfstrip and 1 wire group 
 	def matchSegLCT(self, seg, lct):
 		diffHS = abs(seg.halfStrip - lct.keyHalfStrip)
 		diffWG = abs(seg.wireGroup- lct.keyWireGroup)
-		if diffHS<=2 and diffWG<=2:
+		if diffHS<=2 and diffWG<=1:
 			return True
 		else:
 			return False
 
 	# a rechit/comparator match is if the comparator halfstrip is within 2 strips of the comparator halfstrip
 	def matchRHComp(self, rh, comp):
-		# all in halfstrip units
 		diff = abs(rh.halfStrip - comp.halfStrip)
-		# 2 strips = 4 halfstrips
 		if diff<=2:
 			return True
 		else:
