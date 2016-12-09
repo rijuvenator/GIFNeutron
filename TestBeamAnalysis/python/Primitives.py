@@ -139,8 +139,7 @@ class Segment():
 		self.rhID4     = t.seg_rhID4[i]
 		self.rhID5     = t.seg_rhID5[i]
 		self.rhID6     = t.seg_rhID6[i]
-
-		self.halfStrip = int(float(2 * self.strip))
+		self.halfStrip = 2 * self.strip
 
 class CLCT():
 	def __init__(self, t, i):

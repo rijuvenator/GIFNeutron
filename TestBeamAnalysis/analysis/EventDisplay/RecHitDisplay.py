@@ -103,7 +103,7 @@ for MEAS in MEASLIST:
 					for lct in lcts:
 						if lct.cham != CHAM: continue
 						diffS = abs(seg.halfStrip - lct.keyHalfStrip)
-						diffW = abs(int(seg.wireGroup) - lct.keyWireGroup)
+						diffW = abs(seg.wireGroup - lct.keyWireGroup)
 						if diffS <= 3 and diffW <= 3:
 						#if True:
 							RADII = {110: (1., 0.2, 0.7, 0.2), 1: (1.4, 0.2, 0.31, 0.2)}
@@ -115,7 +115,7 @@ for MEAS in MEASLIST:
 							canvas.pads[1].cd()
 							L[-1].SetFillColor(R.kWhite)
 							L[-1].Draw()
-							print '{:3d} {:3d} {:3d} {:3d}'.format(seg.halfStrip, int(seg.wireGroup), lct.keyHalfStrip, lct.keyWireGroup)
+							print '{:3d} {:3d} {:3d} {:3d}'.format(int(seg.halfStrip), int(seg.wireGroup), lct.keyHalfStrip, lct.keyWireGroup)
 
 			##### CLEAN UP #####
 			# scintillator region

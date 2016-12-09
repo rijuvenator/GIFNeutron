@@ -7,8 +7,8 @@ import ROOT as R
 chamlist = [1]
 
 # Which files contain the relevant list of measurements and currents
-f_measgrid = 'measgrid_Y'
-f_attenhut = 'attenhut_Y'
+f_measgrid = '../datafiles/measgrid_Y'
+f_attenhut = '../datafiles/attenhut_Y'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {

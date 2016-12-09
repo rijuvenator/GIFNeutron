@@ -16,8 +16,8 @@ f_attenhut = '../datafiles/attenhut'
 castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
-fromFile = None
-#fromFile = '../datafiles/old_efftable'
+#fromFile = None
+fromFile = '../datafiles/old_efftable'
 
 # Which efficiency to plot: 'all', 'pad', or 'seg'
 efftype = 'seg'
@@ -68,7 +68,7 @@ class MegaStruct():
 		f.close()
 
 		# Fill dictionary connecting chamber, measurement number, and efftype to efficiency value
-		self.clctLay = { 1 : {}, 2 : {} }
+		self.Effs = { 1 : {}, 2 : {} }
 		if fromFile is None:
 			print "\033[4mMeas  L1As  LCT1  Pad1  Seg1  LCT2  Pad2  Seg2\033[m"
 			for att in self.FFFMeas.keys():
@@ -81,8 +81,6 @@ class MegaStruct():
 					nPaddle_21 = 0
 					nSegMatch_11 = 0
 					nSegMatch_21 = 0
-					clctLay11 = []
-					clctLay21 = []
 					for entry in t:
 						# Count number of entries with at least one LCT
 						# ID for ME1/1/GIF = 1
@@ -94,6 +92,8 @@ class MegaStruct():
 						# Booleans
 						Seg1 = False
 						Seg2 = False
+						Pad1 = False
+						Pad2 = False
 						# list of indices of lcts
 						i1 = [i for i,x in enumerate(list(t.lct_id)) if x == 1]
 						i2 = [i for i,x in enumerate(list(t.lct_id)) if x == 110]
@@ -103,30 +103,53 @@ class MegaStruct():
 						# check if the lct is in the paddle and if so, if there is a matching segment strip
 						for i in i1:
 							if not self.inPad(t.lct_keyHalfStrip[i], t.lct_keyWireGroup[i], 1): continue
+							Pad1 = True
 							if not self.matchedSeg(rhs1, t.lct_keyHalfStrip[i]): continue
 							Seg1 = True
-							for clct,clctid in enumerate(t.clct_id):
-								if clctid != 1: continue
-								if t.lct_keyHalfStrip[i]==t.clct_halfStrip[clct]:
-									clctLay11.append(ord(t.clct_quality[clct]))
 						for i in i2:
 							if not self.inPad(t.lct_keyHalfStrip[i], t.lct_keyWireGroup[i], 2): continue
+							Pad2 = True
 							if not self.matchedSeg(rhs2, t.lct_keyHalfStrip[i]): continue
 							Seg2 = True
-							for clct,clctid in enumerate(t.clct_id):
-								if clctid != 110: continue
-								if t.lct_keyHalfStrip[i]==t.clct_halfStrip[clct]:
-									clctLay21.append(ord(t.clct_quality[clct]))
+						if Pad1: nPaddle_11 += 1
+						if Pad2: nPaddle_21 += 1
+						if Seg1: nSegMatch_11 += 1
+						if Seg2: nSegMatch_21 += 1
 
 					# printout
+					nTot = t.GetEntries()
+					print '%4i %5i %5i %5i %5i %5i %5i %5i' % (\
+							meas,
+							nTot,
+							nLCT_11,
+							nPaddle_11,
+							nSegMatch_11,
+							nLCT_21,
+							nPaddle_21,
+							nSegMatch_21
+						)
+					sys.stdout.flush()
 
 					# fill dictionary
-					self.clctLay[1][meas] = np.array(clctLay11).mean()
-					self.clctLay[2][meas] = np.array(clctLay21).mean()
+					self.Effs[1][meas] = [float(nLCT_11)/float(nTot), float(nPaddle_11)/float(nTot), float(nSegMatch_11)/float(nTot)]
+					self.Effs[2][meas] = [float(nLCT_21)/float(nTot), float(nPaddle_21)/float(nTot), float(nSegMatch_21)/float(nTot)]
 		else:
-			pass
 			# this file is the output of the printout above
+			f = open(fromFile)
+			for line in f:
+				cols = line.strip('\n').split()
 
+				meas         = int(cols[0])
+				nTot         = int(cols[1])
+				nLCT_11      = int(cols[2])
+				nPaddle_11   = int(cols[3])
+				nSegMatch_11 = int(cols[4])
+				nLCT_21      = int(cols[5])
+				nPaddle_21   = int(cols[6])
+				nSegMatch_21 = int(cols[7])
+
+				self.Effs[1][meas] = [float(nLCT_11)/float(nTot), float(nPaddle_11)/float(nTot), float(nSegMatch_11)/float(nTot)]
+				self.Effs[2][meas] = [float(nLCT_21)/float(nTot), float(nPaddle_21)/float(nTot), float(nSegMatch_21)/float(nTot)]
 
 	# defines a paddle region
 	def inPad(self, hs, wg, cham):
@@ -162,8 +185,17 @@ class MegaStruct():
 		elif cham == 2:
 			return sum(self.Currs[cham][meas][6:12])/6.0
 	
-	def clct(self, cham, meas):
-		return self.clctLay[cham][meas]
+	# get an efficiency value given a chamber, measurement number, and efftype
+	def eff(self, cham, meas, name='all'):
+		if name == 'all':
+			idx = 0
+		elif name == 'pad':
+			idx = 1
+		elif name == 'seg':
+			idx = 2
+		else:
+			raise ValueError('Invalid efficiency type: options are \'all\', \'pad\', or \'seg\'.')
+		return self.Effs[cham][meas][idx]
 
 	# get a vector of attenuations
 	def attVector(self):
@@ -181,8 +213,13 @@ class MegaStruct():
 		factor = 5.e33 if cham == 2 else 3.e33
 		return factor * np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
-	def clctVector(self, cham, ff):
-		return np.array([self.clct(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
+	# get a vector of efficiencies
+	def effVector(self, cham, ff, name='all'):
+		return np.array([self.eff(cham, self.FFFMeas[att][ff], name) for att in self.attVector()])
+
+	# get a vector of efficiencies normalized to Original
+	def normEffVector(self, cham, ff, name='all'):
+		return np.array([self.eff(cham, self.FFFMeas[att][ff], name)/self.eff(cham, self.FFFMeas[att][0], name) for att in self.attVector()])
 
 data = MegaStruct(f_measgrid, f_attenhut, fromFile, castrated)
 
@@ -231,9 +268,10 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 	graphs[0].GetYaxis().SetTitle(ytitle)
 	graphs[0].GetXaxis().SetTitle(xtitle)
 	graphs[0].SetMinimum(0.0)
-	graphs[0].SetMaximum(6.1)
+	graphs[0].SetMaximum(1.1)
 	plots[0].scaleTitles(0.8)
 	plots[0].scaleLabels(0.8)
+	canvas.makeTransparent()
 
 	for i,p in enumerate(pretty.keys()):
 		graphs[i].SetMarkerColor(pretty[p]['color'])
@@ -246,7 +284,7 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/CLCTlayers_'+str(cham)+'1_'+title+'_'+title2+'.pdf')
+	canvas.c.SaveAs('pdfs/LCT_'+str(cham)+'1_'+title+'_'+title2+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS
@@ -254,27 +292,54 @@ for cham in chamlist:
 	# Plots with current on x-axis
 	makePlot(\
 			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.clctVector(cham, ff) for ff in pretty.keys()],
+			[data.effVector(cham, ff, efftype) for ff in pretty.keys()],
 			cham,
 			'Mean Current [#muA]',
-			'<N(CLCT layers)>',
+			'LCT Efficiency',
 			'curr'
+			)
+	# Normalized to 'Original'
+	makePlot(\
+			[data.currentVector(cham, ff) for ff in pretty.keys()],
+			[data.normEffVector(cham, ff, efftype) for ff in pretty.keys()],
+			cham,
+			'Mean Current [#muA]',
+			'LCT Efficiency',
+			'curr_norm'
 			)
 	# Plots with luminosity on x-axis
 	makePlot(\
 			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.clctVector(cham, ff) for ff in pretty.keys()],
+			[data.effVector(cham, ff, efftype) for ff in pretty.keys()],
 			cham,
 			'Luminosity [Hz/cm^{2}]',
-			'<N(CLCT layers)>',
+			'LCT Efficiency',
 			'lumi'
+			)
+	# Normalized to 'Original'
+	makePlot(\
+			[data.lumiVector(cham, ff) for ff in pretty.keys()],
+			[data.normEffVector(cham, ff, efftype) for ff in pretty.keys()],
+			cham,
+			'Luminosity [Hz/cm^{2}]',
+			'LCT Efficiency',
+			'lumi_norm'
 			)
 	# Plots with 1/A on x-axis
 	makePlot(\
 			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.clctVector(cham, ff) for ff in pretty.keys()],
+			[data.effVector(cham, ff, efftype) for ff in pretty.keys()],
 			cham,
 			'Source Intensity 1/A',
-			'<N(CLCT layers)>',
+			'LCT Efficiency',
 			'att'
+			)
+	# Normalized to 'Original'
+	makePlot(\
+			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
+			[data.normEffVector(cham, ff, efftype) for ff in pretty.keys()],
+			cham,
+			'Source Intensity 1/A',
+			'LCT Efficiency',
+			'att_norm'
 			)

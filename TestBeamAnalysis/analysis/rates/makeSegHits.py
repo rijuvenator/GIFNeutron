@@ -2,6 +2,7 @@ import numpy as np
 import Gif.TestBeamAnalysis.Plotter as Plotter
 import ROOT as R
 import sys
+import Gif.TestBeamAnalysis.Primitives as Primitives
 
 ### PARAMETERS
 # Which chambers to do; to compare to Yuriy only use ME1/1
@@ -9,21 +10,15 @@ import sys
 chamlist = [1, 2]
 
 # Which files contain the relevant list of measurements and currents
-f_measgrid = 'measgrid'
-f_attenhut = 'attenhut'
+f_measgrid = '../datafiles/measgrid'
+f_attenhut = '../datafiles/attenhut'
 
 # Whether or not to only use Yuriy's 5 attenuations
 castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
 #fromFile = None
-fromFile = 'LCTData'
-
-# Which efficiency to plot: 'all', 'pad', or 'seg'
-efftype = 'seg'
-
-# Additional filename
-title2 = 'seg'
+fromFile = '../datafiles/data_seghits'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
@@ -67,117 +62,89 @@ class MegaStruct():
 			self.Currs[currentCham][currentMeas] = [float(i) for i in cols[2:]]
 		f.close()
 
-		# Fill dictionary connecting chamber, measurement number, and efftype to efficiency value
-		self.Effs = { 1 : {}, 2 : {} }
+		# Fill dictionary connecting chamber and measurement number to average segment nHits
+		self.Vals = { 1 : {}, 2 : {} }
 		if fromFile is None:
-			print "\033[4mMeas  L1As  LCT1  Pad1  Seg1  LCT2  Pad2  Seg2\033[m"
 			for att in self.FFFMeas.keys():
 				for meas in self.FFFMeas[att]:
-					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/TestBeam5/ana_'+str(meas)+'.root')
+					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(meas)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
-					nLCT_11 = 0
-					nLCT_21 = 0
-					nPaddle_11 = 0
-					nPaddle_21 = 0
-					nSegMatch_11 = 0
-					nSegMatch_21 = 0
+					nSeg       = {1:0, 110:0}
+					nNHits     = {1:0, 110:0}
+					nSegMuon   = {1:0, 110:0}
+					nNHitsMuon = {1:0, 110:0}
 					for entry in t:
-						# Count number of entries with at least one LCT
-						# ID for ME1/1/GIF = 1
-						if list(t.lct_id).count(1)>0: nLCT_11 = nLCT_11 + 1
-						# ID for ME2/1/GIF = 110
-						if list(t.lct_id).count(110)>0: nLCT_21 = nLCT_21 + 1
+						E = Primitives.ETree(t, DecList=['SEGMENT', 'LCT'])
+						segs = [Primitives.Segment(E, i) for i in range(len(E.seg_cham))]
+						lcts = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham))]
+						for cham in (1, 110):
+							nSeg  [cham] += E.seg_cham.count(cham)
+							nNHits[cham] += sum([seg.nHits for seg in segs if seg.cham == cham])
 
-						# Count number of entries inside paddle and number of entries inside paddle with matching segment
-						# Booleans
-						Seg1 = False
-						Seg2 = False
-						Pad1 = False
-						Pad2 = False
-						# list of indices of lcts
-						i1 = [i for i,x in enumerate(list(t.lct_id)) if x == 1]
-						i2 = [i for i,x in enumerate(list(t.lct_id)) if x == 110]
-						# list of rechit strips in STRIP units
-						rhs1 = [ord(list(t.rh_strip_1)[rhsi]) for i,rhsi in enumerate(list(t.segment_recHitIdx_3)) if t.segment_id[i] == 1]
-						rhs2 = [ord(list(t.rh_strip_1)[rhsi]) for i,rhsi in enumerate(list(t.segment_recHitIdx_3)) if t.segment_id[i] == 110]
-						# check if the lct is in the paddle and if so, if there is a matching segment strip
-						for i in i1:
-							if not self.inPad(t.lct_keyHalfStrip[i], t.lct_keyWireGroup[i], 1): continue
-							Pad1 = True
-							if not self.matchedSeg(rhs1, t.lct_keyHalfStrip[i]): continue
-							Seg1 = True
-						for i in i2:
-							if not self.inPad(t.lct_keyHalfStrip[i], t.lct_keyWireGroup[i], 2): continue
-							Pad2 = True
-							if not self.matchedSeg(rhs2, t.lct_keyHalfStrip[i]): continue
-							Seg2 = True
-						if Pad1: nPaddle_11 += 1
-						if Pad2: nPaddle_21 += 1
-						if Seg1: nSegMatch_11 += 1
-						if Seg2: nSegMatch_21 += 1
+							for seg in segs:
+								if seg.cham != cham: continue
+								for lct in lcts:
+									if lct.cham != cham: continue
+									if self.inPad(seg.halfStrip, seg.wireGroup, cham if cham == 1 else 2) and self.matchSegLCT(seg, lct):
+										nSegMuon  [cham] += 1
+										nNHitsMuon[cham] += seg.nHits
+										break
 
-					# printout
-					nTot = t.GetEntries()
-					print '%4i %5i %5i %5i %5i %5i %5i %5i' % (\
+					self.Vals[1][meas] = {'all':0., 'muon':0.}
+					self.Vals[2][meas] = {'all':0., 'muon':0.}
+
+					self.Vals[1][meas]['all' ] = float(nNHits    [1  ])/nSeg    [1  ] if nSeg    [1  ] != 0 else 0
+					self.Vals[2][meas]['all' ] = float(nNHits    [110])/nSeg    [110] if nSeg    [110] != 0 else 0
+					self.Vals[1][meas]['muon'] = float(nNHitsMuon[1  ])/nSegMuon[1  ] if nSegMuon[1  ] != 0 else 0
+					self.Vals[2][meas]['muon'] = float(nNHitsMuon[110])/nSegMuon[110] if nSegMuon[110] != 0 else 0
+
+					print '{:4d} {:7.3f} {:7.3f} {:7.3f} {:7.3f}'.format(\
 							meas,
-							nTot,
-							nLCT_11,
-							nPaddle_11,
-							nSegMatch_11,
-							nLCT_21,
-							nPaddle_21,
-							nSegMatch_21
+							self.Vals[1][meas]['all' ],
+							self.Vals[2][meas]['all' ],
+							self.Vals[1][meas]['muon'],
+							self.Vals[2][meas]['muon']
 						)
-					sys.stdout.flush()
-
-					# fill dictionary
-					self.Effs[1][meas] = [float(nLCT_11)/float(nTot), float(nPaddle_11)/float(nTot), float(nSegMatch_11)/float(nTot)]
-					self.Effs[2][meas] = [float(nLCT_21)/float(nTot), float(nPaddle_21)/float(nTot), float(nSegMatch_21)/float(nTot)]
 		else:
 			# this file is the output of the printout above
 			f = open(fromFile)
 			for line in f:
 				cols = line.strip('\n').split()
+				meas = int(cols[0])
+				self.Vals[1][meas] = {'all':0., 'muon':0.}
+				self.Vals[2][meas] = {'all':0., 'muon':0.}
 
-				meas         = int(cols[0])
-				nTot         = int(cols[1])
-				nLCT_11      = int(cols[2])
-				nPaddle_11   = int(cols[3])
-				nSegMatch_11 = int(cols[4])
-				nLCT_21      = int(cols[5])
-				nPaddle_21   = int(cols[6])
-				nSegMatch_21 = int(cols[7])
-
-				self.Effs[1][meas] = [float(nLCT_11)/float(nTot), float(nPaddle_11)/float(nTot), float(nSegMatch_11)/float(nTot)]
-				self.Effs[2][meas] = [float(nLCT_21)/float(nTot), float(nPaddle_21)/float(nTot), float(nSegMatch_21)/float(nTot)]
+				self.Vals[1][meas]['all' ] = float(cols[1])
+				self.Vals[2][meas]['all' ] = float(cols[2])
+				self.Vals[1][meas]['muon'] = float(cols[3])
+				self.Vals[2][meas]['muon'] = float(cols[4])
 
 	# defines a paddle region
 	def inPad(self, hs, wg, cham):
 		if cham == 1:
-			if      ord(hs) >=  25\
-				and ord(hs) <=  72\
-				and ord(wg) >=  37\
-				and ord(wg) <=  43:
+			if      hs >=  25\
+				and hs <=  72\
+				and wg >=  37\
+				and wg <=  43:
 				return True
 			else:
 				return False
 		if cham == 2:
-			if      ord(hs) >=   8\
-				and ord(hs) <=  38\
-				and ord(wg) >=  55\
-				and ord(wg) <=  65:
+			if      hs >=   8\
+				and hs <=  38\
+				and wg >=  55\
+				and wg <=  65:
 				return True
 			else:
 				return False
 	
-	# a segment match is if the lct halfstrip/2 is within 1 of the rechit strip
-	def matchedSeg(self, rhs, khs):
-		diff = [abs(i-ord(khs)/2) for i in rhs]
-		if 0 in diff or 1 in diff:
+	# determines if a segment and an lct match each other
+	def matchSegLCT(self, seg, lct):
+		if abs(seg.halfStrip - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup - lct.keyWireGroup) <= 2:
 			return True
 		else:
 			return False
-
+	
 	# get a current measurement given a chamber and measurement number
 	def current(self, cham, meas):
 		if cham == 1:
@@ -185,17 +152,9 @@ class MegaStruct():
 		elif cham == 2:
 			return sum(self.Currs[cham][meas][6:12])/6.0
 	
-	# get an efficiency value given a chamber, measurement number, and efftype
-	def eff(self, cham, meas, name='all'):
-		if name == 'all':
-			idx = 0
-		elif name == 'pad':
-			idx = 1
-		elif name == 'seg':
-			idx = 2
-		else:
-			raise ValueError('Invalid efficiency type: options are \'all\', \'pad\', or \'seg\'.')
-		return self.Effs[cham][meas][idx]
+	# get a value given a chamber and measurement number
+	def val(self, cham, meas, type_):
+		return self.Vals[cham][meas][type_]
 
 	# get a vector of attenuations
 	def attVector(self):
@@ -210,16 +169,12 @@ class MegaStruct():
 
 	# get a vector of equivalent luminosities
 	def lumiVector(self, cham, ff):
-		factor = 5.e33 if cham == 2 else 3.e33
+		factor = 3.e33 if cham == 1 else 5.e33
 		return factor * np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
-	# get a vector of efficiencies
-	def effVector(self, cham, ff, name='all'):
-		return np.array([self.eff(cham, self.FFFMeas[att][ff], name) for att in self.attVector()])
-
-	# get a vector of efficiencies normalized to Original
-	def normEffVector(self, cham, ff, name='all'):
-		return np.array([self.eff(cham, self.FFFMeas[att][ff], name)/self.eff(cham, self.FFFMeas[att][0], name) for att in self.attVector()])
+	# get a vector of values
+	def valVector(self, cham, ff, type_):
+		return np.array([self.val(cham, self.FFFMeas[att][ff], type_) for att in self.attVector()])
 
 data = MegaStruct(f_measgrid, f_attenhut, fromFile, castrated)
 
@@ -267,8 +222,8 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
 	graphs[0].GetYaxis().SetTitle(ytitle)
 	graphs[0].GetXaxis().SetTitle(xtitle)
-	graphs[0].SetMinimum(0.0)
-	graphs[0].SetMaximum(1.1)
+	graphs[0].SetMinimum(3.0)
+	graphs[0].SetMaximum(6.0)
 	plots[0].scaleTitles(0.8)
 	plots[0].scaleLabels(0.8)
 	canvas.makeTransparent()
@@ -284,62 +239,25 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/LCT_'+str(cham)+'1_'+title+'_'+title2+'.pdf')
+	canvas.c.SaveAs('pdfs/Seg_'+str(cham)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS
 for cham in chamlist:
-	# Plots with current on x-axis
-	makePlot(\
-			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.effVector(cham, ff, efftype) for ff in pretty.keys()],
-			cham,
-			'Mean Current [#muA]',
-			'LCT Efficiency',
-			'curr'
-			)
-	# Normalized to 'Original'
-	makePlot(\
-			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.normEffVector(cham, ff, efftype) for ff in pretty.keys()],
-			cham,
-			'Mean Current [#muA]',
-			'LCT Efficiency',
-			'curr_norm'
-			)
 	# Plots with luminosity on x-axis
 	makePlot(\
 			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.effVector(cham, ff, efftype) for ff in pretty.keys()],
+			[data.valVector(cham, ff, 'all') for ff in pretty.keys()],
 			cham,
 			'Luminosity [Hz/cm^{2}]',
-			'LCT Efficiency',
-			'lumi'
+			'#LT Segment nHits, all #GT',
+			'lumi_all'
 			)
-	# Normalized to 'Original'
 	makePlot(\
 			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.normEffVector(cham, ff, efftype) for ff in pretty.keys()],
+			[data.valVector(cham, ff, 'muon') for ff in pretty.keys()],
 			cham,
 			'Luminosity [Hz/cm^{2}]',
-			'LCT Efficiency',
-			'lumi_norm'
-			)
-	# Plots with 1/A on x-axis
-	makePlot(\
-			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.effVector(cham, ff, efftype) for ff in pretty.keys()],
-			cham,
-			'Source Intensity 1/A',
-			'LCT Efficiency',
-			'att'
-			)
-	# Normalized to 'Original'
-	makePlot(\
-			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.normEffVector(cham, ff, efftype) for ff in pretty.keys()],
-			cham,
-			'Source Intensity 1/A',
-			'LCT Efficiency',
-			'att_norm'
+			'#LT Segment nHits, muon #GT',
+			'lumi_muon'
 			)

@@ -7,8 +7,8 @@ R.gROOT.SetBatch(True)
 
 ### PARAMETERS
 chamlist = [1, 2]
-f_measgrid = 'measgrid'
-f_attenhut = 'attenhut'
+f_measgrid = '../datafiles/measgrid'
+f_attenhut = '../datafiles/attenhut'
 
 doEff = False
 doNLay = True
