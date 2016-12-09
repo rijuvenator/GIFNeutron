@@ -11,15 +11,15 @@ import sys
 chamlist = [1, 110]
 
 # Which files contain the relevant list of measurements and currents
-f_measgrid = 'measgrid'
-f_attenhut = 'attenhut'
+f_measgrid = '../datafiles/measgrid'
+f_attenhut = '../datafiles/attenhut'
 
 # Whether or not to only use Yuriy's 5 attenuations
 castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
 #fromFile = None
-fromFile = 'compEff'
+fromFile = '../datafiles/compEff'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
