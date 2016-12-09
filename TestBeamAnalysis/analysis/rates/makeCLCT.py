@@ -8,7 +8,7 @@ import sys
 ### PARAMETERS
 # Which chambers to do; to compare to Yuriy only use ME1/1
 # chamlist = [1]
-chamlist = [1, 110]
+chamlist = [1, 2]
 
 # Which files contain the relevant list of measurements and currents
 f_measgrid = 'measgrid'
@@ -18,8 +18,8 @@ f_attenhut = 'attenhut'
 castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
-#fromFile = None
-fromFile = 'compEff'
+fromFile = None
+#fromFile = 'compEff'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
@@ -52,11 +52,11 @@ class MegaStruct():
 
 		# Fill dictionary connecting chamber and measurement number to list of currents
 		f = open(attenhut)
-		self.Currs = { 1 : {}, 110 : {} }
+		self.Currs = { 1 : {}, 2 : {} }
 		currentCham = 1
 		for line in f:
 			if line == '\n':
-				currentCham = 110
+				currentCham = 2
 				continue
 			cols = line.strip('\n').split()
 			currentMeas = int(cols[1])
@@ -64,110 +64,62 @@ class MegaStruct():
 		f.close()
 
 		# Fill dictionary connecting chamber, measurement number, and efftype to efficiency value
-		self.Effs = { 1 : {}, 110 : {} }
-		self.ErrsUp = { 1 : {}, 110 : {} }
-		self.ErrsDown = { 1 : {}, 110 : {} }
+		self.clctLay = { 1 : {}, 2 : {} }
 		if fromFile is None:
 			pass
 			for att in self.FFFMeas.keys():
 				for meas in self.FFFMeas[att]:
 					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(meas)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
-					numerator1 = 0
-					denominator1 = 0
-					numerator2 = 0
-					denominator2 = 0
+					clctLay11 = []
+					clctLay21 = []
+					nCLCT11 = 0
+					nCLCT21 = 0
 					for entry in t:
-						DecList = ['SEGMENT','LCT','COMP','RECHIT']#,'STRIP','WIRE']
+						DecList = ['SEGMENT','CLCT']
 						E = Primitives.ETree(t, DecList)
-						lcts    = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham  ))]
-						rechits = [Primitives.RecHit (E, i) for i in range(len(E.rh_cham ))]
-						comps   = [Primitives.Comp   (E, i) for i in range(len(E.comp_cham ))]
+						clcts   = [Primitives.CLCT   (E, i) for i in range(len(E.clct_cham  ))]
 						segs    = [Primitives.Segment(E, i) for i in range(len(E.seg_cham  ))]
-						#strips  = [Primitives.Strip  (E, i) for i in range(len(E.strip_cham))]
-						#wires   = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham  ))]
 
 						for cham in [1,110]:
-							alreadyMatchedComp = []
 							alreadyMatchedSeg = []
-							for lct in lcts:
+							for clct in clcts:
 								# Check on chamber and LCT position
-								if lct.cham!=cham: continue
-								if not self.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
+								if clct.cham!=cham: continue
+								if not self.inPad(clct.keyHalfStrip,cham): continue
 								for s,seg in enumerate(segs):
 									# Check on chamber, segment position, match the segment to the lct, and if we've already matched the segment
 									if seg.cham!=cham: continue
-									if not self.inPad(seg.halfStrip, seg.wireGroup, cham): continue
-									if not self.matchSegLCT(seg,lct): continue
+									if not self.inPad(seg.halfStrip,cham): continue
+									if not self.matchSegLCT(seg,clct): continue
 									if s in alreadyMatchedSeg: continue
 									alreadyMatchedSeg.append(s)
-									# Make list of rechits from the segment
-									rhList = []
-									if seg.nHits >=1: rhList.append(seg.rhID1)
-									if seg.nHits >=2: rhList.append(seg.rhID2)
-									if seg.nHits >=3: rhList.append(seg.rhID3)
-									if seg.nHits >=4: rhList.append(seg.rhID4)
-									if seg.nHits >=5: rhList.append(seg.rhID5)
-									if seg.nHits ==6: rhList.append(seg.rhID6)
-									if cham==1: denominator1 += seg.nHits
-									if cham==110: denominator2 += seg.nHits
-									matchedRHComp = 0
-									for rhID in rhList:
-										# Check on chamber
-										if rechits[rhID].cham!=cham: continue
-										for c,comp in enumerate(comps):
-											# Check on chamber, layer, matching comp to rechit, and if we've already matched the comparator
-											if comp.cham!=cham: continue
-											if comp.layer!=rechits[rhID].layer: continue
-											if not self.matchRHComp(rechits[rhID],comp): continue
-											if c in alreadyMatchedComp: continue
-											alreadyMatchedComp.append(c)
-											matchedRHComp +=1
-											# Break out of the comparator loop since we've already found the matching comparator to the rechit
-											break
-									if cham==1: numerator1 += matchedRHComp
-									if cham==110: numerator2 += matchedRHComp
-									# Break out of segment loop since we've already found the matching segment to the lct
+									if cham==1:
+										clctLay11.append(clct.quality)
+										nCLCT11 += 1
+									else:
+										clctLay21.append(clct.quality)
+										nCLCT21 += 1
 									break
 
-					eff1,errUp1,errDown1 = tools.clopper_pearson(numerator1,denominator1)
-					eff2,errUp2,errDown2 = tools.clopper_pearson(numerator2,denominator2)
-					print meas, eff1, errUp1, errDown1, eff2, errUp2, errDown2
 					# fill dictionary
-					self.Effs[1][meas] = eff1
-					self.ErrsUp[1][meas] = errUp1
-					self.ErrsDown[1][meas] = errDown1
-					self.Effs[110][meas] = eff2
-					self.ErrsUp[110][meas] = errUp2
-					self.ErrsDown[110][meas] = errDown2
+					self.clctLay[1][meas] = np.array(clctLay11).mean()
+					self.clctLay[2][meas] = np.array(clctLay21).mean()
 		else:
-			# this file is the output of the printout above
+			pass
 			f = open(fromFile)
 			for line in f:
-				cols = line.strip('\n').split()
-				meas = int(cols[0])
-				self.Effs[1][meas] = float(cols[1])
-				self.ErrsUp[1][meas] = float(cols[2])
-				self.ErrsDown[1][meas] = float(cols[3])
-				self.Effs[110][meas] = float(cols[4])
-				self.ErrsUp[110][meas] = float(cols[5])
-				self.ErrsDown[110][meas] = float(cols[6])
+				pass
 
 	# defines a paddle region
-	def inPad(self, hs, wg, cham):
+	def inPad(self, hs,cham):
 		if cham == 1:
-			if      hs >=  25\
-				and hs <=  72\
-				and wg >=  37\
-				and wg <=  43:
+			if hs >= 25 and hs <=  72:
 				return True
 			else:
 				return False
 		if cham == 110:
-			if      hs >=   8\
-				and hs <=  38\
-				and wg >=  55\
-				and wg <=  65:
+			if hs >= 8 and hs <=  38:
 				return True
 			else:
 				return False
@@ -175,16 +127,7 @@ class MegaStruct():
 	# a segment match is if the lct halfstrip is within 2 halfstrips of the segment halfstrip and 1 wire group 
 	def matchSegLCT(self, seg, lct):
 		diffHS = abs(seg.halfStrip - lct.keyHalfStrip)
-		diffWG = abs(seg.wireGroup- lct.keyWireGroup)
-		if diffHS<=2 and diffWG<=1:
-			return True
-		else:
-			return False
-
-	# a rechit/comparator match is if the comparator halfstrip is within 2 strips of the comparator halfstrip
-	def matchRHComp(self, rh, comp):
-		diff = abs(rh.halfStrip - comp.halfStrip+0.5)
-		if diff<=2:
+		if diffHS<=2:
 			return True
 		else:
 			return False
@@ -193,7 +136,7 @@ class MegaStruct():
 	def current(self, cham, meas):
 		if cham == 1:
 			return sum(self.Currs[cham][meas])/6.0
-		elif cham == 110:
+		elif cham == 2:
 			return sum(self.Currs[cham][meas][6:12])/6.0
 	
 	# get a vector of attenuations
@@ -209,31 +152,20 @@ class MegaStruct():
 
 	# get a vector of equivalent luminosities
 	def lumiVector(self, cham, ff):
-		factor = 5.e33 if cham == 110 else 3.e33
+		factor = 5.e33 if cham == 2 else 3.e33
 		return factor * np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
-	def eff(self, cham, meas):
-		return self.Effs[cham][meas]
-	def errUp(self, cham, meas):
-		return self.ErrsUp[cham][meas]
-	def errDown(self, cham, meas):
-		return self.ErrsDown[cham][meas]
+	def clct(self, cham, meas):
+		return self.clctLay[cham][meas]
 
-	# get a vector of efficiencies
-	def effVector(self, cham, ff):
-		return np.array([self.eff(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
-	# get a vector of efficiencies
-	def errUpVector(self, cham, ff):
-		return np.array([self.errDown(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
-	# get a vector of erriciencies
-	def errDownVector(self, cham, rr):
-		return np.array([self.errDown(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
+	def clctVector(self, cham, ff):
+		return np.array([self.clct(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
 
 data = MegaStruct(f_measgrid, f_attenhut, fromFile, castrated)
 
 ### MAKEPLOT FUNCTION
-def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
+def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 	# *** USAGE:
 	#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 	#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
@@ -252,14 +184,10 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 	# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
 	#
 
-	CHAM = 2 if cham==110 else 1
 	graphs = []
 	ntypes = len(pretty.keys())
 	for i in range(ntypes):
-		ex = np.zeros(len(x[i]))
-		low = y[i]-eyl[i]
-		high = eyh[i]-y[i]
-		graphs.append(R.TGraphAsymmErrors(len(x[i]), x[i], y[i],ex,ex,low,high))
+		graphs.append(R.TGraph(len(x[i]), x[i], y[i]))
 
 	# Step 1
 	plots = []
@@ -267,7 +195,7 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'pe', 'APE' if i==0 else 'PE'))
 
 	# Step 2
-	canvas = Plotter.Canvas('ME'+str(CHAM)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
+	canvas = Plotter.Canvas('ME'+str(cham)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
 
 	# Step 3
 	canvas.makeLegend(.2,0.25,'bl',0.04, 0.03)
@@ -281,7 +209,7 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 	graphs[0].GetYaxis().SetTitle(ytitle)
 	graphs[0].GetXaxis().SetTitle(xtitle)
 	graphs[0].SetMinimum(0.0)
-	graphs[0].SetMaximum(1.1)
+	graphs[0].SetMaximum(6.1)
 	plots[0].scaleTitles(0.8)
 	plots[0].scaleLabels(0.8)
 	canvas.makeTransparent()
@@ -297,7 +225,7 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('test/compEff_'+str(CHAM)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('test/clctLay_'+str(cham)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS
@@ -305,31 +233,25 @@ for cham in chamlist:
 	# Plots with current on x-axis
 	makePlot(\
 			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.effVector(cham, ff) for ff in pretty.keys()],
-			[data.errUpVector(cham, ff) for ff in pretty.keys()],
-			[data.errDownVector(cham, ff) for ff in pretty.keys()],
+			[data.clctVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Mean Current [#muA]',
-			'Comparator Efficiency',
+			'CLCT Layers',
 			'curr'
 			)
 	# Plots with luminosity on x-axis
 	makePlot(\
 			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.effVector(cham, ff) for ff in pretty.keys()],
-			[data.errUpVector(cham, ff) for ff in pretty.keys()],
-			[data.errDownVector(cham, ff) for ff in pretty.keys()],
+			[data.clctVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Luminosity [Hz/cm^{2}]',
-			'Comparator Efficiency',
+			'CLCT Layers',
 			'lumi')
 	# Plots with 1/A on x-axis
 	makePlot(\
 			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.effVector(cham, ff) for ff in pretty.keys()],
-			[data.errUpVector(cham, ff) for ff in pretty.keys()],
-			[data.errDownVector(cham, ff) for ff in pretty.keys()],
+			[data.clctVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Source Intensity 1/A',
-			'Comparator Efficiency',
+			'CLCT Layers',
 			'att')

@@ -11,15 +11,15 @@ import sys
 chamlist = [1, 110]
 
 # Which files contain the relevant list of measurements and currents
-f_measgrid = 'measgrid'
+f_measgrid = 'measgrid_slim'
 f_attenhut = 'attenhut'
 
 # Whether or not to only use Yuriy's 5 attenuations
 castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
-#fromFile = None
-fromFile = 'compEff'
+fromFile = None
+#fromFile = 'compRes'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
@@ -64,19 +64,18 @@ class MegaStruct():
 		f.close()
 
 		# Fill dictionary connecting chamber, measurement number, and efftype to efficiency value
-		self.Effs = { 1 : {}, 110 : {} }
-		self.ErrsUp = { 1 : {}, 110 : {} }
-		self.ErrsDown = { 1 : {}, 110 : {} }
+		self.compRes  = { 1 : {}, 110 : {} }
+		self.compMean = { 1 : {}, 110 : {} }
 		if fromFile is None:
 			pass
-			for att in self.FFFMeas.keys():
+			for ff,att in enumerate(self.FFFMeas.keys()):
 				for meas in self.FFFMeas[att]:
 					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(meas)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
-					numerator1 = 0
-					denominator1 = 0
-					numerator2 = 0
-					denominator2 = 0
+					compDiff11 = []
+					compDiff21 = []
+					compRes11 = R.TH1F('compRes11','',100,-1,1)
+					compRes21 = R.TH1F('compRes21','',100,-1,1)
 					for entry in t:
 						DecList = ['SEGMENT','LCT','COMP','RECHIT']#,'STRIP','WIRE']
 						E = Primitives.ETree(t, DecList)
@@ -109,9 +108,6 @@ class MegaStruct():
 									if seg.nHits >=4: rhList.append(seg.rhID4)
 									if seg.nHits >=5: rhList.append(seg.rhID5)
 									if seg.nHits ==6: rhList.append(seg.rhID6)
-									if cham==1: denominator1 += seg.nHits
-									if cham==110: denominator2 += seg.nHits
-									matchedRHComp = 0
 									for rhID in rhList:
 										# Check on chamber
 										if rechits[rhID].cham!=cham: continue
@@ -122,36 +118,40 @@ class MegaStruct():
 											if not self.matchRHComp(rechits[rhID],comp): continue
 											if c in alreadyMatchedComp: continue
 											alreadyMatchedComp.append(c)
-											matchedRHComp +=1
+											# Add 1/2 to comparator half strip to align it with rec hit
+											# Divide by 2 to get it in strip units
+											DIFF = float((rechits[rhID].halfStrip - comp.halfStrip+0.5)*0.5)
+											if cham==1: 
+												compDiff11.append(DIFF)
+												compRes11.Fill(DIFF)
+											if cham==110:
+												compDiff21.append(DIFF)
+												compRes21.Fill(DIFF)
 											# Break out of the comparator loop since we've already found the matching comparator to the rechit
 											break
-									if cham==1: numerator1 += matchedRHComp
-									if cham==110: numerator2 += matchedRHComp
 									# Break out of segment loop since we've already found the matching segment to the lct
 									break
-
-					eff1,errUp1,errDown1 = tools.clopper_pearson(numerator1,denominator1)
-					eff2,errUp2,errDown2 = tools.clopper_pearson(numerator2,denominator2)
-					print meas, eff1, errUp1, errDown1, eff2, errUp2, errDown2
+					# Make histogram
+					self.makeHist(compRes11,meas,cham,att,self.lumi(cham,meas),ff)
+					self.makeHist(compRes21,meas,cham,att,self.lumi(cham,meas),ff)
 					# fill dictionary
-					self.Effs[1][meas] = eff1
-					self.ErrsUp[1][meas] = errUp1
-					self.ErrsDown[1][meas] = errDown1
-					self.Effs[110][meas] = eff2
-					self.ErrsUp[110][meas] = errUp2
-					self.ErrsDown[110][meas] = errDown2
+					self.compRes[1][meas] = np.array(compDiff11).std(ddof=1)
+					self.compRes[110][meas] = np.array(compDiff21).std(ddof=1)
+					self.compMean[1][meas] = np.array(compDiff11).mean()
+					self.compMean[110][meas] = np.array(compDiff21).mean()
+					print meas,
+					print self.compMean[1][meas], self.compRes[1][meas],
+					print self.compMean[110][meas], self.compRes[110][meas]
 		else:
 			# this file is the output of the printout above
 			f = open(fromFile)
 			for line in f:
 				cols = line.strip('\n').split()
 				meas = int(cols[0])
-				self.Effs[1][meas] = float(cols[1])
-				self.ErrsUp[1][meas] = float(cols[2])
-				self.ErrsDown[1][meas] = float(cols[3])
-				self.Effs[110][meas] = float(cols[4])
-				self.ErrsUp[110][meas] = float(cols[5])
-				self.ErrsDown[110][meas] = float(cols[6])
+				self.compMean[1][meas] = float(cols[1])
+				self.compRes[1][meas] = float(cols[2])
+				self.compMean[110][meas] = float(cols[3])
+				self.compRes[110][meas] = float(cols[4])
 
 	# defines a paddle region
 	def inPad(self, hs, wg, cham):
@@ -211,29 +211,81 @@ class MegaStruct():
 	def lumiVector(self, cham, ff):
 		factor = 5.e33 if cham == 110 else 3.e33
 		return factor * np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
+	def lumi(self, cham, meas):
+		factor = 5. if cham == 110 else 3.3
+		return factor * self.current(cham, meas)
 
-	def eff(self, cham, meas):
-		return self.Effs[cham][meas]
-	def errUp(self, cham, meas):
-		return self.ErrsUp[cham][meas]
-	def errDown(self, cham, meas):
-		return self.ErrsDown[cham][meas]
+	def res(self, cham, meas):
+		return self.compRes[cham][meas]
+	def mean(self, cham, meas):
+		return self.compMean[cham][meas]
 
 	# get a vector of efficiencies
-	def effVector(self, cham, ff):
-		return np.array([self.eff(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
+	def resVector(self, cham, ff):
+		return np.array([self.res(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 	# get a vector of efficiencies
-	def errUpVector(self, cham, ff):
-		return np.array([self.errDown(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
-	# get a vector of erriciencies
-	def errDownVector(self, cham, rr):
-		return np.array([self.errDown(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
+	def meanVector(self, cham, ff):
+		return np.array([self.mean(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
+
+	def makeHist(self, hist, meas, cham, att, lumi, ff, pretty=pretty):
+		# *** USAGE:
+		#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
+		#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
+		#  3) call Plotter.Canvas.makeLegend(lWidth=0.125, lHeight=0.2, pos="tr", lOffset=0.02, fontsize=0.04)
+		#  4) call Plotter.Canvas.addMainPlot(Plot, isFirst, addToLegend)
+		#  5) apply any cosmetic commands here
+		# *6) call Plotter.Canvas.addLegendEntry(Plot)
+		# *7) call Plotter.Canvas.makeRatioPlot(top, bottom, plusminus, option, ytit, xtit)
+		#  8) call Plotter.Canvas.finishCanvas()
+		#
+		# * = optional; if addToLegend is always true, and/or if no ratio plot needed (ratioFactor = 0), neither of these steps are required
+		#
+		# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
+		#
+		# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
+		# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
+		#
+
+		# Step 1
+		CHAM = 1 if cham==1 else 2
+		plot = Plotter.Plot(hist, pretty[ff]['name'], 'f', 'hist')
+
+		# Step 2
+		CHAM = 1 if cham==1 else 2
+		ATT = str(int(att)) if str(att)!='inf' else 'NS'
+		canvas = Plotter.Canvas('ME'+str(CHAM)+'/1, Ext. Trig., %2.1f'%(lumi)+'#times10^{33} Hz/cm^{2} ('+ATT+')', False, 0., '', 800, 600)
+
+		# Step 3
+		canvas.makeLegend(pos='tr')
+
+		# Step 4
+		canvas.addMainPlot(plot, True, True)
+
+		# Step 5
+		R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
+		hist.GetYaxis().SetTitle('Counts')
+		hist.GetXaxis().SetTitle('Comparator Resolution [strips]')
+		hist.SetMinimum(0.0)
+		hist.SetFillColor(R.kBlue)
+		plot.scaleTitles(0.8)
+		plot.scaleLabels(0.8)
+		canvas.makeTransparent()
+
+		# Step 6
+
+		# Step 7
+
+		# Step 8
+		canvas.finishCanvas()
+		canvas.c.SaveAs('test/compRes_'+str(CHAM)+'1_'+str(meas)+'.pdf')
+		R.SetOwnership(canvas.c, False)
+
 
 
 data = MegaStruct(f_measgrid, f_attenhut, fromFile, castrated)
 
 ### MAKEPLOT FUNCTION
-def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
+def makePlot(x, y,cham, xtitle, ytitle, title, RES=False,pretty=pretty):
 	# *** USAGE:
 	#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 	#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
@@ -256,10 +308,7 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 	graphs = []
 	ntypes = len(pretty.keys())
 	for i in range(ntypes):
-		ex = np.zeros(len(x[i]))
-		low = y[i]-eyl[i]
-		high = eyh[i]-y[i]
-		graphs.append(R.TGraphAsymmErrors(len(x[i]), x[i], y[i],ex,ex,low,high))
+		graphs.append(R.TGraph(len(x[i]), x[i], y[i]))
 
 	# Step 1
 	plots = []
@@ -270,7 +319,7 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 	canvas = Plotter.Canvas('ME'+str(CHAM)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
 
 	# Step 3
-	canvas.makeLegend(.2,0.25,'bl',0.04, 0.03)
+	canvas.makeLegend(.2,0.25,'br',0.04, 0.03)
 
 	# Step 4
 	for i in range(ntypes):
@@ -280,8 +329,12 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
 	graphs[0].GetYaxis().SetTitle(ytitle)
 	graphs[0].GetXaxis().SetTitle(xtitle)
-	graphs[0].SetMinimum(0.0)
-	graphs[0].SetMaximum(1.1)
+	if RES:
+		graphs[0].SetMinimum(0.0)
+		graphs[0].SetMaximum(0.5)
+	else:
+		graphs[0].SetMinimum(-0.1)
+		graphs[0].SetMaximum(0.1)
 	plots[0].scaleTitles(0.8)
 	plots[0].scaleLabels(0.8)
 	canvas.makeTransparent()
@@ -297,7 +350,7 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('test/compEff_'+str(CHAM)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('test/comp_'+str(CHAM)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS
@@ -305,31 +358,57 @@ for cham in chamlist:
 	# Plots with current on x-axis
 	makePlot(\
 			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.effVector(cham, ff) for ff in pretty.keys()],
-			[data.errUpVector(cham, ff) for ff in pretty.keys()],
-			[data.errDownVector(cham, ff) for ff in pretty.keys()],
+			[data.resVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Mean Current [#muA]',
-			'Comparator Efficiency',
-			'curr'
+			'Comparator Resolution [strip]',
+			'res_curr',
+			RES=True
 			)
 	# Plots with luminosity on x-axis
 	makePlot(\
 			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.effVector(cham, ff) for ff in pretty.keys()],
-			[data.errUpVector(cham, ff) for ff in pretty.keys()],
-			[data.errDownVector(cham, ff) for ff in pretty.keys()],
+			[data.resVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Luminosity [Hz/cm^{2}]',
-			'Comparator Efficiency',
-			'lumi')
+			'Comparator Resolution [strip]',
+			'res_lumi',
+			RES=True
+			)
 	# Plots with 1/A on x-axis
 	makePlot(\
 			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.effVector(cham, ff) for ff in pretty.keys()],
-			[data.errUpVector(cham, ff) for ff in pretty.keys()],
-			[data.errDownVector(cham, ff) for ff in pretty.keys()],
+			[data.resVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Source Intensity 1/A',
-			'Comparator Efficiency',
-			'att')
+			'Comparator Resolution [strip]',
+			'res_att',
+			RES=True
+			)
+	# Plots with current on x-axis
+	makePlot(\
+			[data.currentVector(cham, ff) for ff in pretty.keys()],
+			[data.meanVector(cham, ff) for ff in pretty.keys()],
+			cham,
+			'Mean Current [#muA]',
+			'Comparator Bias [strip]',
+			'mean_curr'
+			)
+	# Plots with luminosity on x-axis
+	makePlot(\
+			[data.lumiVector(cham, ff) for ff in pretty.keys()],
+			[data.meanVector(cham, ff) for ff in pretty.keys()],
+			cham,
+			'Luminosity [Hz/cm^{2}]',
+			'Comparator Bias [strip]',
+			'mean_lumi'
+			)
+	# Plots with 1/A on x-axis
+	makePlot(\
+			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
+			[data.meanVector(cham, ff) for ff in pretty.keys()],
+			cham,
+			'Source Intensity 1/A',
+			'Comparator Bias [strip]',
+			'mean_att'
+			)
