@@ -3,22 +3,33 @@ import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.Plotter as Plotter
 
-CHAMLIST = [1, 110]
+CHAMLIST = (1, 110)
+EFFLIST = (\
+	{'num' : 'LCT'        , 'denom' : 'L1A'        , 'ytitle':'LCT Efficiency'             },
+	{'num' : 'LCTScint'   , 'denom' : 'L1A'        , 'ytitle':'LCT-Scint Efficiency'       },
+	{'num' : 'LCTSegMatch', 'denom' : 'L1A'        , 'ytitle':'LCT-Seg Match Efficiency'   },
+	{'num' : 'Seg'        , 'denom' : 'L1A'        , 'ytitle':'Segment Efficiency'         },
+	{'num' : 'SegScint'   , 'denom' : 'L1A'        , 'ytitle':'Seg-Scint Efficiency'       },
+	{'num' : 'AllMatch'   , 'denom' : 'L1A'        , 'ytitle':'Muon Efficiency'            },
+	{'num' : 'AllMatch'   , 'denom' : 'LCTScint'   , 'ytitle':'Muon Match Efficiency'      },
+	{'num' : 'AllMatch'   , 'denom' : 'LCTSegMatch', 'ytitle':'Muon Match-Scint Efficiency'},
+	{'num' : 'AllMatch'   , 'denom' : 'SegScint'   , 'ytitle':'Muon Seg Match Efficiency'  },
+	{'num' : 'SegScint'   , 'denom' : 'Seg'        , 'ytitle':'Seg-Scint/Seg Efficiency'   }
+)
 
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-F_DATAFILE = '../datafiles/data_cfebeff'
-#F_DATAFILE = None
+F_DATAFILE = '../datafiles/data_efftable'
 
 pretty = {
-		0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
-		1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
-		2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-		3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
-		4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
-		5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
-		6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
-		7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
+	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
+	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
+	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
 R.gROOT.SetBatch(True)
@@ -77,66 +88,36 @@ class MegaStruct():
 	# fill data: this function, and the access functions below it, are "user-defined" and script-dependent
 	def fillData(self):
 		self.VALDATA = { 1 : {}, 110: {} }
-		if F_DATAFILE is None:
-			for ATT in self.MEASDATA.keys():
-				for MEAS in self.MEASDATA[ATT]:
-					# Get file and tree
-					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(MEAS)+'.root')
-					t = f.Get('GIFTree/GIFDigiTree')
-
-					# keep track for entire measurement
-					nLCT  = {1:0, 110:0}
-					nRead = {1:0, 110:0}
-					for entry in t:
-						# Get the event, make the ETree, and make lists of primitives objects
-						E = Primitives.ETree(t, DecList=['STRIP', 'LCT'])
-						strips = [Primitives.Strip  (E, i) for i in range(len(E.strip_cham))]
-						lcts =   [Primitives.LCT    (E, i) for i in range(len(E.lct_cham  ))]
-
-						for CHAM in CHAMLIST:
-							# Make Active CFEB list
-							ActiveCFEBs = [False] * (7 if CHAM == 1 else 5)
-							for strip in strips:
-								if strip.cham != CHAM: continue
-								ActiveCFEBs[int(strip.number - 1) / 16] = True
-
-							# Determine if LCT's CFEB was read out
-							for lct in lcts:
-								if lct.cham != CHAM: continue
-								nLCT[CHAM] += 1
-								if ActiveCFEBs[lct.keyHalfStrip / 32]:
-									nRead[CHAM] += 1
-
-					self.VALDATA[1  ][MEAS] = float(nRead[1  ])/nLCT[1  ]
-					self.VALDATA[110][MEAS] = float(nRead[110])/nLCT[110]
-
-					print '{:4d} {:5d} {:5d} {:.4f} {:5d} {:5d} {:.4f}'.format(\
-							MEAS,
-							nLCT[1],
-							nRead[1],
-							float(nRead[1])/nLCT[1],
-							nLCT[110],
-							nRead[110],
-							float(nRead[110])/nLCT[110]
-						)
-		else:
-			# this file is the output of the printout above
-			f = open(F_DATAFILE)
-			for line in f:
-				cols = line.strip('\n').split()
-				MEAS = int(cols[0])
-				nLCT  = {1:int(cols[1]), 110:int(cols[4])}
-				nRead = {1:int(cols[2]), 110:int(cols[5])}
-				self.VALDATA[1  ][MEAS] = float(nRead[1  ])/nLCT[1  ]
-				self.VALDATA[110][MEAS] = float(nRead[110])/nLCT[110]
+		f = open(F_DATAFILE)
+		for line in f:
+			if 'Att' in line or line == '\n': continue
+			cols = line.strip('\n').split()
+			CHAM = 1 if cols[2] == 'ME11' else 110
+			MEAS = int(cols[1])
+			self.VALDATA[CHAM][MEAS] = {\
+				'L1A'         : int(cols[3]),
+				'LCT'         : int(cols[4]),
+				'LCTScint'    : int(cols[5]),
+				'LCTSegMatch' : int(cols[6]),
+				'AllMatch'    : int(cols[7]),
+				'Seg'         : int(cols[8]),
+				'SegScint'    : int(cols[9])
+			}
 
 	# get a value given a chamber and measurement number
-	def val(self, cham, meas):
-		return self.VALDATA[cham][meas]
+	def val(self, cham, meas, crit):
+		return float(self.VALDATA[cham][meas][crit])
 
 	# get a vector of values
-	def valVector(self, cham, ff):
-		return np.array([self.val(cham, self.MEASDATA[att][ff]) for att in self.attVector()])
+	def valVector(self, cham, ff, crit):
+		return np.array([self.val(cham, self.MEASDATA[att][ff], crit) for att in self.attVector()])
+
+	# get a vector of efficiencies
+	def effVector(self, cham, ff, num, denom):
+		if denom is None:
+			return self.valVector(cham, ff, num)
+		else:
+			return np.array(self.valVector(cham, ff, num) / self.valVector(cham, ff, denom))
 
 data = MegaStruct()
 
@@ -164,8 +145,8 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
 	graphs[0].GetYaxis().SetTitle(ytitle)
 	graphs[0].GetXaxis().SetTitle(xtitle)
-	graphs[0].SetMinimum(0.9)
-	graphs[0].SetMaximum(1.)
+	graphs[0].SetMinimum(0.0)
+	graphs[0].SetMaximum(1.1)
 	plots[0].scaleTitles(0.8)
 	plots[0].scaleLabels(0.8)
 	graphs[0].GetYaxis().SetTitleOffset(graphs[0].GetYaxis().GetTitleOffset() * 1.2)
@@ -182,15 +163,16 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/CFEBEff_'+str(cham)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('pdfs/Eff_'+str(cham)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 for cham in CHAMLIST:
-	makePlot(\
+	for quant in EFFLIST:
+		makePlot(\
 			cham if cham == 1 else 2,
-			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.valVector (cham, ff) for ff in pretty.keys()],
+			[data.lumiVector(cham, ff                              ) for ff in pretty.keys()],
+			[data.effVector (cham, ff, quant['num'], quant['denom']) for ff in pretty.keys()],
 			'Luminosity [Hz/cm^{2}]',
-			'CFEB Read-Out Efficiency',
-			'all'
+			quant['ytitle'],
+			quant['num']+('' if quant['denom'] is None else '_'+quant['denom'])
 		)

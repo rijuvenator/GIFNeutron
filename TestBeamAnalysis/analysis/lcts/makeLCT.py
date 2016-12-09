@@ -27,14 +27,14 @@ title2 = 'seg'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
-		0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
-		1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
-		2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-		3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
-		4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
-		5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
-		6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
-		7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
+	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
+	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
+	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
 R.gROOT.SetBatch(True)
@@ -119,15 +119,15 @@ class MegaStruct():
 					# printout
 					nTot = t.GetEntries()
 					print '%4i %5i %5i %5i %5i %5i %5i %5i' % (\
-							meas,
-							nTot,
-							nLCT_11,
-							nPaddle_11,
-							nSegMatch_11,
-							nLCT_21,
-							nPaddle_21,
-							nSegMatch_21
-						)
+						meas,
+						nTot,
+						nLCT_11,
+						nPaddle_11,
+						nSegMatch_11,
+						nLCT_21,
+						nPaddle_21,
+						nSegMatch_21
+					)
 					sys.stdout.flush()
 
 					# fill dictionary
@@ -291,55 +291,55 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 for cham in chamlist:
 	# Plots with current on x-axis
 	makePlot(\
-			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.effVector(cham, ff, efftype) for ff in pretty.keys()],
-			cham,
-			'Mean Current [#muA]',
-			'LCT Efficiency',
-			'curr'
-			)
+		[data.currentVector(cham, ff) for ff in pretty.keys()],
+		[data.effVector(cham, ff, efftype) for ff in pretty.keys()],
+		cham,
+		'Mean Current [#muA]',
+		'LCT Efficiency',
+		'curr'
+	)
 	# Normalized to 'Original'
 	makePlot(\
-			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.normEffVector(cham, ff, efftype) for ff in pretty.keys()],
-			cham,
-			'Mean Current [#muA]',
-			'LCT Efficiency',
-			'curr_norm'
-			)
+		[data.currentVector(cham, ff) for ff in pretty.keys()],
+		[data.normEffVector(cham, ff, efftype) for ff in pretty.keys()],
+		cham,
+		'Mean Current [#muA]',
+		'LCT Efficiency',
+		'curr_norm'
+	)
 	# Plots with luminosity on x-axis
 	makePlot(\
-			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.effVector(cham, ff, efftype) for ff in pretty.keys()],
-			cham,
-			'Luminosity [Hz/cm^{2}]',
-			'LCT Efficiency',
-			'lumi'
-			)
+		[data.lumiVector(cham, ff) for ff in pretty.keys()],
+		[data.effVector(cham, ff, efftype) for ff in pretty.keys()],
+		cham,
+		'Luminosity [Hz/cm^{2}]',
+		'LCT Efficiency',
+		'lumi'
+	)
 	# Normalized to 'Original'
 	makePlot(\
-			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.normEffVector(cham, ff, efftype) for ff in pretty.keys()],
-			cham,
-			'Luminosity [Hz/cm^{2}]',
-			'LCT Efficiency',
-			'lumi_norm'
-			)
+		[data.lumiVector(cham, ff) for ff in pretty.keys()],
+		[data.normEffVector(cham, ff, efftype) for ff in pretty.keys()],
+		cham,
+		'Luminosity [Hz/cm^{2}]',
+		'LCT Efficiency',
+		'lumi_norm'
+	)
 	# Plots with 1/A on x-axis
 	makePlot(\
-			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.effVector(cham, ff, efftype) for ff in pretty.keys()],
-			cham,
-			'Source Intensity 1/A',
-			'LCT Efficiency',
-			'att'
-			)
+		[np.reciprocal(data.attVector()) for ff in pretty.keys()],
+		[data.effVector(cham, ff, efftype) for ff in pretty.keys()],
+		cham,
+		'Source Intensity 1/A',
+		'LCT Efficiency',
+		'att'
+	)
 	# Normalized to 'Original'
 	makePlot(\
-			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.normEffVector(cham, ff, efftype) for ff in pretty.keys()],
-			cham,
-			'Source Intensity 1/A',
-			'LCT Efficiency',
-			'att_norm'
-			)
+		[np.reciprocal(data.attVector()) for ff in pretty.keys()],
+		[data.normEffVector(cham, ff, efftype) for ff in pretty.keys()],
+		cham,
+		'Source Intensity 1/A',
+		'LCT Efficiency',
+		'att_norm'
+	)

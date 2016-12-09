@@ -12,12 +12,12 @@ f_attenhut = '../datafiles/attenhut_Y'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
-		0 : { 'name' : 'Original',  'color' : R.kRed-3,   'marker' : R.kFullCircle      },
-		1 : { 'name' : 'Algo0'   ,  'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
-		2 : { 'name' : 'Algo1'   ,  'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-		3 : { 'name' : 'Algo2'   ,  'color' : R.kGreen+2, 'marker' : R.kFullCross       },
-		4 : { 'name' : 'Algo3'   ,  'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
-		5 : { 'name' : 'Algo4'   ,  'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+	0 : { 'name' : 'Original',  'color' : R.kRed-3,   'marker' : R.kFullCircle      },
+	1 : { 'name' : 'Algo0'   ,  'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+	2 : { 'name' : 'Algo1'   ,  'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+	3 : { 'name' : 'Algo2'   ,  'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+	4 : { 'name' : 'Algo3'   ,  'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+	5 : { 'name' : 'Algo4'   ,  'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
 }
 
 R.gROOT.SetBatch(True)
@@ -171,55 +171,55 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 for cham in chamlist:
 	# Plots with current on x-axis
 	makePlot(\
-			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.effVector(cham, ff) for ff in pretty.keys()],
-			cham,
-			'Mean Current [#muA]',
-			'LCT Efficiency',
-			'curr'
-			)
+		[data.currentVector(cham, ff) for ff in pretty.keys()],
+		[data.effVector(cham, ff) for ff in pretty.keys()],
+		cham,
+		'Mean Current [#muA]',
+		'LCT Efficiency',
+		'curr'
+	)
 	# Normalized to 'Original'
 	makePlot(\
-			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.normEffVector(cham, ff) for ff in pretty.keys()],
-			cham,
-			'Mean Current [#muA]',
-			'LCT Efficiency',
-			'curr_norm'
-			)
+		[data.currentVector(cham, ff) for ff in pretty.keys()],
+		[data.normEffVector(cham, ff) for ff in pretty.keys()],
+		cham,
+		'Mean Current [#muA]',
+		'LCT Efficiency',
+		'curr_norm'
+		)
 	# Plots with luminosity on x-axis
 	makePlot(\
-			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.effVector(cham, ff) for ff in pretty.keys()],
-			cham,
-			'Luminosity [Hz/cm^{2}]',
-			'LCT Efficiency',
-			'lumi'
-			)
+		[data.lumiVector(cham, ff) for ff in pretty.keys()],
+		[data.effVector(cham, ff) for ff in pretty.keys()],
+		cham,
+		'Luminosity [Hz/cm^{2}]',
+		'LCT Efficiency',
+		'lumi'
+	)
 	# Normalized to 'Original'
 	makePlot(\
-			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.normEffVector(cham, ff) for ff in pretty.keys()],
-			cham,
-			'Luminosity [Hz/cm^{2}]',
-			'LCT Efficiency',
-			'lumi_norm'
-			)
+		[data.lumiVector(cham, ff) for ff in pretty.keys()],
+		[data.normEffVector(cham, ff) for ff in pretty.keys()],
+		cham,
+		'Luminosity [Hz/cm^{2}]',
+		'LCT Efficiency',
+		'lumi_norm'
+	)
 	# Plots with 1/A on x-axis
 	makePlot(\
-			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.effVector(cham, ff) for ff in pretty.keys()],
-			cham,
-			'Source Intensity 1/A',
-			'LCT Efficiency',
-			'att'
-			)
+		[np.reciprocal(data.attVector()) for ff in pretty.keys()],
+		[data.effVector(cham, ff) for ff in pretty.keys()],
+		cham,
+		'Source Intensity 1/A',
+		'LCT Efficiency',
+		'att'
+	)
 	# Normalized to 'Original'
 	makePlot(\
-			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.normEffVector(cham, ff) for ff in pretty.keys()],
-			cham,
-			'Source Intensity 1/A',
-			'LCT Efficiency',
-			'att_norm'
-			)
+		[np.reciprocal(data.attVector()) for ff in pretty.keys()],
+		[data.normEffVector(cham, ff) for ff in pretty.keys()],
+		cham,
+		'Source Intensity 1/A',
+		'LCT Efficiency',
+		'att_norm'
+	)
