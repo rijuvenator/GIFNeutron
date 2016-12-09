@@ -10,7 +10,7 @@
 # DecList is for turning on or off some declarations. No need to declare everything
 # if we're not going to use them.
 class ETree():
-	def __init__(self, t, DecList=('COMP', 'STRIP', 'WIRE', 'RECHIT', 'LCT', 'SEGMENT')):
+	def __init__(self, t, DecList=('COMP', 'STRIP', 'WIRE', 'RECHIT', 'LCT', 'SEGMENT','CLCT')):
 		if 'COMP' in DecList:
 			self.comp_cham    = list(t.comp_id)
 			self.comp_layer   = [ord(x) for x in list(t.comp_lay)  ]
@@ -45,6 +45,15 @@ class ETree():
 			self.lct_pattern      = [ord(x) for x in list(t.lct_pattern)     ]
 			self.lct_keyHalfStrip = [ord(x) for x in list(t.lct_keyHalfStrip)]
 			self.lct_keyWireGroup = [ord(x) for x in list(t.lct_keyWireGroup)]
+
+		if 'CLCT' in DecList:
+			self.clct_cham       = list(t.clct_id)
+			self.clct_quality    = [ord(x) for x in list(t.clct_quality)]
+			self.clct_halfStrip  = [ord(x) for x in list(t.clct_halfStrip)]
+			self.clct_CFEB       = [ord(x) for x in list(t.clct_CFEB)]
+			self.clct_keyStrip   = [ord(x) for x in list(t.clct_keyStrip)]
+			self.clct_pattern    = [ord(x) for x in list(t.clct_pattern)]
+
 
 		if 'SEGMENT' in DecList:
 			self.seg_cham      = list(t.segment_id)
@@ -130,5 +139,14 @@ class Segment():
 		self.rhID4     = t.seg_rhID4[i]
 		self.rhID5     = t.seg_rhID5[i]
 		self.rhID6     = t.seg_rhID6[i]
-
 		self.halfStrip = 2 * self.strip
+
+class CLCT():
+	def __init__(self, t, i):
+		self.cham = t.clct_cham[i]
+		self.quality = t.clct_quality[i]
+		self.halfStrip = t.clct_halfStrip[i]
+		self.CFEB = t.clct_CFEB[i]
+		self.keyStrip = t.clct_keyStrip[i]
+		self.pattern = t.clct_pattern[i]
+		self.keyHalfStrip = self.keyStrip if self.cham == 1 else self.CFEB*32 + self.halfStrip

@@ -8,18 +8,18 @@ import sys
 ### PARAMETERS
 # Which chambers to do; to compare to Yuriy only use ME1/1
 # chamlist = [1]
-chamlist = [1, 2]
+chamlist = [1, 110]
 
 # Which files contain the relevant list of measurements and currents
-f_measgrid = 'measgrid'
-f_attenhut = 'attenhut'
+f_measgrid = '../datafiles/measgrid'
+f_attenhut = '../datafiles/attenhut'
 
 # Whether or not to only use Yuriy's 5 attenuations
 castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
-fromFile = None
-#fromFile = 'compEff'
+#fromFile = None
+fromFile = '../datafiles/compEff'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
@@ -52,11 +52,11 @@ class MegaStruct():
 
 		# Fill dictionary connecting chamber and measurement number to list of currents
 		f = open(attenhut)
-		self.Currs = { 1 : {}, 2 : {} }
+		self.Currs = { 1 : {}, 110 : {} }
 		currentCham = 1
 		for line in f:
 			if line == '\n':
-				currentCham = 2
+				currentCham = 110
 				continue
 			cols = line.strip('\n').split()
 			currentMeas = int(cols[1])
@@ -64,21 +64,19 @@ class MegaStruct():
 		f.close()
 
 		# Fill dictionary connecting chamber, measurement number, and efftype to efficiency value
-		self.Effs = { 1 : {}, 2 : {} }
-		self.ErrsUp = { 1 : {}, 2 : {} }
-		self.ErrsDown = { 1 : {}, 2 : {} }
+		self.Effs = { 1 : {}, 110 : {} }
+		self.ErrsUp = { 1 : {}, 110 : {} }
+		self.ErrsDown = { 1 : {}, 110 : {} }
 		if fromFile is None:
 			pass
 			for att in self.FFFMeas.keys():
 				for meas in self.FFFMeas[att]:
 					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(meas)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
-					#numerator1 = 0
-					#denominator1 = 0
-					#numerator2 = 0
-					#denominator2 = 0
-					denominator = 0
-					numerator = 0
+					numerator1 = 0
+					denominator1 = 0
+					numerator2 = 0
+					denominator2 = 0
 					for entry in t:
 						DecList = ['SEGMENT','LCT','COMP','RECHIT']#,'STRIP','WIRE']
 						E = Primitives.ETree(t, DecList)
@@ -111,10 +109,8 @@ class MegaStruct():
 									if seg.nHits >=4: rhList.append(seg.rhID4)
 									if seg.nHits >=5: rhList.append(seg.rhID5)
 									if seg.nHits ==6: rhList.append(seg.rhID6)
-									denominator += seg.nHits
-									#denominator += len(rhList)
-									#if cham==1: denominator1 += len(rhList)
-									#if cham==110: denominator2 += len(rhList)
+									if cham==1: denominator1 += seg.nHits
+									if cham==110: denominator2 += seg.nHits
 									matchedRHComp = 0
 									for rhID in rhList:
 										# Check on chamber
@@ -129,21 +125,11 @@ class MegaStruct():
 											matchedRHComp +=1
 											# Break out of the comparator loop since we've already found the matching comparator to the rechit
 											break
-									numerator += matchedRHComp
-									#if cham==1: numerator1 += matchedRHComp
-									#if cham==110: numerator2 += matchedRHComp
-								# Break out of segment loop since we've already found the matching segment to the lct
-								break
+									if cham==1: numerator1 += matchedRHComp
+									if cham==110: numerator2 += matchedRHComp
+									# Break out of segment loop since we've already found the matching segment to the lct
+									break
 
-							eff,errUp,errDown = tools.clopper_pearson(numerator,denominator)
-							ch = 1 if cham==1 else 2
-							self.Effs[ch][meas] = eff
-							self.ErrsUp[ch][meas] = errUp
-							self.ErrsDown[ch][meas] = errDown
-					print meas, 
-					print self.Effs[1][meas], self.ErrsUp[1][meas], self.ErrsDown[1][meas],
-					print self.Effs[2][meas], self.ErrsUp[2][meas], self.ErrsDown[2][meas]
-					'''
 					eff1,errUp1,errDown1 = tools.clopper_pearson(numerator1,denominator1)
 					eff2,errUp2,errDown2 = tools.clopper_pearson(numerator2,denominator2)
 					print meas, eff1, errUp1, errDown1, eff2, errUp2, errDown2
@@ -151,10 +137,9 @@ class MegaStruct():
 					self.Effs[1][meas] = eff1
 					self.ErrsUp[1][meas] = errUp1
 					self.ErrsDown[1][meas] = errDown1
-					self.Effs[2][meas] = eff2
-					self.ErrsUp[2][meas] = errUp2
-					self.ErrsDown[2][meas] = errDown2
-					'''
+					self.Effs[110][meas] = eff2
+					self.ErrsUp[110][meas] = errUp2
+					self.ErrsDown[110][meas] = errDown2
 		else:
 			# this file is the output of the printout above
 			f = open(fromFile)
@@ -164,9 +149,9 @@ class MegaStruct():
 				self.Effs[1][meas] = float(cols[1])
 				self.ErrsUp[1][meas] = float(cols[2])
 				self.ErrsDown[1][meas] = float(cols[3])
-				self.Effs[2][meas] = float(cols[4])
-				self.ErrsUp[2][meas] = float(cols[5])
-				self.ErrsDown[2][meas] = float(cols[6])
+				self.Effs[110][meas] = float(cols[4])
+				self.ErrsUp[110][meas] = float(cols[5])
+				self.ErrsDown[110][meas] = float(cols[6])
 
 	# defines a paddle region
 	def inPad(self, hs, wg, cham):
@@ -198,7 +183,7 @@ class MegaStruct():
 
 	# a rechit/comparator match is if the comparator halfstrip is within 2 strips of the comparator halfstrip
 	def matchRHComp(self, rh, comp):
-		diff = abs(rh.halfStrip - comp.halfStrip)
+		diff = abs(rh.halfStrip - comp.halfStrip+0.5)
 		if diff<=2:
 			return True
 		else:
@@ -208,7 +193,7 @@ class MegaStruct():
 	def current(self, cham, meas):
 		if cham == 1:
 			return sum(self.Currs[cham][meas])/6.0
-		elif cham == 2:
+		elif cham == 110:
 			return sum(self.Currs[cham][meas][6:12])/6.0
 	
 	# get a vector of attenuations
@@ -224,7 +209,7 @@ class MegaStruct():
 
 	# get a vector of equivalent luminosities
 	def lumiVector(self, cham, ff):
-		factor = 5.e33 if cham == 2 else 3.e33
+		factor = 5.e33 if cham == 110 else 3.e33
 		return factor * np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
 	def eff(self, cham, meas):
@@ -267,6 +252,7 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 	# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
 	#
 
+	CHAM = 2 if cham==110 else 1
 	graphs = []
 	ntypes = len(pretty.keys())
 	for i in range(ntypes):
@@ -281,7 +267,7 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'pe', 'APE' if i==0 else 'PE'))
 
 	# Step 2
-	canvas = Plotter.Canvas('ME'+str(cham)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
+	canvas = Plotter.Canvas('ME'+str(CHAM)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
 
 	# Step 3
 	canvas.makeLegend(.2,0.25,'bl',0.04, 0.03)
@@ -311,11 +297,10 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('test/compEff_'+str(cham)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('test/compEff_'+str(CHAM)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS
-'''
 for cham in chamlist:
 	# Plots with current on x-axis
 	makePlot(\
@@ -348,4 +333,3 @@ for cham in chamlist:
 			'Source Intensity 1/A',
 			'Comparator Efficiency',
 			'att')
-'''
