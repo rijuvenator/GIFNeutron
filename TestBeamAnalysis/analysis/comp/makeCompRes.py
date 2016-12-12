@@ -11,16 +11,16 @@ import sys
 chamlist = [1, 110]
 
 # Which files contain the relevant list of measurements and currents
-f_measgrid = 'measgrid_slim'
-#f_measgrid = '../datafiles/measgrid'
+#f_measgrid = 'measgrid_slim'
+f_measgrid = '../datafiles/measgrid'
 f_attenhut = '../datafiles/attenhut'
 
 # Whether or not to only use Yuriy's 5 attenuations
 castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
-fromFile = None
-#fromFile = '../datafiles/compRes'
+#fromFile = None
+fromFile = '../datafiles/compRes'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
@@ -69,8 +69,8 @@ class MegaStruct():
 		self.compMean = { 1 : {}, 110 : {} }
 		if fromFile is None:
 			pass
-			for ff,att in enumerate(self.FFFMeas.keys()):
-				for meas in self.FFFMeas[att]:
+			for att in self.FFFMeas.keys():
+				for ff,meas in enumerate(self.FFFMeas[att]):
 					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(meas)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					compDiff11 = []
@@ -124,10 +124,10 @@ class MegaStruct():
 											DIFF = float((rechits[rhID].halfStrip - comp.halfStrip+0.5)*0.5)
 											if cham==1: 
 												compDiff11.append(DIFF)
-												compRes11.Fill(DIFF)
+												compRes11.Fill(-1.*DIFF)
 											if cham==110:
 												compDiff21.append(DIFF)
-												compRes21.Fill(DIFF)
+												compRes21.Fill(-1.*DIFF)
 											# Break out of the comparator loop since we've already found the matching comparator to the rechit
 											break
 									# Break out of segment loop since we've already found the matching segment to the lct
@@ -248,19 +248,18 @@ class MegaStruct():
 		#
 
 		# Step 1
-		CHAM = 1 if cham==1 else 2
-		plot = Plotter.Plot(hist, pretty[ff]['name'], 'f', 'hist')
+		CHAM = 2 if cham==110 else 1
+		plot = Plotter.Plot(hist, '', option='hist')
 
 		# Step 2
-		CHAM = 1 if cham==1 else 2
 		ATT = str(int(att)) if str(att)!='inf' else 'NS'
 		canvas = Plotter.Canvas('ME'+str(CHAM)+'/1, Ext. Trig., %2.1f'%(lumi)+'#times10^{33} Hz/cm^{2} ('+ATT+')', False, 0., '', 800, 600)
 
 		# Step 3
-		canvas.makeLegend(pos='tr')
+		canvas.makeLegend()
 
 		# Step 4
-		canvas.addMainPlot(plot, True, True)
+		canvas.addMainPlot(plot, True, False)
 
 		# Step 5
 		R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
@@ -278,7 +277,7 @@ class MegaStruct():
 
 		# Step 8
 		canvas.finishCanvas()
-		canvas.c.SaveAs('test/compRes_'+str(CHAM)+'1_'+str(meas)+'.pdf')
+		canvas.c.SaveAs('resPlots/compRes_'+str(CHAM)+'1_'+str(meas)+'.pdf')
 		R.SetOwnership(canvas.c, False)
 
 
@@ -332,7 +331,7 @@ def makePlot(x, y,cham, xtitle, ytitle, title, RES=False,pretty=pretty):
 	graphs[0].GetXaxis().SetTitle(xtitle)
 	if RES:
 		graphs[0].SetMinimum(0.0)
-		graphs[0].SetMaximum(0.5)
+		graphs[0].SetMaximum(0.3)
 	else:
 		graphs[0].SetMinimum(-0.1)
 		graphs[0].SetMaximum(0.1)
@@ -351,7 +350,7 @@ def makePlot(x, y,cham, xtitle, ytitle, title, RES=False,pretty=pretty):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('test/comp_'+str(CHAM)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('resPlots/comp_'+str(CHAM)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS

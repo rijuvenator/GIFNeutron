@@ -8,18 +8,18 @@ import sys
 ### PARAMETERS
 # Which chambers to do; to compare to Yuriy only use ME1/1
 # chamlist = [1]
-chamlist = [1, 2]
+chamlist = [1, 110]
 
 # Which files contain the relevant list of measurements and currents
-f_measgrid = 'measgrid'
-f_attenhut = 'attenhut'
+f_measgrid = '../datafiles/measgrid'
+f_attenhut = '../datafiles/attenhut'
 
 # Whether or not to only use Yuriy's 5 attenuations
 castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
-fromFile = None
-#fromFile = 'compEff'
+#fromFile = None
+fromFile = '../datafiles/clctLay'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
@@ -52,11 +52,11 @@ class MegaStruct():
 
 		# Fill dictionary connecting chamber and measurement number to list of currents
 		f = open(attenhut)
-		self.Currs = { 1 : {}, 2 : {} }
+		self.Currs = { 1 : {}, 110 : {} }
 		currentCham = 1
 		for line in f:
 			if line == '\n':
-				currentCham = 2
+				currentCham = 110
 				continue
 			cols = line.strip('\n').split()
 			currentMeas = int(cols[1])
@@ -64,7 +64,7 @@ class MegaStruct():
 		f.close()
 
 		# Fill dictionary connecting chamber, measurement number, and efftype to efficiency value
-		self.clctLay = { 1 : {}, 2 : {} }
+		self.clctLay = { 1 : {}, 110 : {} }
 		if fromFile is None:
 			pass
 			for att in self.FFFMeas.keys():
@@ -86,33 +86,36 @@ class MegaStruct():
 							for clct in clcts:
 								# Check on chamber and LCT position
 								if clct.cham!=cham: continue
-								if not self.inPad(clct.keyHalfStrip,cham): continue
+								if not self.inPadCLCT(clct.keyHalfStrip,cham): continue
 								for s,seg in enumerate(segs):
 									# Check on chamber, segment position, match the segment to the lct, and if we've already matched the segment
 									if seg.cham!=cham: continue
-									if not self.inPad(seg.halfStrip,cham): continue
-									if not self.matchSegLCT(seg,clct): continue
+									if not self.inPadSeg(seg,cham): continue
+									if not self.matchSegCLCT(seg,clct): continue
 									if s in alreadyMatchedSeg: continue
 									alreadyMatchedSeg.append(s)
 									if cham==1:
 										clctLay11.append(clct.quality)
 										nCLCT11 += 1
-									else:
+									if cham==110:
 										clctLay21.append(clct.quality)
 										nCLCT21 += 1
 									break
 
 					# fill dictionary
 					self.clctLay[1][meas] = np.array(clctLay11).mean()
-					self.clctLay[2][meas] = np.array(clctLay21).mean()
+					self.clctLay[110][meas] = np.array(clctLay21).mean()
+					print meas, self.clctLay[1][meas], self.clctLay[110][meas]
 		else:
-			pass
 			f = open(fromFile)
 			for line in f:
-				pass
+				cols = line.strip('\n').split()
+				meas = int(cols[0])
+				self.clctLay[1][meas] = float(cols[1])
+				self.clctLay[110][meas] = float(cols[2])
 
 	# defines a paddle region
-	def inPad(self, hs,cham):
+	def inPadCLCT(self, hs,cham):
 		if cham == 1:
 			if hs >= 25 and hs <=  72:
 				return True
@@ -123,10 +126,31 @@ class MegaStruct():
 				return True
 			else:
 				return False
+
+	# defines a paddle region
+	def inPadSeg(self, seg, cham):
+		hs = seg.halfStrip
+		wg = seg.wireGroup
+		if cham == 1:
+			if      hs >=  25\
+			and hs <=  72\
+			and wg >=  37\
+			and wg <=  43:
+				return True
+			else:
+				return False
+		if cham == 110:
+			if      hs >=   8\
+			and hs <=  38\
+			and wg >=  55\
+			and wg <=  65:
+				return True
+			else:
+				return False
 	
 	# a segment match is if the lct halfstrip is within 2 halfstrips of the segment halfstrip and 1 wire group 
-	def matchSegLCT(self, seg, lct):
-		diffHS = abs(seg.halfStrip - lct.keyHalfStrip)
+	def matchSegCLCT(self, seg, clct):
+		diffHS = abs(seg.halfStrip - clct.keyHalfStrip)
 		if diffHS<=2:
 			return True
 		else:
@@ -136,7 +160,7 @@ class MegaStruct():
 	def current(self, cham, meas):
 		if cham == 1:
 			return sum(self.Currs[cham][meas])/6.0
-		elif cham == 2:
+		elif cham == 110:
 			return sum(self.Currs[cham][meas][6:12])/6.0
 	
 	# get a vector of attenuations
@@ -152,7 +176,7 @@ class MegaStruct():
 
 	# get a vector of equivalent luminosities
 	def lumiVector(self, cham, ff):
-		factor = 5.e33 if cham == 2 else 3.e33
+		factor = 5.e33 if cham == 110 else 3.e33
 		return factor * np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
 
 	def clct(self, cham, meas):
@@ -184,6 +208,7 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 	# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
 	#
 
+	CHAM = 1 if cham==1 else 2
 	graphs = []
 	ntypes = len(pretty.keys())
 	for i in range(ntypes):
@@ -195,7 +220,7 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'pe', 'APE' if i==0 else 'PE'))
 
 	# Step 2
-	canvas = Plotter.Canvas('ME'+str(cham)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
+	canvas = Plotter.Canvas('ME'+str(CHAM)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
 
 	# Step 3
 	canvas.makeLegend(.2,0.25,'bl',0.04, 0.03)
@@ -217,7 +242,7 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 	for i,p in enumerate(pretty.keys()):
 		graphs[i].SetMarkerColor(pretty[p]['color'])
 		graphs[i].SetMarkerStyle(pretty[p]['marker'])
-		graphs[i].SetMarkerSize(1.5)
+		graphs[i].SetMarkerSize(2)
 
 	# Step 6
 
@@ -225,7 +250,7 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('test/clctLay_'+str(cham)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('layPlots/clctLay_'+str(CHAM)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS
