@@ -175,14 +175,15 @@ class MegaStruct():
 	# a segment match is if the lct halfstrip is within 2 halfstrips of the segment halfstrip and 1 wire group 
 	def matchSegLCT(self, seg, lct):
 		diffHS = abs(seg.halfStrip - lct.keyHalfStrip)
-		diffWG = abs(seg.wireGroup- lct.keyWireGroup)
+		diffWG = abs(seg.wireGroup - lct.keyWireGroup)
 		if diffHS<=2 and diffWG<=1:
 			return True
 		else:
 			return False
 
-	# a rechit/comparator match is if the comparator halfstrip is within 2 strips of the comparator halfstrip
+	# a rechit/comparator match is if the comparator halfstrip is within 2 halfstrips of the comparator halfstrip
 	def matchRHComp(self, rh, comp):
+		# Shift comparator halfstrip by 1/2 so that it has the same origin as the rechit halfstrips
 		diff = abs(rh.halfStrip - comp.halfStrip+0.5)
 		if diff<=2:
 			return True
@@ -264,7 +265,7 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 	# Step 1
 	plots = []
 	for i,p in enumerate(pretty.keys()):
-		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'pe', 'APE' if i==0 else 'PE'))
+		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'p', 'APE' if i==0 else 'PE'))
 
 	# Step 2
 	canvas = Plotter.Canvas('ME'+str(CHAM)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
@@ -274,7 +275,7 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 
 	# Step 4
 	for i in range(ntypes):
-		canvas.addMainPlot(plots[i], i==0, True)
+		canvas.addMainPlot(plots[i],i==0,False)
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
@@ -289,15 +290,17 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 	for i,p in enumerate(pretty.keys()):
 		graphs[i].SetMarkerColor(pretty[p]['color'])
 		graphs[i].SetMarkerStyle(pretty[p]['marker'])
-		graphs[i].SetMarkerSize(1.5)
+		graphs[i].SetMarkerSize(2)
 
 	# Step 6
+	for i in range(ntypes):
+		canvas.addLegendEntry(plots[i])
 
 	# Step 7
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('test/compEff_'+str(CHAM)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('effPlots/compEff_'+str(CHAM)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS

@@ -19,10 +19,12 @@ parser = argparse.ArgumentParser(description='Makes event displays for given eve
 parser.add_argument('--cham',dest='CHAM',help='1 for ME1/1, 2 for ME2/1')
 parser.add_argument('--list',dest='FILE',help='Event list text file')
 parser.add_argument('--meas',dest='MEAS',help='Measurement number')
+parser.add_argument('--outDir',dest='OUTDIR',help='Plot saving directory',default=None)
 args = parser.parse_args()
 
 ##### PARAMETERS #####
 # Measurement List, Chamber IDs (1, 110), Event List (1 indexed)
+OUTDIR = 'pdfs' if args.OUTDIR is None else args.OUTDIR
 MEASLIST  = [int(args.MEAS)]
 CHAMS     = [1 if int(args.CHAM)==1 else 110]
 EVENTFILE = open(args.FILE)
@@ -33,7 +35,7 @@ for event in EVENTFILE:
 
 # Which displays to plot
 DOPATTERN  = True
-DOSEGMENTS = True
+DOSEGMENTS = False
 
 ##### BEGIN CODE #####
 THRESHOLD = 13.3
@@ -220,7 +222,7 @@ for MEAS in MEASLIST:
 			canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
 
 			# save as: ED_MEAS_MEX1_EVENT.pdf
-			canvas.canvas.SaveAs('pdfs/ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
+			canvas.canvas.SaveAs(OUTDIR+'/ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
 			print '\033[1mFILE \033[32m'+'ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
 

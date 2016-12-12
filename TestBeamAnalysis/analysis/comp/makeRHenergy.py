@@ -11,8 +11,9 @@ import sys
 chamlist = [1, 2]
 
 # Which files contain the relevant list of measurements and currents
-f_measgrid = 'measgrid_noSource'
-f_attenhut = 'attenhut'
+#f_measgrid = 'measgrid_noSource'
+f_measgrid = '../datafiles/measgrid'
+f_attenhut = '../datafiles/attenhut'
 
 # Whether or not to only use Yuriy's 5 attenuations
 castrated = False
@@ -64,8 +65,8 @@ class MegaStruct():
 		f.close()
 
 		# Fill dictionary connecting chamber, measurement number, and efftype to efficiency value
-		for ff,att in enumerate(self.FFFMeas.keys()):
-			for meas in self.FFFMeas[att]:
+		for att in self.FFFMeas.keys():
+			for ff,meas in enumerate(self.FFFMeas[att]):
 				f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(meas)+'.root')
 				t = f.Get('GIFTree/GIFDigiTree')
 				rh_e1 = R.TH1F('rh_e1','',100,0,1500)
@@ -87,10 +88,10 @@ class MegaStruct():
 					for cham in [1,110]:
 						for lct in lcts:
 							if lct.cham!=cham: continue
-							if not self.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham if cham==1 else 2): continue
+							if not self.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
 							for seg in segs:
 								if seg.cham!=cham: continue
-								if not self.inPad(seg.halfStrip, seg.wireGroup, cham if cham==1 else 2): continue
+								if not self.inPad(seg.halfStrip, seg.wireGroup, cham): continue
 								if not self.matchSegLCT(seg,lct): continue
 								rhList = []
 								if seg.nHits >=1: rhList.append(seg.rhID1)
@@ -126,14 +127,14 @@ class MegaStruct():
 										if cham==110:
 											rh_e_nomatch2.Fill(rechits[rhID].energy)
 
-				self.makePlot(rh_e1, meas, cham, att, self.lumi(cham,meas), ff)
-				self.makePlot(rh_e2, meas, cham, att, self.lumi(cham,meas), ff)
-				self.makePlot(rh_e_match1, meas,cham,  att, self.lumi(cham,meas), ff)
-				self.makePlot(rh_e_match2, meas, cham, att, self.lumi(cham,meas), ff)
-				self.makePlot(rh_e_nomatch1, meas, cham, att, self.lumi(cham,meas), ff)
-				self.makePlot(rh_e_nomatch2, meas, cham, att, self.lumi(cham,meas), ff)
-				self.makeStack(rh_e_match1,rh_e_nomatch1, meas,cham,  att, self.lumi(cham,meas), ff)
-				self.makeStack(rh_e_match2,rh_e_nomatch2, meas, cham, att, self.lumi(cham,meas), ff)
+				self.makePlot(rh_e1, meas, 1, att, self.lumi(cham,meas), ff,'all')
+				self.makePlot(rh_e2, meas, 110, att, self.lumi(cham,meas), ff,'all')
+				self.makePlot(rh_e_match1, meas,1,  att, self.lumi(cham,meas), ff,'match')
+				self.makePlot(rh_e_match2, meas, 110, att, self.lumi(cham,meas), ff,'match')
+				self.makePlot(rh_e_nomatch1, meas, 1, att, self.lumi(cham,meas), ff,'nomatch')
+				self.makePlot(rh_e_nomatch2, meas, 110, att, self.lumi(cham,meas), ff,'nomatch')
+				self.makeStack(rh_e_match1,rh_e_nomatch1, meas,1,  att, self.lumi(cham,meas), ff)
+				self.makeStack(rh_e_match2,rh_e_nomatch2, meas, 110, att, self.lumi(cham,meas), ff)
 
 	# defines a paddle region
 	def inPad(self, hs, wg, cham):
@@ -186,7 +187,7 @@ class MegaStruct():
 		return factor * float(self.current(cham, meas))
 
 	### MAKEPLOT FUNCTION
-	def makePlot(self, histTmp, meas, cham, att, lumi, ff, pretty=pretty):
+	def makePlot(self, histTmp, meas, cham, att, lumi, ff, title, pretty=pretty):
 		# *** USAGE:
 		#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 		#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
@@ -208,18 +209,17 @@ class MegaStruct():
 		# Step 1
 		CHAM = 1 if cham==1 else 2
 		hist = tools.DrawOverflow(histTmp)
-		plot = Plotter.Plot(hist, pretty[ff]['name'], 'f', 'hist')
+		plot = Plotter.Plot(hist,'', option='hist')
 
 		# Step 2
-		CHAM = 1 if cham==1 else 2
-		ATT = str(int(att)) if att!='inf' else 'NS'
+		ATT = str(int(att)) if str(att)!='inf' else 'NS'
 		canvas = Plotter.Canvas('ME'+str(CHAM)+'/1, Ext. Trig., %2.1f'%(lumi)+'#times10^{33} Hz/cm^{2} ('+ATT+')', False, 0., '', 800, 600)
 
 		# Step 3
-		canvas.makeLegend(pos='tr')
+		canvas.makeLegend()
 
 		# Step 4
-		canvas.addMainPlot(plot, True, True)
+		canvas.addMainPlot(plot, True, False)
 
 		# Step 5
 		R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
@@ -237,7 +237,7 @@ class MegaStruct():
 
 		# Step 8
 		canvas.finishCanvas()
-		canvas.c.SaveAs('test/recHitEnergy_'+str(CHAM)+'1_'+str(meas)+'.pdf')
+		canvas.c.SaveAs('rhEnPlots/recHitEnergy_'+str(CHAM)+'1_'+str(meas)+'_'+title+'.pdf')
 		R.SetOwnership(canvas.c, False)
 	
 	### MAKESTACK FUNCTION
@@ -266,15 +266,17 @@ class MegaStruct():
 		hist1.SetFillColor(R.kBlue)
 		hist2 = tools.DrawOverflow(histTmp2)
 		hist2.SetFillColor(R.kRed)
-		plot1 = Plotter.Plot(hist1, pretty[ff]['name'], 'f', 'hist')
-		plot2 = Plotter.Plot(hist2, pretty[ff]['name'], 'f', 'hist')
+		#plot1 = Plotter.Plot(hist1, 'Matched RecHit to Comp', 'f', 'hist')
+		#plot2 = Plotter.Plot(hist2, 'Not Matched RecHit to Comp', 'f', 'hist')
+		plot1 = Plotter.Plot(hist1, '', option='hist')
+		plot2 = Plotter.Plot(hist2, '', option='hist')
 
 		# Make stack object
 		stack = R.THStack('stack','')
 		# Draw match on top of no match
 		stack.Add(hist2)
 		stack.Add(hist1)
-		stackPlot = Plotter.Plot(stack,option='hist')
+		stackPlot = Plotter.Plot(stack,'',option='hist')
 
 		# Step 2
 		CHAM = 1 if cham==1 else 2
@@ -282,10 +284,11 @@ class MegaStruct():
 		canvas = Plotter.Canvas('ME'+str(CHAM)+'/1, Ext. Trig., %2.1f'%(lumi)+'#times10^{33} Hz/cm^{2} ('+ATT+')', False, 0., '', 800, 600)
 
 		# Step 3
-		canvas.makeLegend(pos='tr')
+		#canvas.makeLegend(pos='tr',lWidth=0.35,fontsize=0.03)
+		canvas.makeLegend()
 
 		# Step 4
-		canvas.addMainPlot(stackPlot, True, True)
+		canvas.addMainPlot(stackPlot, True, False)
 
 		# Step 5
 		R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
@@ -297,14 +300,14 @@ class MegaStruct():
 		canvas.makeTransparent()
 
 		# Step 6
-		canvas.addLegendEntry(plot1)
-		canvas.addLegendEntry(plot2)
+		#canvas.addLegendEntry(plot1)
+		#canvas.addLegendEntry(plot2)
 
 		# Step 7
 
 		# Step 8
 		canvas.finishCanvas()
-		canvas.c.SaveAs('test/recHitEnergyStack_'+str(CHAM)+'1_'+str(meas)+'.pdf')
+		canvas.c.SaveAs('rhEnPlots/recHitEnergyStack_'+str(CHAM)+'1_'+str(meas)+'.pdf')
 		R.SetOwnership(canvas.c, False)
 
 data = MegaStruct(f_measgrid, f_attenhut, fromFile, castrated)
