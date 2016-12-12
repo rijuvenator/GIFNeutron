@@ -3,24 +3,30 @@ import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.Plotter as Plotter
 
+##### PARAMETERS #####
+# Which chambers to do
 CHAMLIST = (1, 110)
+# Configuration dictionary
 EFFLIST = (\
-	{'num' : 'LCT'        , 'denom' : 'L1A'        , 'ytitle':'LCT Efficiency'             },
-	{'num' : 'LCTScint'   , 'denom' : 'L1A'        , 'ytitle':'LCT-Scint Efficiency'       },
-	{'num' : 'LCTSegMatch', 'denom' : 'L1A'        , 'ytitle':'LCT-Seg Match Efficiency'   },
-	{'num' : 'Seg'        , 'denom' : 'L1A'        , 'ytitle':'Segment Efficiency'         },
-	{'num' : 'SegScint'   , 'denom' : 'L1A'        , 'ytitle':'Seg-Scint Efficiency'       },
-	{'num' : 'AllMatch'   , 'denom' : 'L1A'        , 'ytitle':'Muon Efficiency'            },
-	{'num' : 'AllMatch'   , 'denom' : 'LCTScint'   , 'ytitle':'Muon Match Efficiency'      },
-	{'num' : 'AllMatch'   , 'denom' : 'LCTSegMatch', 'ytitle':'Muon Match-Scint Efficiency'},
-	{'num' : 'AllMatch'   , 'denom' : 'SegScint'   , 'ytitle':'Muon Seg Match Efficiency'  },
-	{'num' : 'SegScint'   , 'denom' : 'Seg'        , 'ytitle':'Seg-Scint/Seg Efficiency'   }
+	{'num' : 'LCT'        , 'denom' : 'L1A'        , 'ytitle':'LCT Efficiency'             , 'castrated' : False, 'norm' : False},
+	{'num' : 'LCTScint'   , 'denom' : 'L1A'        , 'ytitle':'LCT-Scint Efficiency'       , 'castrated' : False, 'norm' : False},
+	{'num' : 'LCTSegMatch', 'denom' : 'L1A'        , 'ytitle':'LCT-Seg Match Efficiency'   , 'castrated' : False, 'norm' : False},
+	{'num' : 'Seg'        , 'denom' : 'L1A'        , 'ytitle':'Segment Efficiency'         , 'castrated' : False, 'norm' : False},
+	{'num' : 'SegScint'   , 'denom' : 'L1A'        , 'ytitle':'Seg-Scint Efficiency'       , 'castrated' : False, 'norm' : False},
+	{'num' : 'AllMatch'   , 'denom' : 'L1A'        , 'ytitle':'Muon Efficiency'            , 'castrated' : False, 'norm' : False},
+	{'num' : 'AllMatch'   , 'denom' : 'LCTScint'   , 'ytitle':'Muon Match Efficiency'      , 'castrated' : False, 'norm' : False},
+	{'num' : 'AllMatch'   , 'denom' : 'LCTSegMatch', 'ytitle':'Muon Match-Scint Efficiency', 'castrated' : False, 'norm' : False},
+	{'num' : 'AllMatch'   , 'denom' : 'SegScint'   , 'ytitle':'Muon Seg Match Efficiency'  , 'castrated' : False, 'norm' : False},
+	{'num' : 'SegScint'   , 'denom' : 'Seg'        , 'ytitle':'Seg-Scint/Seg Efficiency'   , 'castrated' : False, 'norm' : False}
 )
 
+##### SEMI-PARAMETERS #####
+# Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
 F_DATAFILE = '../datafiles/data_efftable'
 
+# Cosmetic data dictionary, comment out for fewer ones
 pretty = {
 	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
 	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
@@ -32,8 +38,10 @@ pretty = {
 	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
+##### BEGIN CODE #####
 R.gROOT.SetBatch(True)
 
+##### MEGASTRUCT CLASS #####
 class MegaStruct():
 	#### BEGIN MEGASTRUCT COMMON: DO NOT EDIT BETWEEN THESE TAGS #####
 	def __init__(self):
@@ -71,18 +79,22 @@ class MegaStruct():
 		elif cham == 110:
 			return sum(self.CURRDATA[cham][meas][6:12])/6.0
 	
+	##### THESE THREE ARE MODIFIED FROM THE "DEFAULT" #####
 	# get a vector of attenuations
-	def attVector(self):
-		return np.array(sorted(self.MEASDATA.keys()))
+	def attVector(self, CASTRATED=False):
+		if CASTRATED:
+			return np.array([33., 46., 100., float('inf')])
+		else:
+			return np.array(sorted(self.MEASDATA.keys()))
 
 	# get a vector of currents
-	def currentVector(self, cham, ff):
-		return np.array([self.current(cham, self.MEASDATA[att][ff]) for att in self.attVector()])
+	def currentVector(self, cham, ff, CASTRATED=False):
+		return np.array([self.current(cham, self.MEASDATA[att][ff]) for att in self.attVector(CASTRATED)])
 
 	# get a vector of equivalent luminosities
-	def lumiVector(self, cham, ff):
+	def lumiVector(self, cham, ff, CASTRATED=False):
 		factor = 3.e33 if cham == 1 else 5.e33
-		return factor * np.array([self.current(cham, self.MEASDATA[att][ff]) for att in self.attVector()])
+		return factor * np.array([self.current(cham, self.MEASDATA[att][ff]) for att in self.attVector(CASTRATED)])
 	##### END MEGASTRUCT COMMON: DO NOT EDIT BETWEEN THESE TAGS #####
 
 	# fill data: this function, and the access functions below it, are "user-defined" and script-dependent
@@ -113,14 +125,21 @@ class MegaStruct():
 		return np.array([self.val(cham, self.MEASDATA[att][ff], crit) for att in self.attVector()])
 
 	# get a vector of efficiencies
-	def effVector(self, cham, ff, num, denom):
+	def effVector(self, cham, ff, num, denom, norm=False):
 		if denom is None:
-			return self.valVector(cham, ff, num)
+			if norm:
+				return self.effVector(cham, ff, num)/self.effVector(cham, 0, num)
+			else:
+				return self.valVector(cham, ff, num)
 		else:
-			return np.array(self.valVector(cham, ff, num) / self.valVector(cham, ff, denom))
+			if norm:
+				return self.effVector(cham, ff, num, denom)/self.effVector(cham, 0, num, denom)
+			else:
+				return np.array(self.valVector(cham, ff, num) / self.valVector(cham, ff, denom))
 
 data = MegaStruct()
 
+##### MAKEPLOT FUNCTION #####
 def makePlot(cham, x, y, xtitle, ytitle, title):
 	graphs = []
 	ntypes = len(pretty.keys())
@@ -166,13 +185,17 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 	canvas.c.SaveAs('pdfs/Eff_'+str(cham)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
+##### MAKE PLOTS #####
 for cham in CHAMLIST:
 	for quant in EFFLIST:
 		makePlot(\
 			cham if cham == 1 else 2,
-			[data.lumiVector(cham, ff                              ) for ff in pretty.keys()],
-			[data.effVector (cham, ff, quant['num'], quant['denom']) for ff in pretty.keys()],
+			[data.lumiVector(cham, ff, quant['castrated']                         ) for ff in pretty.keys()],
+			[data.effVector (cham, ff, quant['num'], quant['denom'], quant['norm']) for ff in pretty.keys()],
 			'Luminosity [Hz/cm^{2}]',
 			quant['ytitle'],
-			quant['num']+('' if quant['denom'] is None else '_'+quant['denom'])
+			quant['num'] \
+				+ ('' if quant['denom'] is None else '_'+quant['denom']) \
+				+ ('' if not quant['norm']      else '_norm'           ) \
+				+ ('' if not quant['castrated'] else '_cast'           )
 		)

@@ -54,7 +54,6 @@ class ETree():
 			self.clct_keyStrip   = [ord(x) for x in list(t.clct_keyStrip)]
 			self.clct_pattern    = [ord(x) for x in list(t.clct_pattern)]
 
-
 		if 'SEGMENT' in DecList:
 			self.seg_cham      = list(t.segment_id)
 			self.seg_pos_x     = list(t.segment_pos_x)
@@ -72,6 +71,8 @@ class ETree():
 			self.seg_rhID4     = list(t.segment_recHitIdx_4)
 			self.seg_rhID5     = list(t.segment_recHitIdx_5)
 			self.seg_rhID6     = list(t.segment_recHitIdx_6)
+			self.seg_chisq     = list(t.segment_chisq)
+			self.seg_dof       = [ord(x) for x in list(t.segment_dof)]
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 class Comp():
@@ -139,14 +140,18 @@ class Segment():
 		self.rhID4     = t.seg_rhID4[i]
 		self.rhID5     = t.seg_rhID5[i]
 		self.rhID6     = t.seg_rhID6[i]
+		self.chisq     = t.seg_chisq[i]
+		self.dof       = t.seg_dof[i]
+
 		self.halfStrip = 2 * self.strip
 
 class CLCT():
 	def __init__(self, t, i):
-		self.cham = t.clct_cham[i]
-		self.quality = t.clct_quality[i]
+		self.cham      = t.clct_cham[i]
+		self.quality   = t.clct_quality[i]
 		self.halfStrip = t.clct_halfStrip[i]
-		self.CFEB = t.clct_CFEB[i]
-		self.keyStrip = t.clct_keyStrip[i]
-		self.pattern = t.clct_pattern[i]
+		self.CFEB      = t.clct_CFEB[i]
+		self.keyStrip  = t.clct_keyStrip[i]
+		self.pattern   = t.clct_pattern[i]
+
 		self.keyHalfStrip = self.keyStrip if self.cham == 1 else self.CFEB*32 + self.halfStrip
