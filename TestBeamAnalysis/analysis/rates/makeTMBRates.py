@@ -13,14 +13,14 @@ f_trigdata = '../datafiles/trigdata'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
-		0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
-		1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
-		2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-		3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
-		4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
-		5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
-		6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
-		7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
+	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
+	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
+	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
 R.gROOT.SetBatch(True)
@@ -245,24 +245,24 @@ def tprint(cols):
 ### MAKE ALL PLOTS
 for cham in chamlist:
 	for numer, denom, logy, normO in [\
-			('ALCT*CLCT','L1A',False, False),
-			('CFEB Sum' ,None ,True , False),
-			('ALCT0'    ,'L1A',True , False),
-			('CLCT0'    ,'L1A',True , False),
-			('L1A'      ,None ,False, False),
-			('ALCT*CLCT','L1A',False, True ),
-			('Window'   ,'L1A',False, False)
-			]:
+		('ALCT*CLCT','L1A',False, False),
+		('CFEB Sum' ,None ,True , False),
+		('ALCT0'    ,'L1A',True , False),
+		('CLCT0'    ,'L1A',True , False),
+		('L1A'      ,None ,False, False),
+		('ALCT*CLCT','L1A',False, True ),
+		('Window'   ,'L1A',False, False)
+	]:
 		if numer == 'Window': tprint([data.regVector(cham, ff, numer)/(1 if denom is None else data.regVector(cham, ff, denom)) for ff in pretty.keys()])
 		makePlot(\
-				[data.currentVector(cham, ff) for ff in pretty.keys()],
-				[data.regVector(cham, ff, numer) for ff in pretty.keys()],
-				numer + ('' if denom is None else '/'+denom) + ('' if not normO else '/Original/L1A'),
-				'pdfs/me'+str(cham)+'1-'+numer+('' if denom is not None else '-N')+('' if not normO else '-normO')+'_noHigh.pdf',
-				'ME'+str(cham)+'/1',
-				logy,
-				#norm = None if denom is None else [data.regVector(cham, ff, denom)*data.regVector(cham, ff, 'Duration') for ff in pretty.keys()]
-				#norm = [(1 if denom is None else data.regVector(cham, ff, denom))*data.regVector(cham, ff, 'Duration') for ff in pretty.keys()]
-				norm = None if denom is None else [data.regVector(cham, ff, denom) for ff in pretty.keys()],
-				normO = None if not normO else [data.regVector(cham, 0, numer)/data.regVector(cham, 0, 'L1A') for ff in pretty.keys()]
-				)
+			[data.currentVector(cham, ff) for ff in pretty.keys()],
+			[data.regVector(cham, ff, numer) for ff in pretty.keys()],
+			numer + ('' if denom is None else '/'+denom) + ('' if not normO else '/Original/L1A'),
+			'pdfs/me'+str(cham)+'1-'+numer+('' if denom is not None else '-N')+('' if not normO else '-normO')+'_noHigh.pdf',
+			'ME'+str(cham)+'/1',
+			logy,
+			#norm = None if denom is None else [data.regVector(cham, ff, denom)*data.regVector(cham, ff, 'Duration') for ff in pretty.keys()]
+			#norm = [(1 if denom is None else data.regVector(cham, ff, denom))*data.regVector(cham, ff, 'Duration') for ff in pretty.keys()]
+			norm = None if denom is None else [data.regVector(cham, ff, denom) for ff in pretty.keys()],
+			normO = None if not normO else [data.regVector(cham, 0, numer)/data.regVector(cham, 0, 'L1A') for ff in pretty.keys()]
+		)

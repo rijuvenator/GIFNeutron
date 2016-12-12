@@ -118,6 +118,16 @@ class Plot:
 		if 'X' in axes: self.plot.GetXaxis().SetLabelSize(self.plot.GetXaxis().GetLabelSize() * float(factor))
 		if 'Y' in axes: self.plot.GetYaxis().SetLabelSize(self.plot.GetYaxis().GetLabelSize() * float(factor))
 		if 'Z' in axes: self.plot.GetZaxis().SetLabelSize(self.plot.GetZaxis().GetLabelSize() * float(factor))
+	
+	def scaleTitleOffsets(self, factor, axes='XY'):
+		if 'X' in axes: self.plot.GetXaxis().SetTitleOffset(self.plot.GetXaxis().GetTitleOffset() * float(factor))
+		if 'Y' in axes: self.plot.GetYaxis().SetTitleOffset(self.plot.GetYaxis().GetTitleOffset() * float(factor))
+		if 'Z' in axes: self.plot.GetZaxis().SetTitleOffset(self.plot.GetZaxis().GetTitleOffset() * float(factor))
+	
+	def setTitles(self, X=None, Y=None, Z=None):
+		if X is not None: self.plot.GetXaxis().SetTitle(X)
+		if Y is not None: self.plot.GetYaxis().SetTitle(Y)
+		if Z is not None: self.plot.GetZaxis().SetTitle(Z)
 
 # canvas class
 # lumi is lumi text (top right), logy is if canvas should be log y scale, ratiofactor is fraction of canvas devoted to ratio plot

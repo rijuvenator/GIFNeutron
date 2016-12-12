@@ -7,18 +7,18 @@ CHAMLIST = [1, 110]
 
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-F_DATAFILE = '../datafiles/data_cfebeff'
-#F_DATAFILE = None
+#F_DATAFILE = '../datafiles/data_cfebeff'
+F_DATAFILE = None
 
 pretty = {
-		0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
-		1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
-		2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-		3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
-		4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
-		5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
-		6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
-		7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
+	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
+	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
+	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
 R.gROOT.SetBatch(True)
@@ -87,7 +87,7 @@ class MegaStruct():
 					# keep track for entire measurement
 					nLCT  = {1:0, 110:0}
 					nRead = {1:0, 110:0}
-					for entry in t:
+					for j,entry in enumerate(t):
 						# Get the event, make the ETree, and make lists of primitives objects
 						E = Primitives.ETree(t, DecList=['STRIP', 'LCT'])
 						strips = [Primitives.Strip  (E, i) for i in range(len(E.strip_cham))]
@@ -106,19 +106,22 @@ class MegaStruct():
 								nLCT[CHAM] += 1
 								if ActiveCFEBs[lct.keyHalfStrip / 32]:
 									nRead[CHAM] += 1
+								else:
+									pass
+									#print MEAS, CHAM if CHAM == 1 else 2, j
 
 					self.VALDATA[1  ][MEAS] = float(nRead[1  ])/nLCT[1  ]
 					self.VALDATA[110][MEAS] = float(nRead[110])/nLCT[110]
 
 					print '{:4d} {:5d} {:5d} {:.4f} {:5d} {:5d} {:.4f}'.format(\
-							MEAS,
-							nLCT[1],
-							nRead[1],
-							float(nRead[1])/nLCT[1],
-							nLCT[110],
-							nRead[110],
-							float(nRead[110])/nLCT[110]
-						)
+						MEAS,
+						nLCT[1],
+						nRead[1],
+						float(nRead[1])/nLCT[1],
+						nLCT[110],
+						nRead[110],
+						float(nRead[110])/nLCT[110]
+					)
 		else:
 			# this file is the output of the printout above
 			f = open(F_DATAFILE)
@@ -187,10 +190,10 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 
 for cham in CHAMLIST:
 	makePlot(\
-			cham if cham == 1 else 2,
-			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.valVector (cham, ff) for ff in pretty.keys()],
-			'Luminosity [Hz/cm^{2}]',
-			'CFEB Read-Out Efficiency',
-			'all'
-		)
+		cham if cham == 1 else 2,
+		[data.lumiVector(cham, ff) for ff in pretty.keys()],
+		[data.valVector (cham, ff) for ff in pretty.keys()],
+		'Luminosity [Hz/cm^{2}]',
+		'CFEB Read-Out Efficiency',
+		'all'
+	)

@@ -22,14 +22,14 @@ fromFile = '../datafiles/data_seghits'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
-		0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
-		1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
-		2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-		3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
-		4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
-		5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
-		6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
-		7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
+	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
+	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
+	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
 R.gROOT.SetBatch(True)
@@ -99,12 +99,12 @@ class MegaStruct():
 					self.Vals[2][meas]['muon'] = float(nNHitsMuon[110])/nSegMuon[110] if nSegMuon[110] != 0 else 0
 
 					print '{:4d} {:7.3f} {:7.3f} {:7.3f} {:7.3f}'.format(\
-							meas,
-							self.Vals[1][meas]['all' ],
-							self.Vals[2][meas]['all' ],
-							self.Vals[1][meas]['muon'],
-							self.Vals[2][meas]['muon']
-						)
+						meas,
+						self.Vals[1][meas]['all' ],
+						self.Vals[2][meas]['all' ],
+						self.Vals[1][meas]['muon'],
+						self.Vals[2][meas]['muon']
+					)
 		else:
 			# this file is the output of the printout above
 			f = open(fromFile)
@@ -246,18 +246,18 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 for cham in chamlist:
 	# Plots with luminosity on x-axis
 	makePlot(\
-			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.valVector(cham, ff, 'all') for ff in pretty.keys()],
-			cham,
-			'Luminosity [Hz/cm^{2}]',
-			'#LT Segment nHits, all #GT',
-			'lumi_all'
-			)
+		[data.lumiVector(cham, ff) for ff in pretty.keys()],
+		[data.valVector(cham, ff, 'all') for ff in pretty.keys()],
+		cham,
+		'Luminosity [Hz/cm^{2}]',
+		'#LT Segment nHits, all #GT',
+		'lumi_all'
+	)
 	makePlot(\
-			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.valVector(cham, ff, 'muon') for ff in pretty.keys()],
-			cham,
-			'Luminosity [Hz/cm^{2}]',
-			'#LT Segment nHits, muon #GT',
-			'lumi_muon'
-			)
+		[data.lumiVector(cham, ff) for ff in pretty.keys()],
+		[data.valVector(cham, ff, 'muon') for ff in pretty.keys()],
+		cham,
+		'Luminosity [Hz/cm^{2}]',
+		'#LT Segment nHits, muon #GT',
+		'lumi_muon'
+	)
