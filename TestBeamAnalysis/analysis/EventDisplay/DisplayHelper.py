@@ -13,6 +13,9 @@ def setStyle(mode):
 		height  = 600
 	elif mode == 'rechits':
 		width   = 800
+		height  = 600
+	elif mode == 'origrechits':
+		width   = 800
 		height  = 400
 
 	style = R.TStyle("style","Style")
@@ -60,18 +63,18 @@ def setStyle(mode):
 	style.SetOptTitle(1)                     # on
 	style.SetTitleFont(62,"")                # helvetica normal
 	style.SetTitleTextColor(R.kBlack)        # black
-	style.SetTitleFontSize(16./200.)         # default 0
+	style.SetTitleFontSize(20./200.)         # default 0
 	style.SetTitleStyle(0)                   # hollow
 	style.SetTitleFillColor(R.kWhite)        # white
 	style.SetTitleBorderSize(0)              # default 2
 	style.SetTitleAlign(11)                  # bottom left
 
 	# axis labels
-	style.SetLabelSize(16./200., "XYZ")      # size 16
+	style.SetLabelSize(20./200., "XYZ")      # size 16
 	style.SetLabelFont(42, "XYZ")            # helvetica normal
 
 	# axis titles
-	style.SetTitleSize(16./200., "XYZ" )     # size 16
+	style.SetTitleSize(20./200., "XYZ" )     # size 16
 	style.SetTitleFont(62, "XYZ")            # helvetica bold  
 
 	# axis
@@ -102,8 +105,12 @@ class Canvas():
 			self.numPads = 3
 		elif self.mode == 'rechits':
 			self.width   = 800
+			self.height  = 600
+			self.numPads = 3
+		elif self.mode == 'origrechits':
+			self.width   = 800
 			self.height  = 400
-			self.numPads = 2
+			self.numpads = 2
 
 		self.frac = 1./self.numPads
 
@@ -115,13 +122,13 @@ class Canvas():
 			self.pads.append(R.TPad('p'+str(i), 'p'+str(i), 0, i*self.frac, 1, (i+1)*self.frac))
 			self.pads[i].SetFillStyle(4000)
 
-			self.pads[i].SetBottomMargin(self.pads[i].GetBottomMargin() * 1.7)
-			self.pads[i].SetTopMargin(self.pads[i].GetTopMargin() * 1.6)
-			self.pads[i].SetLeftMargin(self.pads[i].GetLeftMargin() * 0.5)
-			self.pads[i].SetRightMargin(self.pads[i].GetRightMargin() * 1.25)
+			self.pads[i].SetBottomMargin(self.pads[i].GetBottomMargin() * 2.2 )
+			#self.pads[i].SetTopMargin   (self.pads[i].GetTopMargin()    * 1.6 )
+			self.pads[i].SetLeftMargin  (self.pads[i].GetLeftMargin()   * 0.5 )
+			self.pads[i].SetRightMargin (self.pads[i].GetRightMargin()  * 1.25)
 
-			R.gStyle.SetTitleOffset(0.25, 'Y')
-			R.gStyle.SetTitleOffset(0.4, 'Z')
+			R.gStyle.SetTitleOffset(0.20, 'Y')
+			R.gStyle.SetTitleOffset(0.35, 'Z')
 
 			R.gStyle.SetTitleX(self.pads[i].GetLeftMargin())
 			R.gStyle.SetTitleY(1 - self.pads[i].GetTopMargin())
@@ -135,5 +142,5 @@ class Canvas():
 		text = R.TLatex()
 		text.SetTextFont(62)
 		text.SetTextAlign(31)
-		text.SetTextSize(16./200.)
+		text.SetTextSize(20./200.)
 		text.DrawLatexNDC(1-self.pads[PAD].GetRightMargin(), 1-self.pads[PAD].GetTopMargin() + 10./self.height, TEXT)
