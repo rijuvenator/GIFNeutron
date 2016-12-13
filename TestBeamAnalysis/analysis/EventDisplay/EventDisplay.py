@@ -34,10 +34,10 @@ for event in EVENTFILE:
 OUTDIR = args.OUTDIR
 
 # Which displays to plot
-DOPATTERN  = False
-DOSEGMENTS = False
-DOSCINT    = False
-DRAWZTITLE = False
+DOPATTERN  = True
+DOSEGMENTS = True
+DOSCINT    = True
+DRAWZTITLE = True
 
 ##### BEGIN CODE #####
 THRESHOLD = 13.3
@@ -78,10 +78,10 @@ for MEAS in MEASLIST:
 			canvas = ED.Canvas('primitives')
 
 			# Dark CFEBs
-			hMissingH = R.TH1F('missingH', '', HS_MAX+2, 1, HS_MAX+3  ); hMissingH.SetFillColor(15)
-			hMissingS = R.TH1F('missingS', '', HS_MAX+2, 1, HS_MAX/2+2); hMissingS.SetFillColor(15)
-			#hNotReadH = R.TH1F('notReadH', '', HS_MAX+2, 1, HS_MAX+3  ); hNotReadH.SetFillColor(18)
-			hNotReadS = R.TH1F('notReadS', '', HS_MAX+2, 1, HS_MAX/2+2); hNotReadS.SetFillColor(18)
+			hMissingH = R.TH1F('missingH', '', HS_MAX, 1, HS_MAX  +1); hMissingH.SetFillColor(15)
+			hMissingS = R.TH1F('missingS', '', HS_MAX, 1, HS_MAX/2+1); hMissingS.SetFillColor(15)
+			#hNotReadH = R.TH1F('notReadH', '', HS_MAX, 1, HS_MAX  +1); hNotReadH.SetFillColor(18)
+			hNotReadS = R.TH1F('notReadS', '', HS_MAX, 1, HS_MAX/2+1); hNotReadS.SetFillColor(18)
 			# Set everything to 1 to start with (bin content 1 is bottom of frame)
 			for bin_ in range(1,HS_MAX+3): # it's okay to go over bin contents in histograms
 				hMissingH.SetBinContent(bin_, 1)
@@ -99,17 +99,17 @@ for MEAS in MEASLIST:
 				#if strip.number >= 49 and strip.number <=  64: ActiveCFEBs[3] = 1
 				#if strip.number >= 65 and strip.number <=  80: ActiveCFEBs[4] = 1
 				#if strip.number >= 81 and strip.number <=  96: ActiveCFEBs[5] = 1
-				#if strip.number >= 96 and strip.number <= 112: ActiveCFEBs[6] = 1
+				#if strip.number >= 97 and strip.number <= 112: ActiveCFEBs[6] = 1
 			# Shade out the CFEBs that weren't read out, and also the last two bins; bin content 7 is top of frame
 			for cfeb, readOut in enumerate(ActiveCFEBs):
 				if not readOut:
 					for bin_ in range(cfeb * 32 + 1, (cfeb + 1) * 32 + 1):
 						#hNotReadH.SetBinContent(bin_, 7)
 						hNotReadS.SetBinContent(bin_, 7)
-			if CHAM == 1 and ActiveCFEBs[6] == 0:
-				for bin_ in range(HS_MAX+1, HS_MAX+3):
-					#hNotReadH.SetBinContent(bin_, 7)
-					hNotReadS.SetBinContent(bin_, 7)
+			#if CHAM == 1 and ActiveCFEBs[6] == 0:
+			#	for bin_ in range(HS_MAX+1, HS_MAX+3):
+			#		#hNotReadH.SetBinContent(bin_, 7)
+			#		hNotReadS.SetBinContent(bin_, 7)
 			# Shade out the missing CFEB; bin content 7 is top of frame
 			MISSING = (97, 127) if CHAM == 1 else (129, 162)
 			for bin_ in range(MISSING[0], MISSING[1]+1):
