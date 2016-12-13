@@ -16,15 +16,14 @@ ED.setStyle('primitives') # holy crap! setStyle was taking up 99% of the computa
 
 ##### COMMAND LINE PARAMETERS
 parser = argparse.ArgumentParser(description='Makes event displays for given event list file and chamber')
-parser.add_argument('--cham',dest='CHAM',help='1 for ME1/1, 2 for ME2/1')
-parser.add_argument('--list',dest='FILE',help='Event list text file')
-parser.add_argument('--meas',dest='MEAS',help='Measurement number')
-parser.add_argument('--outDir',dest='OUTDIR',help='Plot saving directory',default=None)
+parser.add_argument('--cham'  ,dest='CHAM'  ,help='1 for ME1/1, 2 for ME2/1')
+parser.add_argument('--list'  ,dest='FILE'  ,help='Event list text file')
+parser.add_argument('--meas'  ,dest='MEAS'  ,help='Measurement number')
+parser.add_argument('--outDir',dest='OUTDIR',help='Plot saving directory',default='pdfs')
 args = parser.parse_args()
 
 ##### PARAMETERS #####
 # Measurement List, Chamber IDs (1, 110), Event List (1 indexed)
-OUTDIR = 'pdfs' if args.OUTDIR is None else args.OUTDIR
 MEASLIST  = [int(args.MEAS)]
 CHAMS     = [1 if int(args.CHAM)==1 else 110]
 EVENTFILE = open(args.FILE)
@@ -32,10 +31,13 @@ ENTRIES   = []
 for event in EVENTFILE:
 	# Make display plots 1 indexed, tree is 0 indexed
 	ENTRIES.append(int(event.strip('\n')))
+OUTDIR = args.OUTDIR
 
 # Which displays to plot
-DOPATTERN  = True
+DOPATTERN  = False
 DOSEGMENTS = False
+DOSCINT    = False
+DRAWZTITLE = False
 
 ##### BEGIN CODE #####
 THRESHOLD = 13.3
@@ -115,7 +117,7 @@ for MEAS in MEASLIST:
 				hMissingS.SetBinContent(bin_, 7)
 
 			# Wires histogram: 2D, wire group vs. layer, weighted by time bin
-			hWires = R.TH2F('wires', 'ANODE HIT TIMING;Wire Group Number;Layer;Timing', WIRE_MAX, 1, WIRE_MAX+1, 6, 1, 7)
+			hWires = R.TH2F('wires', 'ANODE HIT TIMING;Wire Group Number;Layer'+('' if not DRAWZTITLE else ';Timing'), WIRE_MAX, 1, WIRE_MAX+1, 6, 1, 7)
 			hWires.GetZaxis().SetRangeUser(0,16)
 			hWires.GetXaxis().SetNdivisions(520 if CHAM==1 else 1020)
 			for wire in wires:
@@ -126,7 +128,7 @@ for MEAS in MEASLIST:
 			hWires.Draw('colz')
 
 			# Comparators histogram: 2D, staggered half strip vs. layer, weighted by time bin
-			hComps = R.TH2F('comps', 'COMPARATOR HIT TIMING;Half Strip Number;Layer;Timing', HS_MAX+2, 1, HS_MAX+3, 6, 1, 7)
+			hComps = R.TH2F('comps', 'COMPARATOR HIT TIMING;Half Strip Number;Layer'+('' if not DRAWZTITLE else ';Timing'), HS_MAX, 1, HS_MAX+1, 6, 1, 7)
 			hComps.GetZaxis().SetRangeUser(0,16)
 			hComps.GetXaxis().SetNdivisions(2020 if CHAM==1 else 1020)
 			for comp in comps:
@@ -155,7 +157,7 @@ for MEAS in MEASLIST:
 				if B != []: canvas.drawLumiText(LUMI, PAD=1)
 
 			# ADC Count histogram: 2D, staggered strip vs. layer, weighted by ADC count (max ADC[2:] minus pedestal: average ADC[0:2])
-			hADC = R.TH2F('adc', 'CATHODE STRIP ADC COUNT;Strip Number;Layer;ADC Count', HS_MAX+2, 1, HS_MAX/2+2, 6, 1, 7)
+			hADC = R.TH2F('adc', 'CATHODE STRIP ADC COUNT;Strip Number;Layer'+('' if not DRAWZTITLE else ';ADC Count'), HS_MAX, 1, HS_MAX/2+1, 6, 1, 7)
 			hADC.GetZaxis().SetRangeUser(0,500)
 			hADC.GetXaxis().SetNdivisions(1020 if CHAM==1 else 520)
 			for strip in strips:
@@ -197,23 +199,24 @@ for MEAS in MEASLIST:
 							L[-1].Draw()
 							print '{:3d} {:3d} {:3d} {:3d}'.format(int(seg.halfStrip), int(seg.wireGroup), lct.keyHalfStrip, lct.keyWireGroup)
 
-			##### CLEAN UP #####
-			# scintillator region
-			SL = (\
-					R.TLine(SCINT[CHAM]['HS'][0]/2, 1, SCINT[CHAM]['HS'][0]/2, 7),
-					R.TLine(SCINT[CHAM]['HS'][1]/2, 1, SCINT[CHAM]['HS'][1]/2, 7),
-					R.TLine(SCINT[CHAM]['HS'][0]  , 1, SCINT[CHAM]['HS'][0]  , 7),
-					R.TLine(SCINT[CHAM]['HS'][1]  , 1, SCINT[CHAM]['HS'][1]  , 7),
-					R.TLine(SCINT[CHAM]['WG'][0]  , 1, SCINT[CHAM]['WG'][0]  , 7),
-					R.TLine(SCINT[CHAM]['WG'][1]  , 1, SCINT[CHAM]['WG'][1]  , 7)
-				)
-			for line in SL:
-				line.SetLineColor(R.kRed)
-				line.SetLineWidth(2)
-			canvas.pads[0].cd(); SL[0].Draw(); SL[1].Draw()
-			canvas.pads[1].cd(); SL[2].Draw(); SL[3].Draw()
-			canvas.pads[2].cd(); SL[4].Draw(); SL[5].Draw()
+			# Scintillator region
+			if DOSCINT:
+				SL = (\
+						R.TLine(SCINT[CHAM]['HS'][0]/2, 1, SCINT[CHAM]['HS'][0]/2, 7),
+						R.TLine(SCINT[CHAM]['HS'][1]/2, 1, SCINT[CHAM]['HS'][1]/2, 7),
+						R.TLine(SCINT[CHAM]['HS'][0]  , 1, SCINT[CHAM]['HS'][0]  , 7),
+						R.TLine(SCINT[CHAM]['HS'][1]  , 1, SCINT[CHAM]['HS'][1]  , 7),
+						R.TLine(SCINT[CHAM]['WG'][0]  , 1, SCINT[CHAM]['WG'][0]  , 7),
+						R.TLine(SCINT[CHAM]['WG'][1]  , 1, SCINT[CHAM]['WG'][1]  , 7)
+					)
+				for line in SL:
+					line.SetLineColor(R.kRed)
+					line.SetLineWidth(2)
+				canvas.pads[0].cd(); SL[0].Draw(); SL[1].Draw()
+				canvas.pads[1].cd(); SL[2].Draw(); SL[3].Draw()
+				canvas.pads[2].cd(); SL[4].Draw(); SL[5].Draw()
 
+			##### CLEAN UP #####
 			for pad in canvas.pads:
 				pad.cd()
 				pad.RedrawAxis('')
@@ -225,5 +228,7 @@ for MEAS in MEASLIST:
 			canvas.canvas.SaveAs(OUTDIR+'/ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
 			print '\033[1mFILE \033[32m'+'ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
+
+			del hWires, hComps, hADC, hMissingH, hMissingS, hNotReadS
 
 	f.Close()

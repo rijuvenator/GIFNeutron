@@ -16,9 +16,10 @@ ED.setStyle('rechits') # holy crap! setStyle was taking up 99% of the computatio
 
 ##### COMMAND LINE PARAMETERS
 parser = argparse.ArgumentParser(description='Makes event displays for given event list file and chamber')
-parser.add_argument('--cham',dest='CHAM',help='1 for ME1/1, 2 for ME2/1')
-parser.add_argument('--list',dest='FILE',help='Event list text file')
-parser.add_argument('--meas',dest='MEAS',help='Measurement number')
+parser.add_argument('--cham'  ,dest='CHAM'  ,help='1 for ME1/1, 2 for ME2/1')
+parser.add_argument('--list'  ,dest='FILE'  ,help='Event list text file')
+parser.add_argument('--meas'  ,dest='MEAS'  ,help='Measurement number')
+parser.add_argument('--outDir',dest='OUTDIR',help='Plot saving directory',default='pdfs')
 args = parser.parse_args()
 
 ##### PARAMETERS #####
@@ -30,12 +31,14 @@ ENTRIES   = []
 for event in EVENTFILE:
 	# Make display plots 1 indexed, tree is 0 indexed
 	ENTRIES.append(int(event.strip('\n')))
-
-# RecHit Strip List (1 indexed; must be improper subset of [1, 2, 3])
-RECHITSTRIPS = [2]
+OUTDIR = args.OUTDIR
 
 # Which displays to plot
-DOSEGMENTS = True
+DOSEGMENTS = False
+DOSCINT    = False
+DRAWZTITLE = False
+TITLESON   = False
+ORIGFORMAT = False
 
 ##### BEGIN CODE #####
 SCINT = {1:{'HS':(25., 72.), 'WG':(37., 43.)}, 110:{'HS':(8., 38.), 'WG':(55., 65.)}}
@@ -67,33 +70,27 @@ for MEAS in MEASLIST:
 			##### RECHITS DISPLAY #####
 
 			# Instantiate canvas
-			canvas = ED.Canvas('rechits')
+			canvas = ED.Canvas('rechits' if not ORIGFORMAT else 'origrechits')
 
 			# Wires histogram: 2D, wire group vs. layer
-			hRHWG = R.TH2F('rhwg', 'RECHIT WIRE GROUPS;Wire Group Number;Layer;Multiplicity', WIRE_MAX, 1, WIRE_MAX+1, 6, 1, 7)
+			hRHWG = R.TH2F('rhwg', ('' if not TITLESON else 'RECHIT WIRE GROUPS')+';Wire Group Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'), WIRE_MAX, 1, WIRE_MAX+1, 6, 1, 7)
 			hRHWG.GetXaxis().SetNdivisions(520 if CHAM==1 else 1020)
 			for rh in rechits:
 				if rh.cham != CHAM: continue
 				hRHWG.Fill(rh.wireGroup, rh.layer, 1)
-			canvas.pads[1].cd()
-			hRHWG.Draw('colz')
+			canvas.pads[2 if not ORIGFORMAT else 1].cd()
+			hRHWG.SetMarkerColor(R.kRed)
+			hRHWG.Draw('')
 
 			# Strips histogram: 2D, 3 strips vs. layer
-			addOn = ', STRIP'
-			if len(RECHITSTRIPS) == 1:
-				addOn += ' ' + str(RECHITSTRIPS[0])
-			else:
-				addOn += 'S '
-				for i,STRIP in enumerate(RECHITSTRIPS):
-					addOn += str(STRIP) + (', ' if i<len(RECHITSTRIPS)-1 else '')
-			hRHS = R.TH2F('rhs', 'RECHIT STRIPS'+addOn+';Strip Number;Layer;Multiplicity', HS_MAX/2, 1, HS_MAX/2+1, 6, 1, 7)
+			hRHS = R.TH2F('rhs', ('' if not TITLESON else 'RECHIT STRIPS')+';Strip Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'), HS_MAX/2, 1, HS_MAX/2+1, 6, 1, 7)
 			hRHS.GetXaxis().SetNdivisions(1020 if CHAM==1 else 520)
 			for rh in rechits:
 				if rh.cham != CHAM: continue
-				for STRIP in RECHITSTRIPS:
-					hRHS.Fill(rh.strips[STRIP-1], rh.layer, 1)
+				hRHS.Fill(rh.halfStrip/2, rh.layer, 1)
 			canvas.pads[0].cd()
-			hRHS.Draw('colz')
+			hRHS.SetMarkerColor(R.kRed)
+			hRHS.Draw('')
 
 			# Segment Dots
 			if DOSEGMENTS:
@@ -117,20 +114,21 @@ for MEAS in MEASLIST:
 							L[-1].Draw()
 							print '{:3d} {:3d} {:3d} {:3d}'.format(int(seg.halfStrip), int(seg.wireGroup), lct.keyHalfStrip, lct.keyWireGroup)
 
-			##### CLEAN UP #####
-			# scintillator region
-			SL = (\
-					R.TLine(SCINT[CHAM]['HS'][0]/2, 1, SCINT[CHAM]['HS'][0]/2, 7),
-					R.TLine(SCINT[CHAM]['HS'][1]/2, 1, SCINT[CHAM]['HS'][1]/2, 7),
-					R.TLine(SCINT[CHAM]['WG'][0]  , 1, SCINT[CHAM]['WG'][0]  , 7),
-					R.TLine(SCINT[CHAM]['WG'][1]  , 1, SCINT[CHAM]['WG'][1]  , 7)
-				)
-			for line in SL:
-				line.SetLineColor(R.kRed)
-				line.SetLineWidth(2)
-			canvas.pads[0].cd(); SL[0].Draw(); SL[1].Draw()
-			canvas.pads[1].cd(); SL[2].Draw(); SL[3].Draw()
+			# Scintillator region
+			if DOSCINT:
+				SL = (\
+						R.TLine(SCINT[CHAM]['HS'][0]/2, 1, SCINT[CHAM]['HS'][0]/2, 7),
+						R.TLine(SCINT[CHAM]['HS'][1]/2, 1, SCINT[CHAM]['HS'][1]/2, 7),
+						R.TLine(SCINT[CHAM]['WG'][0]  , 1, SCINT[CHAM]['WG'][0]  , 7),
+						R.TLine(SCINT[CHAM]['WG'][1]  , 1, SCINT[CHAM]['WG'][1]  , 7)
+					)
+				for line in SL:
+					line.SetLineColor(R.kRed)
+					line.SetLineWidth(2)
+				canvas.pads[0].cd(); SL[0].Draw(); SL[1].Draw()
+				canvas.pads[1].cd(); SL[2].Draw(); SL[3].Draw()
 
+			##### CLEAN UP #####
 			for pad in canvas.pads:
 				pad.cd()
 				pad.RedrawAxis()
@@ -139,8 +137,10 @@ for MEAS in MEASLIST:
 			canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
 
 			# save as: RH_MEAS_MEX1_EVENT.pdf
-			canvas.canvas.SaveAs('pdfs/RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
+			canvas.canvas.SaveAs(OUTDIR+'/RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
 			print '\033[1mFILE \033[32m'+'RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
+
+			del hRHS, hRHWG
 
 	f.Close()
