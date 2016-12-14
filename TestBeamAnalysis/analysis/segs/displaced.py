@@ -11,10 +11,11 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-F_DATAFILE = '../datafiles/data_segchisq'
 #F_DATAFILE = None
+F_DATAFILE = '../datafiles/data_segrh.root'
+#F_OUT = R.TFile('../datafiles/data_segrh.root', 'RECREATE')
 
-## Cosmetic data dictionary, comment out for fewer ones
+# Cosmetic data dictionary, comment out for fewer ones
 #pretty = {
 #	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
 #	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
@@ -107,119 +108,108 @@ class MegaStruct():
 	# fill data: this function, and the access functions below it, are "user-defined" and script-dependent
 	def fillData(self):
 		# fill a data dictionary as desired
-		self.VALDATA = { 1 : {}, 110: {} }
+		self.VALDATA = { 1 : {}, 110 : {} }
+		self.HISTS   = { 1 : {}, 110 : {} }
+		CBINS = 4000
+		CMIN = -10.
+		CMAX = 10.
 		if F_DATAFILE is None:
 			for ATT in self.MEASDATA.keys():
-				for MEAS in self.MEASDATA[ATT][0:1]: # only interested in Original
+				for MEAS in self.MEASDATA[ATT][0:1]: # only interested in Original for now
+					for CHAM in CHAMLIST:
+						self.HISTS[CHAM][MEAS] = R.TH1F('h'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX)
+						#self.HISTS[CHAM][MEAS].SetDirectory(0)
 					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
-
-					BINS = 1000
-					CHIMIN = 0
-					CHIMAX = 10
-					h = {1: {}, 110: {}}
-					for CHAM in CHAMLIST:
-						for DOF in [0, 2, 4, 6, 8]:
-							h[CHAM][DOF] = R.TH1F('h'+str(CHAM)+str(DOF), '', BINS, CHIMIN, CHIMAX)
 					for entry in t:
-						E = Primitives.ETree(t, DecList=['SEGMENT', 'LCT'])
-						segs = [Primitives.Segment(E, i) for i in range(len(E.seg_cham))]
-						lcts = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham))]
+						E = Primitives.ETree(t, DecList=['SEGMENT', 'LCT', 'RECHIT'])
+						segs    = [Primitives.Segment(E, i) for i in xrange(len(E.seg_cham))]
+						lcts    = [Primitives.LCT    (E, i) for i in xrange(len(E.lct_cham))]
+						rechits = [Primitives.RecHit (E, i) for i in xrange(len(E.rh_cham ))]
+
 						for CHAM in CHAMLIST:
 							for seg in segs:
 								if seg.cham != CHAM: continue
 								for lct in lcts:
 									if lct.cham != CHAM: continue
 									if inPad(seg.halfStrip[3], seg.wireGroup[3], CHAM) and matchSegLCT(seg, lct):
-										h[CHAM][seg.dof].Fill(seg.chisq/seg.dof)
-										h[CHAM][   0   ].Fill(seg.chisq/seg.dof)
+										layers = [rechits[i].layer for i in seg.rhID]
+										for layer in [1, 2, 3, 4, 5, 6]:
+											if layer in layers: continue
+											closestRHPosXDiff = float('inf')
+											fillVal = float('inf')
+											for rh in rechits:
+												if rh.layer == layer and inPad(30, rh.wireGroup, CHAM):
+													D = rh.pos['x']-seg.pos[layer]['x']
+													if abs(D) < closestRHPosXDiff:
+														closestRHPosXDiff = abs(D)
+														fillVal = D
+											self.HISTS[CHAM][MEAS].Fill(fillVal)
+					f.Close()
 					for CHAM in CHAMLIST:
-						self.VALDATA[CHAM][MEAS] = {}
-						for DOF in [0, 2, 4, 6, 8]:
-							self.VALDATA[CHAM][MEAS][DOF] = {\
-								'MEAN' : h[CHAM][DOF].GetMean(),
-								'STDD' : h[CHAM][DOF].GetStdDev()
-							}
-						print '{:4d} {:1d} {:7.4f} {:7.4f} {:7.4f} {:7.4f} {:7.4f} {:7.4f} {:7.4f} {:7.4f} {:7.4f} {:7.4f}'.format(\
-							MEAS,
-							CHAM if CHAM == 1 else 2,
-							self.VALDATA[CHAM][MEAS][0]['MEAN'],
-							self.VALDATA[CHAM][MEAS][0]['STDD'],
-							self.VALDATA[CHAM][MEAS][2]['MEAN'],
-							self.VALDATA[CHAM][MEAS][2]['STDD'],
-							self.VALDATA[CHAM][MEAS][4]['MEAN'],
-							self.VALDATA[CHAM][MEAS][4]['STDD'],
-							self.VALDATA[CHAM][MEAS][6]['MEAN'],
-							self.VALDATA[CHAM][MEAS][6]['STDD'],
-							self.VALDATA[CHAM][MEAS][8]['MEAN'],
-							self.VALDATA[CHAM][MEAS][8]['STDD']
-						)
-					del h
+						F_OUT.cd()
+						self.HISTS[CHAM][MEAS].Write()
+					print MEAS, 'Done'
 
 		# for obtaining data dictionary from a file
 		else:
-			f = open(F_DATAFILE)
-			for line in f:
-				cols = line.strip('\n').split()
-				MEAS = int(cols[0])
-				CHAM = 1 if cols[1] == '1' else 110
-				self.VALDATA[CHAM][MEAS] = {}
-				for DOF in [0, 2, 4, 6, 8]:
-					self.VALDATA[CHAM][MEAS][DOF] = {\
-						'MEAN' : float(cols[DOF+2]),
-						'STDD' : float(cols[DOF+3])
-					}
+			MIN = -6.
+			MAX = 6.
+			BINS = int((MAX-MIN)/((CMAX-CMIN)/CBINS))/16
+			f = R.TFile.Open(F_DATAFILE)
+			for ATT in self.MEASDATA.keys():
+				for MEAS in self.MEASDATA[ATT][0:1]: # only interested in Original for now
+					for CHAM in CHAMLIST:
+						H = f.Get('h'+str(CHAM)+str(MEAS))
+						H.Scale(1./H.Integral())
+						self.HISTS[CHAM][MEAS] = H.Rebin(BINS, 'hN'+str(CHAM)+str(MEAS), np.array([MIN + i*(MAX-MIN)/float(BINS) for i in range(BINS+1)]))
+						self.HISTS[CHAM][MEAS].SetDirectory(0)
 
 	# get a value given a chamber and measurement number
-	def val(self, cham, meas, dof, stat):
-		return float(self.VALDATA[cham][meas][dof][stat])
+	def val(self, cham, meas):
+		return float(self.VALDATA[cham][meas])
 
 	# get a vector of values
-	def valVector(self, cham, ff, dof, stat):
-		return np.array([self.val(cham, self.MEASDATA[att][ff], dof, stat) for att in self.attVector()])
+	def valVector(self, cham, ff):
+		return np.array([self.val(cham, self.MEASDATA[att][ff]) for att in self.attVector()])
 
 data = MegaStruct()
 
 ##### MAKEPLOT FUNCTION #####
-def makePlot(cham, x, y, xtitle, ytitle, title):
-	graphs = []
-	ngraphs = 5
-	for i in range(ngraphs):
-		graphs.append(R.TGraph(len(x[i]), x[i], y[i]))
+def makePlot(cham, hist, xtitle, ytitle, title):
 
 	# Step 1
-	plots = []
-	for i in range(ngraphs):
-		if i == 0:
-			DOF = 'All DOF'
-		else:
-			DOF = str(2 * i) + ' DOF'
-		plots.append(Plotter.Plot(graphs[i], legName=DOF, legType='p', option='AP' if i==0 else 'P'))
+	plot = Plotter.Plot(hist, legName=title, legType='p', option='hist')
 
 	# Step 2
 	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
 
 	# Step 3
-	canvas.makeLegend(lWidth=0.2, lHeight=0.25, pos='br', lOffset=0.04, fontsize=0.03)
+	canvas.makeLegend(lWidth=0.2, lHeight=0.25, pos='bl', lOffset=0.04, fontsize=0.03)
 
 	# Step 4
-	for i in range(ngraphs):
-		#if i == 1: continue
-		canvas.addMainPlot(plots[i], isFirst=(i==0), addToLegend=True)
+	canvas.addMainPlot(plot, isFirst=True, addToLegend=False)
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	plots[0].setTitles(X=xtitle, Y=ytitle)
-	graphs[0].SetMinimum(0.0)
-	graphs[0].SetMaximum(4.0)
-	plots[0].scaleTitles(0.8)
-	plots[0].scaleLabels(0.8)
-	plots[0].scaleTitleOffsets(1.2, 'Y')
+	plot.setTitles(X=xtitle, Y=ytitle)
+	#hist.SetMinimum(0.0)
+	#hist.SetMaximum(1.1)
+	plot.scaleTitles(0.8)
+	plot.scaleLabels(0.8)
+	plot.scaleTitleOffsets(1.2, 'Y')
 	canvas.makeTransparent()
 
-	colors = [R.kBlack, R.kRed+1, R.kOrange+1, R.kGreen+2, R.kBlue-3]
-	for i in range(ngraphs):
-		graphs[i].SetMarkerColor(colors[i])
+	att = [key for key in data.MEASDATA.keys() if int(title) in data.MEASDATA[key]][0]
+	text = R.TLatex()
+	text.SetTextAlign(11)
+	text.SetTextFont(42)
+	text.SetTextSize(0.04)
+	text.DrawLatexNDC(.75, .80, '{:.1f}'.format(att))
+	text.DrawLatexNDC(.75, .75, '#mu:'    + '{:.4f}'.format(hist.GetMean()))
+	text.DrawLatexNDC(.75, .70, '#sigma:' + '{:.4f}'.format(hist.GetStdDev()))
+
+	ft = str(list(data.attVector()).index(att))
 
 	# Step 6
 
@@ -227,24 +217,16 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/SeqChiSqLumi_ME'+str(cham)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('pdfs/CRHX_ME'+str(cham)+'1_'+ft+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ##### MAKE PLOTS #####
 for cham in CHAMLIST:
-	makePlot(\
-		cham if cham == 1 else 2,
-		[data.lumiVector(cham, 0             ) for dof in [0, 2, 4, 6, 8]],
-		[data.valVector (cham, 0, dof, 'MEAN') for dof in [0, 2, 4, 6, 8]],
-		'Luminosity [Hz/cm^{2}]',
-		'Mean of #chi^{2} Distribution',
-		'mean'
-	)
-	makePlot(\
-		cham if cham == 1 else 2,
-		[data.lumiVector(cham, 0             ) for dof in [0, 2, 4, 6, 8]],
-		[data.valVector (cham, 0, dof, 'STDD') for dof in [0, 2, 4, 6, 8]],
-		'Luminosity [Hz/cm^{2}]',
-		'Standard Deviation of #chi^{2} Distribution',
-		'stddev'
-	)
+	for meas in data.HISTS[cham].keys():
+		makePlot(\
+			cham if cham == 1 else 2,
+			data.HISTS[cham][meas],
+			'min |RH(x) - Seg(x)| for Missing Layers',
+			'Counts',
+			str(meas)
+		)

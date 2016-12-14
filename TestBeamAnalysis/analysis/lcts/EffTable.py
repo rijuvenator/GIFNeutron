@@ -70,7 +70,7 @@ for ATT in sorted(MeasDict.keys()):
 					for seg in segs:
 						if seg.cham != CHAM: continue
 						# nAllMatch
-						if abs(2 * seg.strip - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup - lct.keyWireGroup) <= 2:
+						if abs(seg.halfStrip[3] - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup[3] - lct.keyWireGroup) <= 2:
 							flag_AllMatch = True
 							break
 				if flag_AllMatch:
@@ -79,7 +79,7 @@ for ATT in sorted(MeasDict.keys()):
 					for seg in segs:
 						if seg.cham != CHAM: continue
 						# nLCTSegMatch
-						if abs(2 * seg.strip - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup - lct.keyWireGroup) <= 2:
+						if abs(seg.halfStrip[3] - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup[3] - lct.keyWireGroup) <= 2:
 							flag_LCTSegMatch = True
 							break
 
@@ -89,10 +89,10 @@ for ATT in sorted(MeasDict.keys()):
 				for seg in segs:
 					# nSegScint
 					if \
-						2 * seg.strip >= SCINT[CHAM]['HS'][0] \
-					and 2 * seg.strip <= SCINT[CHAM]['HS'][1] \
-					and seg.wireGroup >= SCINT[CHAM]['WG'][0] \
-					and seg.wireGroup <= SCINT[CHAM]['WG'][1]:
+						2 * seg.strip[3] >= SCINT[CHAM]['HS'][0] \
+					and 2 * seg.strip[3] <= SCINT[CHAM]['HS'][1] \
+					and seg.wireGroup[3] >= SCINT[CHAM]['WG'][0] \
+					and seg.wireGroup[3] <= SCINT[CHAM]['WG'][1]:
 						flag_SegScint = True
 						break
 

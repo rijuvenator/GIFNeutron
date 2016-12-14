@@ -85,7 +85,7 @@ class MegaStruct():
 								if seg.cham != cham: continue
 								for lct in lcts:
 									if lct.cham != cham: continue
-									if self.inPad(seg.halfStrip, seg.wireGroup, cham if cham == 1 else 2) and self.matchSegLCT(seg, lct):
+									if self.inPad(seg.halfStrip[3], seg.wireGroup[3], cham if cham == 1 else 2) and self.matchSegLCT(seg, lct):
 										nSegMuon  [cham] += 1
 										nNHitsMuon[cham] += seg.nHits
 										break
@@ -140,7 +140,7 @@ class MegaStruct():
 	
 	# determines if a segment and an lct match each other
 	def matchSegLCT(self, seg, lct):
-		if abs(seg.halfStrip - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup - lct.keyWireGroup) <= 2:
+		if abs(seg.halfStrip[3] - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup[3] - lct.keyWireGroup) <= 2:
 			return True
 		else:
 			return False
