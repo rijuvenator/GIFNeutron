@@ -2,6 +2,7 @@ import numpy as np
 import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.TestBeamAnalysis.Auxiliary as Aux
 
 ##### PARAMETERS #####
 # Which chambers to do
@@ -94,7 +95,7 @@ class MegaStruct():
 								if seg.cham != CHAM: continue
 								for lct in lcts:
 									if lct.cham != CHAM: continue
-									if self.inPad(seg.halfStrip[3], seg.wireGroup[3], CHAM) and self.matchSegLCT(seg, lct):
+									if Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], CHAM) and Aux.matchSegLCT(seg, lct):
 										self.VALDATA[MEAS][CHAM][0        ] += 1
 										self.VALDATA[MEAS][CHAM][seg.nHits] += 1
 					print '{:4d} {:5d} {:5d} {:5d} {:5d} {:5d} {:5d} {:5d} {:5d} {:5d} {:5d}'.format(\
@@ -132,23 +133,6 @@ class MegaStruct():
 						6:cols[10]
 					}
 				}
-
-	# defines a paddle region
-	def inPad(self, hs, wg, CHAM):
-		if      hs >= SCINT[CHAM]['HS'][0]\
-			and hs <= SCINT[CHAM]['HS'][1]\
-			and wg >= SCINT[CHAM]['WG'][0]\
-			and wg <= SCINT[CHAM]['WG'][1]:
-			return True
-		else:
-			return False
-
-	# determines if a segment and an lct match each other
-	def matchSegLCT(self, seg, lct):
-		if abs(seg.halfStrip[3] - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup[3] - lct.keyWireGroup) <= 2:
-			return True
-		else:
-			return False
 
 	# get a value given a chamber and measurement number
 	def val(self, cham, meas, nhits):

@@ -3,6 +3,7 @@ import ROOT as R
 import Gif.TestBeamAnalysis.Plotter as Plotter
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.roottools as tools
+import Gif.TestBeamAnalysis.Auxiliary as Aux
 import sys
 
 ### PARAMETERS
@@ -93,12 +94,12 @@ class MegaStruct():
 							for lct in lcts:
 								# Check on chamber and LCT position
 								if lct.cham!=cham: continue
-								if not self.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
+								if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
 								for s,seg in enumerate(segs):
 									# Check on chamber, segment position, match the segment to the lct, and if we've already matched the segment
 									if seg.cham!=cham: continue
-									if not self.inPad(seg.halfStrip[3], seg.wireGroup[3], cham): continue
-									if not self.matchSegLCT(seg,lct): continue
+									if not Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], cham): continue
+									if not Aux.matchSegLCT(seg,lct): continue
 									if s in alreadyMatchedSeg: continue
 									alreadyMatchedSeg.append(s)
 									# Make list of rechits from the segment
@@ -146,34 +147,6 @@ class MegaStruct():
 				self.Effs[110][meas] = float(cols[4])
 				self.ErrsUp[110][meas] = float(cols[5])
 				self.ErrsDown[110][meas] = float(cols[6])
-
-	# defines a paddle region
-	def inPad(self, hs, wg, cham):
-		if cham == 1:
-			if      hs >=  25\
-				and hs <=  72\
-				and wg >=  37\
-				and wg <=  43:
-				return True
-			else:
-				return False
-		if cham == 110:
-			if      hs >=   8\
-				and hs <=  38\
-				and wg >=  55\
-				and wg <=  65:
-				return True
-			else:
-				return False
-	
-	# a segment match is if the lct halfstrip is within 2 halfstrips of the segment halfstrip and 1 wire group 
-	def matchSegLCT(self, seg, lct):
-		diffHS = abs(seg.halfStrip[3] - lct.keyHalfStrip)
-		diffWG = abs(seg.wireGroup[3] - lct.keyWireGroup)
-		if diffHS<=2 and diffWG<=1:
-			return True
-		else:
-			return False
 
 	# a rechit/comparator match is if the comparator halfstrip is within 2 halfstrips of the comparator halfstrip
 	def matchRHComp(self, rh, comp):

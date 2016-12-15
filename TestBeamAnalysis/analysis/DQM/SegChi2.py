@@ -2,6 +2,7 @@ import numpy as np
 import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.TestBeamAnalysis.Auxiliary as Aux
 
 ##### PARAMETERS #####
 # Which chambers to do
@@ -13,23 +14,6 @@ SCINT = {1:{'HS':(25,72),'WG':(37,43)},110:{'HS':(8,38),'WG':(55,65)}}
 
 ##### BEGIN CODE #####
 R.gROOT.SetBatch(True)
-
-# defines a paddle region
-def inPad(hs, wg, CHAM):
-	if      hs >= SCINT[CHAM]['HS'][0]\
-		and hs <= SCINT[CHAM]['HS'][1]\
-		and wg >= SCINT[CHAM]['WG'][0]\
-		and wg <= SCINT[CHAM]['WG'][1]:
-		return True
-	else:
-		return False
-
-# determines if a segment and an lct match each other
-def matchSegLCT(seg, lct):
-	if abs(seg.halfStrip - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup - lct.keyWireGroup) <= 2:
-		return True
-	else:
-		return False
 
 BINS = 50
 CHIMIN = 0
@@ -55,7 +39,7 @@ for MEAS in MEASLIST:
 				if seg.cham != CHAM: continue
 				for lct in lcts:
 					if lct.cham != CHAM: continue
-					if inPad(seg.halfStrip, seg.wireGroup, CHAM) and matchSegLCT(seg, lct):
+					if Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], CHAM) and Aux.matchSegLCT(seg, lct):
 						h[MEAS][CHAM][seg.dof].Fill(seg.chisq/seg.dof)
 						h[MEAS][CHAM][0      ].Fill(seg.chisq/seg.dof)
 						p[MEAS][CHAM][seg.dof].Fill(R.TMath.Prob(seg.chisq, seg.dof))
