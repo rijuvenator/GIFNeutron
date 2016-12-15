@@ -12,6 +12,7 @@ chamlist = [1, 110]
 
 # Which files contain the relevant list of measurements and currents
 f_measgrid = '../datafiles/measgrid'
+#f_measgrid = 'measgrid_15'
 f_attenhut = '../datafiles/attenhut'
 
 # Whether or not to only use Yuriy's 5 attenuations
@@ -19,7 +20,8 @@ castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
 #fromFile = None
-fromFile = '../datafiles/compEff'
+#fromFile = '../datafiles/compEff'
+fromFile = 'compEff'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
@@ -77,6 +79,12 @@ class MegaStruct():
 					denominator1 = 0
 					numerator2 = 0
 					denominator2 = 0
+					nMatchedSegs1 = 0
+					nMatchedSegs2 = 0
+					A1 = 0
+					A2 = 0
+					B1 = 0
+					B2 = 0
 					for entry in t:
 						DecList = ['SEGMENT','LCT','COMP','RECHIT']#,'STRIP','WIRE']
 						E = Primitives.ETree(t, DecList)
@@ -88,44 +96,78 @@ class MegaStruct():
 						#wires   = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham  ))]
 
 						for cham in [1,110]:
-							alreadyMatchedComp = []
 							alreadyMatchedSeg = []
 							for lct in lcts:
 								# Check on chamber and LCT position
 								if lct.cham!=cham: continue
 								if not self.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
+								mostHits = -999.
+								found = False
+								bestSeg = -999
+								closeSeg = False
 								for s,seg in enumerate(segs):
 									# Check on chamber, segment position, match the segment to the lct, and if we've already matched the segment
-									if seg.cham!=cham: continue
-									if not self.inPad(seg.halfStrip[3], seg.wireGroup[3], cham): continue
+									if seg.cham!=lct.cham: continue
 									if not self.matchSegLCT(seg,lct): continue
-									if s in alreadyMatchedSeg: continue
-									alreadyMatchedSeg.append(s)
+									if not self.inPad(seg.halfStrip, seg.wireGroup, cham): continue
+									#print abs(seg.halfStrip - lct.keyHalfStrip), seg.nHits, s
+									if seg.nHits > mostHits:
+										if seg in alreadyMatchedSeg: continue
+										mostHits = seg.nHits
+										bestSeg = s
+										found = True
+								if found==True:
+									if cham==1: nMatchedSegs1 +=1
+									if cham==110: nMatchedSegs2 +=1
+									alreadyMatchedSeg.append(bestSeg)
+									#print abs(segs[bestSeg].halfStrip - lct.keyHalfStrip),segs[bestSeg].nHits,  bestSeg, segs[bestSeg].cham, lct.cham
+									seg = segs[bestSeg]
 									# Make list of rechits from the segment
 									rhList = seg.rhID
-									if cham==1: denominator1 += seg.nHits
-									if cham==110: denominator2 += seg.nHits
+
 									matchedRHComp = 0
 									for rhID in rhList:
 										# Check on chamber
-										if rechits[rhID].cham!=cham: continue # this is not strictly necessary since seg cham is checked.
+										if rechits[rhID].cham!=lct.cham: continue
+										closestRHDist = 999
+										CloseRH = False
+										closestComp = -999
+										# Find closest comparator in same layer
 										for c,comp in enumerate(comps):
-											# Check on chamber, layer, matching comp to rechit, and if we've already matched the comparator
-											if comp.cham!=cham: continue
+											# Check on chamber and layer 
+											if comp.cham!=lct.cham: continue
 											if comp.layer!=rechits[rhID].layer: continue
-											if not self.matchRHComp(rechits[rhID],comp): continue
-											if c in alreadyMatchedComp: continue
-											alreadyMatchedComp.append(c)
-											matchedRHComp +=1
-											# Break out of the comparator loop since we've already found the matching comparator to the rechit
-											break
-									if cham==1: numerator1 += matchedRHComp
-									if cham==110: numerator2 += matchedRHComp
-									# Break out of segment loop since we've already found the matching segment to the lct
-									break
+											# Find closest comparator in the layer
+											RHdist = abs(rechits[rhID].halfStrip-comp.halfStrip+0.5)
+											if RHdist < closestRHDist: 
+												closestRHDist = RHdist
+												closestComp = c
+												CloseRH = True
+										# Make sure that the closest comp is w/in 2 half strips, wasn't already matched
+										# and is inside the LCT pattern
+										if CloseRH:
+											comp = comps[closestComp]
+											if not self.inLCTPattern(lct,comp,cham) and self.matchRHComp(rechits[rhID],comp):
+												continue
+											'''
+											if not self.matchRHComp(rechits[rhID],comp): 
+												if cham==1: B1 += 1
+												if cham==110: B2 += 1
+												continue
+											'''
+											if self.matchRHComp(rechits[rhID],comp) and self.inLCTPattern(lct,comp,cham):
+												if cham==1: A1 += 1
+												if cham==110: A2 += 1
+											if not self.matchRHComp(rechits[rhID],comp) and not self.inLCTPattern(lct,comp,cham):
+												if cham==1: B1 += 1
+												if cham==110: B2 += 1
+										# Add to B if no comparator in same layer as rechit
+										else:
+											if cham==1: B1 += 1
+											if cham==110: B2 += 1
 
-					eff1,errUp1,errDown1 = tools.clopper_pearson(numerator1,denominator1)
-					eff2,errUp2,errDown2 = tools.clopper_pearson(numerator2,denominator2)
+					eff1,errUp1,errDown1 = tools.clopper_pearson(A1,A1+B1)
+					eff2,errUp2,errDown2 = tools.clopper_pearson(A2,A2+B2)
 					print meas, eff1, errUp1, errDown1, eff2, errUp2, errDown2
 					# fill dictionary
 					self.Effs[1][meas] = eff1
@@ -168,8 +210,8 @@ class MegaStruct():
 	
 	# a segment match is if the lct halfstrip is within 2 halfstrips of the segment halfstrip and 1 wire group 
 	def matchSegLCT(self, seg, lct):
-		diffHS = abs(seg.halfStrip[3] - lct.keyHalfStrip)
-		diffWG = abs(seg.wireGroup[3] - lct.keyWireGroup)
+		diffHS = abs(seg.halfStrip - lct.keyHalfStrip)
+		diffWG = abs(seg.wireGroup - lct.keyWireGroup)
 		if diffHS<=2 and diffWG<=1:
 			return True
 		else:
@@ -183,6 +225,37 @@ class MegaStruct():
 			return True
 		else:
 			return False
+	
+	# check if comparator is in LCT pattern
+	def inLCTPattern(self,lct,comp,cham):
+		id_ = lct.pattern
+		# lct khs is 0 indexed, comp hs is 1 indexed
+		khs = lct.keyHalfStrip+2
+
+		if id_ == 2:
+			pat = {6:[khs-5, khs-4, khs-3], 5:[khs-4, khs-3, khs-2], 4:[khs-2, khs-1, khs], 3:[khs], 2:[khs+1, khs+2], 1:[khs+3, khs+4, khs+5]}
+		elif id_ == 3:
+			pat = {1:[khs-5, khs-4, khs-3], 2:[khs-2, khs-1], 3:[khs], 4:[khs, khs+1, khs+2], 5:[khs+2, khs+3, khs+4], 6:[khs+3, khs+4, khs+5]}
+		elif id_ == 4:
+			pat = {6:[khs-4, khs-3, khs-2], 5:[khs-4, khs-3, khs-2], 4:[khs-2, khs-1], 3:[khs], 2:[khs+1, khs+2], 1:[khs+2, khs+3, khs+4]}
+		elif id_ == 5:
+			pat = {1:[khs-4, khs-3, khs-2], 2:[khs-2, khs-1], 3:[khs], 4:[khs+1, khs+2], 5:[khs+2, khs+3, khs+4], 6:[khs+2, khs+3, khs+4]}
+		elif id_ == 6:
+			pat = {6:[khs-3, khs-2, khs-1], 5:[khs-2, khs-1], 4:[khs-1, khs], 3:[khs], 2:[khs, khs+1], 1:[khs+1, khs+2, khs+3]}
+		elif id_ == 7:
+			pat = {1:[khs-3, khs-2, khs-1], 2:[khs-1, khs], 3:[khs], 4:[khs, khs+1], 5:[khs+1, khs+2], 6:[khs+1, khs+2, khs+3]}
+		elif id_ == 8:
+			pat = {6:[khs-2, khs-1, khs], 5:[khs-2, khs-1, khs], 4:[khs-1, khs], 3:[khs], 2:[khs, khs+1], 1:[khs, khs+1, khs+2]}
+		elif id_ == 9:
+			pat = {1:[khs-2, khs-1, khs], 2:[khs-1, khs], 3:[khs], 4:[khs, khs+1], 5:[khs, khs+1, khs+2], 6:[khs, khs+1, khs+2]}
+		elif id_ == 10:
+			pat = {6:[khs-1, khs, khs+1], 5:[khs-1, khs, khs+1], 4:[khs], 3:[khs], 2:[khs], 1:[khs-1, khs, khs+1]}
+
+		if comp.halfStrip in pat[comp.layer]:
+			return True
+		else: 
+			return False
+
 
 	# get a current measurement given a chamber and measurement number
 	def current(self, cham, meas):
@@ -294,7 +367,7 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('effPlots/compEff_'+str(CHAM)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('best/compEff_'+str(CHAM)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS
