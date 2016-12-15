@@ -111,7 +111,7 @@ class MegaStruct():
 		if F_DATAFILE is None:
 			for ATT in self.MEASDATA.keys():
 				for MEAS in self.MEASDATA[ATT][0:1]: # only interested in Original
-					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/15Dec/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 
 					BINS = 1000

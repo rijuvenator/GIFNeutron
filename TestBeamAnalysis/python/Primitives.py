@@ -79,7 +79,7 @@ class Comp():
 		self.timeBin = t.comp_timeBin[i]
 
 		self.halfStrip = 2*self.strip + self.comp
-		self.staggeredHalfStrip = self.halfStrip - (self.cham == 110) * (0.5 * (self.layer % 2 == 0))
+		self.staggeredHalfStrip = self.halfStrip - (self.cham == 110) * (1.0 * (self.layer % 2 == 0))
 
 class Strip():
 	def __init__(self, t, i):
@@ -125,13 +125,16 @@ class Segment():
 		self.dof       = t.seg_dof[i]
 		self.rhID      = [t.seg_rhID1[i], t.seg_rhID2[i], t.seg_rhID3[i], t.seg_rhID4[i], t.seg_rhID5[i], t.seg_rhID6[i]][0:self.nHits]
 
-		self.primSlope = {layer + 1 : {'x' : slp[0], 'y' : slp[1], 'z' : slp[2] } for layer, slp in enumerate(t.seg_slope_prime[i])}
-		self.pos       = {layer + 1 : {'x' : pos[0], 'y' : pos[1], 'z' : pos[2] } for layer, pos in enumerate(t.seg_pos[i])        }
-		self.strip     = {layer + 1 : pos[3]                                      for layer, pos in enumerate(t.seg_pos[i])        }
-		self.wireGroup = {layer + 1 : pos[4]                                      for layer, pos in enumerate(t.seg_pos[i])        }
-		self.halfStrip = {layer + 1 : 2 * self.strip[layer]                       for layer      in self.strip.keys()              }
+		self.primSlope          = {layer + 1 : {'x' : slp[0], 'y' : slp[1], 'z' : slp[2] } for layer, slp in enumerate(t.seg_slope_prim[i])}
+		self.pos                = {layer + 1 : {'x' : pos[0], 'y' : pos[1], 'z' : pos[2] } for layer, pos in enumerate(t.seg_pos[i])       }
+		self.strip              = {layer + 1 : pos[3]                                      for layer, pos in enumerate(t.seg_pos[i])       }
+		self.wireGroup          = {layer + 1 : pos[4]                                      for layer, pos in enumerate(t.seg_pos[i])       }
 
-		self.slope     = {'x' : t.seg_slope[i][0], 'y' : t.seg_slope[i][1], 'z' : t.seg_slope[i][2]}
+		self.halfStrip          = {layer : 2 * self.strip[layer]                                               for layer in self.strip.keys()}
+		self.staggeredStrip     = {layer : self.strip[layer]     - 0.5 * (self.cham == 110) * (layer % 2 == 0) for layer in self.strip.keys()}
+		self.staggeredHalfStrip = {layer : self.halfStrip[layer] - 0.5 * (self.cham == 110) * (layer % 2 == 0) for layer in self.strip.keys()}
+
+		self.slope = {'x' : t.seg_slope[i][0], 'y' : t.seg_slope[i][1], 'z' : t.seg_slope[i][2]}
 
 class CLCT():
 	def __init__(self, t, i):
