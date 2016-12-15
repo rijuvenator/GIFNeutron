@@ -119,7 +119,7 @@ class MegaStruct():
 					for CHAM in CHAMLIST:
 						self.HISTS[CHAM][MEAS] = R.TH1F('h'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX)
 						#self.HISTS[CHAM][MEAS].SetDirectory(0)
-					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/15Dec/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					for entry in t:
 						E = Primitives.ETree(t, DecList=['SEGMENT', 'LCT', 'RECHIT'])
