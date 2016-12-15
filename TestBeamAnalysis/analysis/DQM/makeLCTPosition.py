@@ -1,35 +1,29 @@
 import numpy as np
 import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.TestBeamAnalysis.Primitives as Primitives
 import ROOT as R
 
 R.gROOT.SetBatch(True)
 
-xmin = [0, 0]
-ymin = [0, 0]
-xmax = [100, 125]
-ymax = [50 , 110]
-#xmin = [25, 8]
-#xmax = [72,38]
-#ymin = [37,55]
-#ymax = [43,65]
-h1 = R.TH2F('h1','',xmax[0]-xmin[0],xmin[0],xmax[0],ymax[0]-ymin[0],ymin[0],ymax[0])
-h2 = R.TH2F('h2','',xmax[1]-xmin[1],xmin[1],xmax[1],ymax[1]-ymin[1],ymin[1],ymax[1])
+#xmin = [0, 0]
+#ymin = [0, 0]
+#xmax = [100, 125]
+#ymax = [50 , 110]
+xmin = [25, 8]
+xmax = [72,38]
+ymin = [37,55]
+ymax = [43,65]
+h = {}
+h[1  ] = R.TH2F('h1','',xmax[0]-xmin[0],xmin[0],xmax[0],ymax[0]-ymin[0],ymin[0],ymax[0])
+h[110] = R.TH2F('h2','',xmax[1]-xmin[1],xmin[1],xmax[1],ymax[1]-ymin[1],ymin[1],ymax[1])
 
-f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/TestBeam5/ana_3284.root')
+f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/5Dec/ana_3284.root')
 t = f.Get('GIFTree/GIFDigiTree')
 for entry in t:
-	one = False
-	two = False
-	for i, id_ in enumerate(list(t.lct_id)):
-		if id_ == 1:
-			h1.Fill(float(ord(t.lct_keyHalfStrip[i])), float(ord(t.lct_keyWireGroup[i])))
-			one = True
-		if id_ == 110:
-			h2.Fill(float(ord(t.lct_keyHalfStrip[i])), float(ord(t.lct_keyWireGroup[i])))
-			two = True
-		if one and two:
-			pass
-			#break
+	E = Primitives.ETree(t, DecList=['LCT'])
+	lcts = [Primitives.LCT(E, i) for i in range(len(E.lct_cham))]
+	for lct in lcts:
+		h[lct.cham].Fill(lct.keyHalfStrip, lct.keyWireGroup)
 
 def makePlot(h, cham):
 	# *** USAGE:
@@ -55,18 +49,17 @@ def makePlot(h, cham):
 	plot = Plotter.Plot(hist, option='colz')
 
 	# Step 2
-	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 LCT-0 Position')
+	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 LCT Position')
 
 	# Step 3
 	canvas.makeLegend()
 
 	# Step 4
-	R.gStyle.SetPalette(53)
+	R.gStyle.SetPalette(56)
 	canvas.addMainPlot(plot, addToLegend=False)
-	hist.GetXaxis().SetTitle('keyHalfStrip')
-	hist.GetYaxis().SetTitle('keyWireGroup')
-	plot.scaleTitles(0.8, axes'XYZ')
-	plot.scaleLabels(0.8, axes'XYZ')
+	plot.setTitles(X='keyHalfStrip', Y='keyWireGroup')
+	plot.scaleTitles(0.8, axes='XYZ')
+	plot.scaleLabels(0.8, axes='XYZ')
 	canvas.mainPad.SetLeftMargin(canvas.mainPad.GetLeftMargin() * 0.8)
 	canvas.mainPad.SetRightMargin(canvas.mainPad.GetRightMargin() * 1.4)
 	canvas.makeTransparent()
@@ -83,5 +76,5 @@ def makePlot(h, cham):
 	canvas.save('pdfs/area_'+str(cham)+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
-makePlot(h1, 1)
-makePlot(h2, 2)
+makePlot(h[1  ], 1)
+makePlot(h[110], 2)

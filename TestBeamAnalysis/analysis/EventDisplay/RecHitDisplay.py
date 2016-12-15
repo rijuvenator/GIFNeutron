@@ -99,20 +99,20 @@ for MEAS in MEASLIST:
 					if seg.cham != CHAM: continue
 					for lct in lcts:
 						if lct.cham != CHAM: continue
-						diffS = abs(seg.halfStrip - lct.keyHalfStrip)
-						diffW = abs(seg.wireGroup - lct.keyWireGroup)
+						diffS = abs(seg.halfStrip[3] - lct.keyHalfStrip)
+						diffW = abs(seg.wireGroup[3] - lct.keyWireGroup)
 						if diffS <= 3 and diffW <= 3:
 						#if True:
 							RADII = {110: (1., 0.2, 0.7, 0.2), 1: (1.4, 0.2, 0.31, 0.2)}
-							L.append(R.TEllipse(seg.strip     + 1 + 0.5, 3.5, RADII[CHAM][0]/2, RADII[CHAM][1]))
+							L.append(R.TEllipse(seg.strip[3]     + 1 + 0.5, 3.5, RADII[CHAM][0]/2, RADII[CHAM][1]))
 							canvas.pads[0].cd()
 							L[-1].SetFillColor(R.kWhite)
 							L[-1].Draw()
-							L.append(R.TEllipse(seg.wireGroup     + 0.5, 3.5, RADII[CHAM][2], RADII[CHAM][3]))
+							L.append(R.TEllipse(seg.wireGroup[3]     + 0.5, 3.5, RADII[CHAM][2], RADII[CHAM][3]))
 							canvas.pads[1].cd()
 							L[-1].SetFillColor(R.kWhite)
 							L[-1].Draw()
-							print '{:3d} {:3d} {:3d} {:3d}'.format(int(seg.halfStrip), int(seg.wireGroup), lct.keyHalfStrip, lct.keyWireGroup)
+							print '{:3d} {:3d} {:3d} {:3d}'.format(int(seg.halfStrip[3]), int(seg.wireGroup[3]), lct.keyHalfStrip, lct.keyWireGroup)
 
 			# Scintillator region
 			if DOSCINT:

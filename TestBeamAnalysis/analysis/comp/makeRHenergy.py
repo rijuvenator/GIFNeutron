@@ -91,15 +91,9 @@ class MegaStruct():
 							if not self.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
 							for seg in segs:
 								if seg.cham!=cham: continue
-								if not self.inPad(seg.halfStrip, seg.wireGroup, cham): continue
+								if not self.inPad(seg.halfStrip[3], seg.wireGroup[3], cham): continue
 								if not self.matchSegLCT(seg,lct): continue
-								rhList = []
-								if seg.nHits >=1: rhList.append(seg.rhID1)
-								if seg.nHits >=2: rhList.append(seg.rhID2)
-								if seg.nHits >=3: rhList.append(seg.rhID3)
-								if seg.nHits >=4: rhList.append(seg.rhID4)
-								if seg.nHits >=5: rhList.append(seg.rhID5)
-								if seg.nHits ==6: rhList.append(seg.rhID6)
+								rhList = seg.rhID
 								alreadyMatched = []
 								for rhID in rhList:
 									if rechits[rhID].cham!=cham: continue
@@ -158,8 +152,8 @@ class MegaStruct():
 	
 	# a segment match is if the lct halfstrip is within 2 halfstrips of the segment halfstrip
 	def matchSegLCT(self, seg, lct):
-		diffHS = abs(seg.halfStrip - lct.keyHalfStrip)
-		diffWG = abs(seg.wireGroup- lct.keyWireGroup)
+		diffHS = abs(seg.halfStrip[3] - lct.keyHalfStrip)
+		diffWG = abs(seg.wireGroup[3] - lct.keyWireGroup)
 		if diffHS<=2 and diffWG<=2:
 			return True
 		else:

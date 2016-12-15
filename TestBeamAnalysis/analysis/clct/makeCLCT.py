@@ -129,8 +129,8 @@ class MegaStruct():
 
 	# defines a paddle region
 	def inPadSeg(self, seg, cham):
-		hs = seg.halfStrip
-		wg = seg.wireGroup
+		hs = seg.halfStrip[3]
+		wg = seg.wireGroup[3]
 		if cham == 1:
 			if      hs >=  25\
 			and hs <=  72\
@@ -150,7 +150,7 @@ class MegaStruct():
 	
 	# a segment match is if the lct halfstrip is within 2 halfstrips of the segment halfstrip and 1 wire group 
 	def matchSegCLCT(self, seg, clct):
-		diffHS = abs(seg.halfStrip - clct.keyHalfStrip)
+		diffHS = abs(seg.halfStrip[3] - clct.keyHalfStrip)
 		if diffHS<=2:
 			return True
 		else:

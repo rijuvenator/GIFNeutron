@@ -97,18 +97,12 @@ class MegaStruct():
 								for s,seg in enumerate(segs):
 									# Check on chamber, segment position, match the segment to the lct, and if we've already matched the segment
 									if seg.cham!=cham: continue
-									if not self.inPad(seg.halfStrip, seg.wireGroup, cham): continue
+									if not self.inPad(seg.halfStrip[3], seg.wireGroup[3], cham): continue
 									if not self.matchSegLCT(seg,lct): continue
 									if s in alreadyMatchedSeg: continue
 									alreadyMatchedSeg.append(s)
 									# Make list of rechits from the segment
-									rhList = []
-									if seg.nHits >=1: rhList.append(seg.rhID1)
-									if seg.nHits >=2: rhList.append(seg.rhID2)
-									if seg.nHits >=3: rhList.append(seg.rhID3)
-									if seg.nHits >=4: rhList.append(seg.rhID4)
-									if seg.nHits >=5: rhList.append(seg.rhID5)
-									if seg.nHits ==6: rhList.append(seg.rhID6)
+									rhList = seg.rhID
 									for rhID in rhList:
 										# Check on chamber
 										if rechits[rhID].cham!=cham: continue
@@ -175,8 +169,8 @@ class MegaStruct():
 	
 	# a segment match is if the lct halfstrip is within 2 halfstrips of the segment halfstrip and 1 wire group 
 	def matchSegLCT(self, seg, lct):
-		diffHS = abs(seg.halfStrip - lct.keyHalfStrip)
-		diffWG = abs(seg.wireGroup- lct.keyWireGroup)
+		diffHS = abs(seg.halfStrip[3] - lct.keyHalfStrip)
+		diffWG = abs(seg.wireGroup[3] - lct.keyWireGroup)
 		if diffHS<=2 and diffWG<=1:
 			return True
 		else:
