@@ -12,10 +12,8 @@ void FillGIFEventInfo::fill(const edm::Event& iEvent){
 
 void FillGIFRecHitInfo::fill(const CSCRecHit2DCollection& recHits){
   reset();
-  int nRHs = 0;
   for (CSCRecHit2DCollection::const_iterator hiti=recHits.begin(); hiti!=recHits.end(); hiti++)
   {
-      nRHs++;
       DetId idd = (hiti)->geographicalId();
       CSCDetId hitID(idd.rawId());
       rh_id          .push_back(GIFHelper::chamberSerial(hitID));
@@ -58,12 +56,10 @@ void FillGIFRecHitInfo::fill(const CSCRecHit2DCollection& recHits){
 	  rh_time.push_back(hiti->tpeak());
 
   }
-  nRH = nRHs;
 }
 
 void FillGIFStripInfo::fill(const CSCStripDigiCollection& strips){
   reset();
-  int nStrips = 0;
   for (CSCStripDigiCollection::DigiRangeIterator dSDiter=strips.begin(); dSDiter!=strips.end(); dSDiter++) {
     CSCDetId id = (CSCDetId)(*dSDiter).first;
 
@@ -81,14 +77,12 @@ void FillGIFStripInfo::fill(const CSCStripDigiCollection& strips){
       }
       if(!thisStripFired) continue;
 
-      nStrips++;
       strip_id.push_back(GIFHelper::chamberSerial(id));
       strip_lay.push_back(GIFHelper::convertTo<size8>(id.layer(),"strip_lay"));
       strip_number.push_back(GIFHelper::convertTo<size8>(stripIter->getStrip(),"strip_number"));
 	  strip_ADC.push_back(myADCVals);
     }
   } // end strip loop
-  nStrip = nStrips;
 }
 
 void FillGIFCompInfo::fill(const CSCComparatorDigiCollection& comps){
@@ -115,7 +109,6 @@ void FillGIFWireInfo::fill(const CSCWireDigiCollection& wires){
   reset();
   // lay is array of layer occupancy indexed by layer
   int lay[6] = {0,0,0,0,0,0};
-  int nWGs = 0;
   for (CSCWireDigiCollection::DigiRangeIterator chamber=wires.begin(); chamber!=wires.end(); chamber++)
   {
     CSCDetId id = (*chamber).first;
@@ -123,7 +116,6 @@ void FillGIFWireInfo::fill(const CSCWireDigiCollection& wires){
       const CSCWireDigiCollection::Range& range =(*chamber).second;
       for(CSCWireDigiCollection::const_iterator digiItr = range.first; digiItr != range.second; ++digiItr)
       {
-        nWGs++;
         // layer = {1,...,6}
         lay[layer-1]++;
         wire_id  .push_back(GIFHelper::chamberSerial(id));
@@ -133,7 +125,6 @@ void FillGIFWireInfo::fill(const CSCWireDigiCollection& wires){
 		wire_bx  .push_back(GIFHelper::convertTo<int>((*digiItr).getWireGroupBX(),"wire_bx"));
       }
   }
-  nWG = nWGs;
   // loop on layers in occupancy array
   // if layer has hits, then increment
   // nlays by one
@@ -152,14 +143,12 @@ void FillGIFWireInfo::fill(const CSCWireDigiCollection& wires){
 
 void FillGIFLCTInfo::fill(const CSCCorrelatedLCTDigiCollection& lcts){
   reset();
-  int nLCTs = 0;
   for (CSCCorrelatedLCTDigiCollection::DigiRangeIterator chamber=lcts.begin(); chamber!=lcts.end(); chamber++)
   {
     CSCDetId id = (*chamber).first;
     const CSCCorrelatedLCTDigiCollection::Range& range =(*chamber).second;
     for(CSCCorrelatedLCTDigiCollection::const_iterator digiItr = range.first; digiItr != range.second; ++digiItr)
     {
-      nLCTs++;
       lct_id          .push_back(GIFHelper::chamberSerial(id));
       lct_quality     .push_back(GIFHelper::convertTo<size8>(digiItr->getQuality(),"lct_quality"));
       lct_pattern     .push_back(GIFHelper::convertTo<size8>(digiItr->getPattern(),"lct_pattern"));
@@ -168,7 +157,6 @@ void FillGIFLCTInfo::fill(const CSCCorrelatedLCTDigiCollection& lcts){
       lct_keyHalfStrip.push_back(GIFHelper::convertTo<size8>(digiItr->getStrip()  ,"lct_keyHalfStrip"));
       }
   }
-  nLCT = nLCTs;
 }
 
 
@@ -213,7 +201,6 @@ int FillGIFSegmentInfo::segmentQuality(edm::OwnVector<CSCSegment>::const_iterato
 void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollection& segments, const CSCRecHit2DCollection* recHits){
   reset();
 
-  int nSegs = 0;
   for(CSCSegmentCollection::const_iterator dSiter=segments.begin(); dSiter != segments.end(); dSiter++) {
 	// Specifically for segment positon in (strip,wg) units
 	// Create the ChamberId
@@ -221,56 +208,79 @@ void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollect
 
 	CSCDetId chamberId(gid.rawId());
 	const CSCChamber *segChamber = theCSC->chamber(chamberId);
-	const CSCLayer *segLay3 = segChamber->layer(3);
-	//const CSCLayer *segLay4 = segChamber->layer(4);
-	const CSCLayerGeometry *segLay3Geo = segLay3->geometry();
-	//GlobalPoint lay4zero = segLay4->toGlobal(lzero); 
-	//LocalPoint lay4zeroIn3 = segLay3->toLocal(lay4zero);
-	//float cm2lay = fabs(lay4zeroIn3.z());
 
-	LocalPoint  segLPlayer = segLay3->toLocal(segChamber->toGlobal((*dSiter).localPosition() ));
-	LocalVector segLVlayer = segLay3->toLocal(segChamber->toGlobal((*dSiter).localDirection()));
-	float scale = -1.0*segLPlayer.z()/segLVlayer.z();
-	LocalVector tV = scale*segLVlayer;
-	LocalPoint tP = segLPlayer + tV;
+	std::vector<std::vector<float>> seg_pos;
+	std::vector<std::vector<float>> seg_slope_prim;
 
-	float segStrip = segLay3Geo->strip(tP);
-	float segWire  = segLay3Geo->wireGroup(segLay3Geo->nearestWire(tP));
-	
-	// strip width
-	//int strI = floor(segStrip);
-	//float cm2strip = fabs( segLay3Geo->xOfStrip(strI,tP.y()) - segLay3Geo->xOfStrip(strI+1,tP.y()) );
-	// wire width
-	//int wireI = floor(segWire);
-	//float cm2wire = fabs( segLay3Geo->yOfWire(wireI,tP.x()) - segLay3Geo->yOfWire(wireI+1,tP.x()) );
+	// Fill seg_slope, once per segment
+	LocalPoint localPos = (*dSiter).localPosition();
+	LocalVector localDir = (*dSiter).localDirection();
+	float segdX = localDir.x();
+	float segdY = localDir.y();
+	float segdZ = localDir.z();
+	std::vector<float> seg_slope = {segdX, segdY, segdZ};
 
+	for (int lay = 1; lay<=6; lay++) {
+		// Get layer N and layer N+1
+		const CSCLayer *segLay = segChamber->layer(lay);
+		const CSCLayerGeometry *segLayGeo = segLay->geometry();
+		// Get layer 3 segment position and direction in layer N
+		LocalPoint segLPlayer = segLay->toLocal(segChamber->toGlobal(localPos));
+		LocalVector segLVlayer = segLay->toLocal(segChamber->toGlobal(localDir));
+		// Project layer 3 position into layer N and add the segment direction vector
+		float scale = -1.0*segLPlayer.z()/segLVlayer.z();
+		LocalVector tV = scale*segLVlayer;
+		LocalPoint tP = segLPlayer + tV;
+		// Get strip and wire number in layer N
+		float segStrip = segLayGeo->strip(tP);
+		float segWire  = segLayGeo->wireGroup(segLayGeo->nearestWire(tP));
+		// Fill seg_pos, once per layer, once per segment
+		float segX     = tP.x();
+		float segY     = tP.y();
+		float segZ     = tP.z();
+		std::vector<float> pos = {segX, segY, segZ, segStrip, segWire};
+		seg_pos.push_back(pos);
+
+		// Only do the primitive slope stuff when in between layers
+		if (lay < 6) {
+			const CSCLayer *segLayP1 = segChamber->layer(lay+1);
+			/* This is the confusing part. 
+			 * Convert (0,0,0) in layer N+1 into global CMS coordinates
+			 * then convert that position into local layer N coordinates
+			 */
+			LocalPoint lzero(0.0,0.0,0.0);
+			GlobalPoint layzero = segLayP1->toGlobal(lzero); 
+			LocalPoint layP1zeroInP = segLay->toLocal(layzero);
+			// Conversion cm/layer
+			int strI = floor(segStrip);
+			int wireI = floor(segWire);
+			float cm2lay = fabs(layP1zeroInP.z());
+			float cm2strip = fabs(segLayGeo->xOfStrip(strI,tP.y()) - segLayGeo->xOfStrip(strI+1,tP.y()));
+			float cm2wire = fabs(segLayGeo->yOfWire(wireI,tP.x()) - segLayGeo->yOfWire(wireI+1,tP.x()));
+
+			// Fill seg_slope_prim, once per in-between layer, once per segment
+			std::vector<float> slope_prim = {segdX/cm2strip, segdY/cm2wire, segdZ/cm2lay};
+			seg_slope_prim.push_back(slope_prim);
+		}
+	}
 
 	
 	// old
     CSCDetId id  = (CSCDetId)(*dSiter).cscDetId();
-    nSegs++;
 
-    LocalPoint localPos = (*dSiter).localPosition();
-    float segX     = localPos.x();
-    float segY     = localPos.y();
-    LocalVector segDir = (*dSiter).localDirection();
     const auto& segmentHits = dSiter->specificRecHits();
 
     segment_id   .push_back(GIFHelper::chamberSerial(id));
-    segment_pos_x.push_back(segX);
-    segment_pos_y.push_back(segY);
-	segment_pos_strip_x.push_back(segStrip);
-	segment_pos_wire_y.push_back(segWire);
-    segment_dxdz.push_back(segDir.x()/segDir.z());
-    segment_dydz.push_back(segDir.y()/segDir.z());
-	//segment_strip_dxdz.push_back( ( segDir.x() / cm2strip ) / ( segDir.z() / cm2lay ) );
-	//segment_wire_dydz.push_back( ( segDir.y() / cm2wire ) / ( segDir.z() / cm2lay ) );
-    segment_dx.push_back(segDir.x());
-    segment_dy.push_back(segDir.y());
+
+	segment_pos.push_back(seg_pos);
+	segment_slope.push_back(seg_slope);
+	segment_slope_prim.push_back(seg_slope_prim);
+
     segment_chisq.push_back((*dSiter).chi2());
     segment_dof.push_back((*dSiter).degreesOfFreedom());
     segment_nHits.push_back(GIFHelper::convertTo<size8>(segmentHits.size()  ,"segment_nHits"));
 	segment_quality.push_back(segmentQuality(dSiter));
+
     segment_recHitIdx_1 .push_back((recHits && segmentHits.size() > 0) ?findRecHitIdx(segmentHits[0],recHits) : 0);
     segment_recHitIdx_2 .push_back((recHits && segmentHits.size() > 1) ?findRecHitIdx(segmentHits[1],recHits) : 0);
     segment_recHitIdx_3 .push_back((recHits && segmentHits.size() > 2) ?findRecHitIdx(segmentHits[2],recHits) : 0);
@@ -279,20 +289,17 @@ void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollect
     segment_recHitIdx_6 .push_back((recHits && segmentHits.size() > 5) ?findRecHitIdx(segmentHits[5],recHits) : 0);
 
   }
-  nSegments = nSegs;
 
 }
 
 void FillGIFCLCTInfo::fill(const CSCCLCTDigiCollection& clcts){
   reset();
 
-  int nCLCTs = 0;
   for(CSCCLCTDigiCollection::DigiRangeIterator chamber=clcts.begin(); chamber != clcts.end(); chamber++) {
     CSCDetId id = (*chamber).first;
     const CSCCLCTDigiCollection::Range& range =(*chamber).second;
     for(CSCCLCTDigiCollection::const_iterator digiItr = range.first; digiItr != range.second; ++digiItr)
     {
-      nCLCTs++;
 
       clct_id         .push_back(GIFHelper::chamberSerial(id));
       clct_isvalid    .push_back(GIFHelper::convertTo<size8>(digiItr->isValid()  ,"clct_isvalid"  ));
@@ -307,20 +314,17 @@ void FillGIFCLCTInfo::fill(const CSCCLCTDigiCollection& clcts){
       clct_keyStrip   .push_back(GIFHelper::convertTo<size8>(digiItr->getKeyStrip()  ,"clct_keyStrip" ));
     }
   }
-  nCLCT = nCLCTs;
 }
 
 
 void FillGIFALCTInfo::fill(const CSCALCTDigiCollection& alcts){
   reset();
 
-  int nALCTs = 0;
   for(CSCALCTDigiCollection::DigiRangeIterator chamber=alcts.begin(); chamber != alcts.end(); chamber++) {
     CSCDetId id = (*chamber).first;
     const CSCALCTDigiCollection::Range& range =(*chamber).second;
     for(CSCALCTDigiCollection::const_iterator digiItr = range.first; digiItr != range.second; ++digiItr)
     {
-      nALCTs++;
 
       alct_id         .push_back(GIFHelper::chamberSerial(id));
       alct_isvalid    .push_back(GIFHelper::convertTo<size8>(digiItr->isValid()  ,"alct_isvalid"  ));
@@ -331,6 +335,5 @@ void FillGIFALCTInfo::fill(const CSCALCTDigiCollection& alcts){
       alct_BX         .push_back(GIFHelper::convertTo<size8>(digiItr->getBX()  ,"alct_BX"       ));
       alct_trkNumber  .push_back(GIFHelper::convertTo<size8>(digiItr->getTrknmb()  ,"alct_trkNumber"));
     }
-    nALCT = nALCTs;
   }
 }

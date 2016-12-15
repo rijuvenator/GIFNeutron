@@ -12,6 +12,7 @@
 <use   name="DataFormats/MuonDetId"/>
 <use   name="CondFormats/CSCObjects"/>
 <use   name="root"/>
+<use   name="rootrflx"/>
 <use   name="rootcore"/>
 <use   name="DataFormats/L1GlobalMuonTrigger"/>
 <use   name="EventFilter/CSCRawToDigi"/>

@@ -8,7 +8,7 @@ import commands
 if __name__ == '__main__' and 'submit' in sys.argv:
 	user = commands.getoutput('echo $USER')
 	cmssw_base = commands.getoutput('echo $CMSSW_BASE')
-	outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/5Dec/'
+	outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/14Dec/'
 	dryrun = 'dryrun' in sys.argv
 	import Gif.TestBeamAnalysis.DualMeasurements as Meas
 	#measurements = [Meas.meas[m] for m in ['2312','2095','2262','2064','2079','2224','2333']]
@@ -34,19 +34,9 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 	for TBM in measurements:
 		# commented out since we only want trees (histos are chamber dependent)
 		#chamber = TBM.cham
-		test = TBM.runtype
-		HV = TBM.HV
-		beam = 'bOn' if TBM.beam else 'bOff'
-		uAtt = 'uOff' if TBM.uAtt=='0' else 'u'+TBM.uAtt
-		dAtt = 'dOff' if TBM.dAtt=='0' else 'd'+TBM.dAtt
-		measNum = 'm'+TBM.meas
 		fn = TBM.ROOTFile(prefix='/store/user/cschnaib/GIF/')
 		ana_dataset = 'ana_%s.root'%(TBM.meas)
 		outPath = outDir+ana_dataset
-		#	print TBM
-		#	print "\033[1mINPUT:\033[m", fn
-		#	print "\033[1mOUTPUT:\033[m", outPath
-		#	print ""
 
 		gif_py = open('GifAnalysis.py').read()
 		# commented out since we only want trees (histos are chamber dependent)

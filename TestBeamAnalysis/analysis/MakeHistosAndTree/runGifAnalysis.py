@@ -8,14 +8,13 @@ import commands
 if __name__ == '__main__' and 'submit' in sys.argv:
 	user = commands.getoutput('echo $USER')
 	#plotsDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/TestBeam5/'
-	plotsDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/test/'
+	#plotsDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/test/'
+	cmssw_base = commands.getoutput('echo $CMSSW_BASE')
+	plotsDir = cmssw_base+'/src/Gif/TestBeamAnalysis/analysis/MakeHistosAndTree/'
 	dryrun = 'dryrun' in sys.argv
 	import Gif.TestBeamAnalysis.DualMeasurements as Meas
-	#measurements = [Meas.meas[m] for m in ['2312','2095','2262','2064','2079','2224','2333']]
-	#measList = [3084,3086,3088,3090,3092,3094,3095,3097,3099,3101,3103,3105,3107,3109,3111,3113,3115,3117,3119,3121,3123,3125,3127,3129,3131,3133]
-	#measList = [3092, 3103, 3113, 3123, 2758, 3094, 3080, 2970, 2843, 2756]
-	#measList = [3084,3086,3088,3090,3095,3097,3099,3101,3105,3107,3109,3111,3115,3117,3119,3121,3125,3127,3129,3131,3133]
-	#3219,3220,
+	measList = [3284]
+	'''
 	measList = [3221,3222,3223,3224,3225,3226,3227,3228,3229,3230,3231,3232,3233,3234,3235,3236,3237,3238,3239,
                 3240,3241,3242,3243,3244,3245,3246,3247,3248,3249,3250,3251,3252,3253,3254,3255,3256,3257,3284,3285,3286,
                 3287,3288,3289,3290,3291,3295,3296,3297,3298,3299,3300,3301,3302,3303,3304,3305,3306,3307,3308,3309,3310,
@@ -29,22 +28,14 @@ if __name__ == '__main__' and 'submit' in sys.argv:
                 3443,3444,3445,3446,3447,3448,3449,3450,
 
 				3451,3452,3453,3454,3455,3456,3457,3458,3459,3460]
+	'''
 
 	measurements = [Meas.meas[str(m)] for m in measList]
 	for TBM in measurements:
 		# commented out since we only want trees (histos are chamber dependent)
 		#chamber = TBM.cham
-		test = TBM.runtype
-		HV = TBM.HV
-		beam = 'bOn' if TBM.beam else 'bOff'
-		uAtt = 'uOff' if TBM.uAtt=='0' else 'u'+TBM.uAtt
-		dAtt = 'dOff' if TBM.dAtt=='0' else 'd'+TBM.dAtt
-		measNum = 'm'+TBM.meas
 		fn = TBM.ROOTFile(prefix='/store/user/cschnaib/GIF/')
-		#fn = TBM.fn
-		# For Chris: # fn = TBM.fn
 		ana_dataset = 'ana_%s.root'%(TBM.meas)
-		#ana_dataset = 'ana_%(chamber)s_%(test)s_%(HV)s_%(beam)s_%(uAtt)s_%(dAtt)s_%(measNum)s.root'%locals()
 		outPath = plotsDir+ana_dataset
 		print TBM
 		print "\033[1mINPUT:\033[m", fn

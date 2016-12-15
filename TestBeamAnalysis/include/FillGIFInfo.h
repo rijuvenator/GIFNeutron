@@ -120,7 +120,6 @@ public:
 	book("rh_lr_Qratio"   ,rh_lr_Qratio);
 	book("rh_time"		  ,rh_time);
 	book("rh_adc_max"     ,rh_adc_max);
-    book("n_rhs",nRH,"I");
 
 
   }
@@ -144,7 +143,6 @@ private:
   std::vector<float>	rh_lr_Qratio;
   std::vector<float>	rh_time;
   std::vector<int>      rh_adc_max;
-  int nRH;
 
 
   virtual void reset(){
@@ -165,7 +163,6 @@ private:
 	rh_lr_Qratio.clear();
 	rh_time.clear();
 	rh_adc_max.clear();
-    nRH = -1;
   }
 
   public:
@@ -182,7 +179,6 @@ public:
     book("strip_lay"          ,strip_lay          );
     book("strip_number"       ,strip_number      );
 	book("strip_ADC"		  ,strip_ADC		);
-    book("n_strips", nStrip,"I");
 
 
 
@@ -194,7 +190,6 @@ private:
   std::vector<size8>    strip_lay    ;
   std::vector<size8>    strip_number ;
   std::vector<std::vector <int>> strip_ADC;
-  int nStrip; 
 
 
   virtual void reset(){
@@ -202,7 +197,6 @@ private:
     strip_lay    .clear();
     strip_number .clear();
 	strip_ADC    .clear();
-    nStrip = -1;
   }
 
   public:
@@ -262,7 +256,6 @@ public:
     book("wire_time"   ,wire_time       );
     book("wire_bx"     ,wire_bx         );
     book("wire_nlay"   ,wire_nlay   ,"I");
-    book("n_wires"     ,nWG         ,"I");
 
 
 
@@ -276,7 +269,6 @@ private:
   std::vector<size8>      wire_time;
   std::vector<int>        wire_bx;
   int wire_nlay;
-  int                     nWG;
 
 
   virtual void reset(){
@@ -286,7 +278,6 @@ private:
     wire_grp  .clear();
     wire_time .clear();
     wire_bx .clear();
-    nWG = -1;
   }
 
   public:
@@ -307,7 +298,6 @@ public:
     book("lct_bend"        ,lct_bend        );
     book("lct_keyWireGroup",lct_keyWireGroup);
     book("lct_keyHalfStrip",lct_keyHalfStrip);
-    book("n_lcts",nLCT,"I");
 
 
 
@@ -321,7 +311,6 @@ private:
    std::vector<size8>  lct_bend        ;
    std::vector<size8>  lct_keyWireGroup;
    std::vector<size8>  lct_keyHalfStrip;
-   int nLCT;
 
 
   virtual void reset(){
@@ -331,7 +320,6 @@ private:
     lct_bend         .clear();
     lct_keyWireGroup .clear();
     lct_keyHalfStrip .clear();
-    nLCT = -1;
   }
 
   public:
@@ -347,27 +335,22 @@ public:
   FillGIFSegmentInfo(GifTreeContainer& tree) :FillGIFInfo(tree) {
 
     book("segment_id"          ,segment_id         );
-    book("segment_pos_x"       ,segment_pos_x      );
-    book("segment_pos_y"       ,segment_pos_y      );
-    book("segment_pos_strip_x"       ,segment_pos_strip_x      );
-    book("segment_pos_wire_y"       ,segment_pos_wire_y      );
-    book("segment_dxdz"        ,segment_dxdz  );
-    book("segment_dydz"        ,segment_dydz    );
-    //book("segment_strip_dxdz"        ,segment_strip_dxdz  );
-    //book("segment_wire_dydz"        ,segment_wire_dydz    );
-    book("segment_dx"        ,segment_dx  );
-    book("segment_dy"        ,segment_dy    );
+
+	book("segment_pos" , segment_pos);
+	book("segment_slope" , segment_slope);
+	book("segment_slope_prim" , segment_slope_prim);
+
     book("segment_chisq"       ,segment_chisq      );
     book("segment_dof"         ,segment_dof      );
     book("segment_nHits"       ,segment_nHits      );
     book("segment_quality"         ,segment_quality      );
+
     book("segment_recHitIdx_1" ,segment_recHitIdx_1);
     book("segment_recHitIdx_2" ,segment_recHitIdx_2);
     book("segment_recHitIdx_3" ,segment_recHitIdx_3);
     book("segment_recHitIdx_4" ,segment_recHitIdx_4);
     book("segment_recHitIdx_5" ,segment_recHitIdx_5);
     book("segment_recHitIdx_6" ,segment_recHitIdx_6);
-    book("n_segments",nSegments,"I");
 
 
 
@@ -376,52 +359,42 @@ public:
 
 private:
      std::vector<size16>  segment_id             ;
-     std::vector<float>   segment_pos_x          ;
-     std::vector<float>   segment_pos_y          ;
-     std::vector<float>   segment_pos_strip_x          ;
-     std::vector<float>   segment_pos_wire_y          ;
-     std::vector<float>   segment_dxdz      ;
-     std::vector<float>   segment_dydz        ;
-     //std::vector<float>   segment_strip_dxdz      ;
-     //std::vector<float>   segment_wire_dydz        ;
-     std::vector<float>   segment_dx      ;
-     std::vector<float>   segment_dy        ;
+	 
+	 std::vector<std::vector<std::vector<float>>> segment_pos;
+	 std::vector<std::vector<float>> segment_slope;
+	 std::vector<std::vector<std::vector<float>>> segment_slope_prim;
+
      std::vector<float>   segment_chisq          ;
      std::vector<size8>   segment_dof          ;
      std::vector<size8>   segment_nHits          ;
      std::vector<int>   segment_quality          ;
+
      std::vector<size16>  segment_recHitIdx_1    ;
      std::vector<size16>  segment_recHitIdx_2    ;
      std::vector<size16>  segment_recHitIdx_3    ;
      std::vector<size16>  segment_recHitIdx_4    ;
      std::vector<size16>  segment_recHitIdx_5    ;
      std::vector<size16>  segment_recHitIdx_6    ;
-     int nSegments;
 
 
   virtual void reset(){
     segment_id          .clear();
-    segment_pos_x       .clear();
-    segment_pos_y       .clear();
-    segment_pos_strip_x       .clear();
-    segment_pos_wire_y       .clear();
-    segment_dxdz        .clear();
-    segment_dydz        .clear();
-    //segment_strip_dxdz        .clear();
-    //segment_wire_dydz        .clear();
-    segment_dx        .clear();
-    segment_dy        .clear();
+
+	segment_pos.clear();
+	segment_slope.clear();
+	segment_slope_prim.clear();
+
     segment_chisq       .clear();
     segment_dof         .clear();
     segment_nHits       .clear();
     segment_quality         .clear();
+
     segment_recHitIdx_1 .clear();
     segment_recHitIdx_2 .clear();
     segment_recHitIdx_3 .clear();
     segment_recHitIdx_4 .clear();
     segment_recHitIdx_5 .clear();
     segment_recHitIdx_6 .clear();
-    nSegments = -1;
 
   }
 
@@ -450,7 +423,6 @@ public:
     book("clct_BX"         , clct_BX        );
     book("clct_trkNumber"  , clct_trkNumber );
     book("clct_keyStrip"   , clct_keyStrip  );
-    book("n_clcts",nCLCT,"I");
 
 
 
@@ -469,7 +441,6 @@ private:
    std::vector<size8>  clct_BX          ;
    std::vector<size8>  clct_trkNumber   ;
    std::vector<size8>  clct_keyStrip    ;
-   int nCLCT;
 
 
   virtual void reset(){
@@ -484,7 +455,6 @@ private:
     clct_BX         .clear();
     clct_trkNumber  .clear();
     clct_keyStrip   .clear();
-    nCLCT = -1;
   }
 
   public:
@@ -506,7 +476,6 @@ public:
     book("alct_wireGroup"  , alct_wireGroup );
     book("alct_BX"         , alct_BX        );
     book("alct_trkNumber"  , alct_trkNumber );
-    book("n_alcts",nALCT,"I");
 
 
 
@@ -522,7 +491,6 @@ private:
    std::vector<size8>  alct_wireGroup   ;
    std::vector<size8>  alct_BX          ;
    std::vector<size8>  alct_trkNumber   ;
-   int nALCT;
 
 
   virtual void reset(){
@@ -534,7 +502,6 @@ private:
     alct_wireGroup  .clear();
     alct_BX         .clear();
     alct_trkNumber  .clear();
-    nALCT = -1;
   }
 
   public:

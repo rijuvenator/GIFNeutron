@@ -17,7 +17,8 @@ EFFLIST = (\
 	{'num' : 'AllMatch'   , 'denom' : 'LCTScint'   , 'ytitle':'Muon Match Efficiency'      , 'castrated' : False, 'norm' : False},
 	{'num' : 'AllMatch'   , 'denom' : 'LCTSegMatch', 'ytitle':'Muon Match-Scint Efficiency', 'castrated' : False, 'norm' : False},
 	{'num' : 'AllMatch'   , 'denom' : 'SegScint'   , 'ytitle':'Muon Seg Match Efficiency'  , 'castrated' : False, 'norm' : False},
-	{'num' : 'SegScint'   , 'denom' : 'Seg'        , 'ytitle':'Seg-Scint/Seg Efficiency'   , 'castrated' : False, 'norm' : False}
+	{'num' : 'SegScint'   , 'denom' : 'Seg'        , 'ytitle':'Seg-Scint/Seg Efficiency'   , 'castrated' : False, 'norm' : False},
+	{'num' : 'LCTScint'   , 'denom' : 'LCT'        , 'ytitle':'LCT-Scint/LCT Efficiency'   , 'castrated' : False, 'norm' : False}
 )
 
 ##### SEMI-PARAMETERS #####
