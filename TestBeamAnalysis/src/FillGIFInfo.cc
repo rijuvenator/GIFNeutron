@@ -237,7 +237,7 @@ void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollect
 		// Fill seg_pos, once per layer, once per segment
 		float segX     = tP.x();
 		float segY     = tP.y();
-		float segZ     = tP.z();
+		float segZ     = segLPlayer.z();
 		std::vector<float> pos = {segX, segY, segZ, segStrip, segWire};
 		seg_pos.push_back(pos);
 
