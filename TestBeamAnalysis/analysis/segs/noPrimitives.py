@@ -85,7 +85,7 @@ class MegaStruct():
 					t = f.Get('GIFTree/GIFDigiTree')
 
 					# keep track for entire measurement
-					nL1A   = {1:0, 110:0}
+					nL1A   = {1:t.GetEntries(), 110:t.GetEntries()}
 					nWire  = {1:0, 110:0}
 					nStrip = {1:0, 110:0}
 					for j,entry in enumerate(t):
@@ -93,9 +93,6 @@ class MegaStruct():
 						E = Primitives.ETree(t, DecList=['STRIP', 'WIRE'])
 						#strips = [Primitives.Strip  (E, i) for i in range(len(E.strip_cham))]
 						#wires  = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham ))]
-
-						nL1A[1  ] = t.GetEntries()
-						nL1A[110] = t.GetEntries()
 
 						for CHAM in CHAMLIST:
 							if CHAM in E.strip_cham: nStrip[CHAM] += 1
