@@ -101,8 +101,9 @@ class MegaStruct():
 						rhs1 = [ord(list(t.rh_strip_1)[rhsi]) for i,rhsi in enumerate(list(t.segment_recHitIdx_3)) if t.segment_id[i] == 1]
 						rhs2 = [ord(list(t.rh_strip_1)[rhsi]) for i,rhsi in enumerate(list(t.segment_recHitIdx_3)) if t.segment_id[i] == 110]
 						# check if the lct is in the paddle and if so, if there is a matching segment strip
+						### this is pretty old code; consider trying to update the matchedSeg part
 						for i in i1:
-							if not self.inPad(t.lct_keyHalfStrip[i], t.lct_keyWireGroup[i], 1): continue
+							if not Aux.inPad(ord(t.lct_keyHalfStrip[i]), ord(t.lct_keyWireGroup[i]), 1): continue
 							if not self.matchedSeg(rhs1, t.lct_keyHalfStrip[i]): continue
 							Seg1 = True
 							for clct,clctid in enumerate(t.clct_id):
@@ -110,7 +111,7 @@ class MegaStruct():
 								if t.lct_keyHalfStrip[i]==t.clct_halfStrip[clct]:
 									clctLay11.append(ord(t.clct_quality[clct]))
 						for i in i2:
-							if not self.inPad(t.lct_keyHalfStrip[i], t.lct_keyWireGroup[i], 2): continue
+							if not Aux.inPad(ord(t.lct_keyHalfStrip[i]), ord(t.lct_keyWireGroup[i]), 110): continue
 							if not self.matchedSeg(rhs2, t.lct_keyHalfStrip[i]): continue
 							Seg2 = True
 							for clct,clctid in enumerate(t.clct_id):
@@ -127,26 +128,6 @@ class MegaStruct():
 			pass
 			# this file is the output of the printout above
 
-
-	# defines a paddle region
-	def inPad(self, hs, wg, cham):
-		if cham == 1:
-			if      ord(hs) >=  25\
-				and ord(hs) <=  72\
-				and ord(wg) >=  37\
-				and ord(wg) <=  43:
-				return True
-			else:
-				return False
-		if cham == 2:
-			if      ord(hs) >=   8\
-				and ord(hs) <=  38\
-				and ord(wg) >=  55\
-				and ord(wg) <=  65:
-				return True
-			else:
-				return False
-	
 	# a segment match is if the lct halfstrip/2 is within 1 of the rechit strip
 	def matchedSeg(self, rhs, khs):
 		diff = [abs(i-ord(khs)/2) for i in rhs]

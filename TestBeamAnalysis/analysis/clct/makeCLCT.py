@@ -3,6 +3,7 @@ import ROOT as R
 import Gif.TestBeamAnalysis.Plotter as Plotter
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.roottools as tools
+import Gif.TestBeamAnalysis.Auxiliary as Aux
 import sys
 
 ### PARAMETERS
@@ -86,11 +87,11 @@ class MegaStruct():
 							for clct in clcts:
 								# Check on chamber and LCT position
 								if clct.cham!=cham: continue
-								if not self.inPadCLCT(clct.keyHalfStrip,cham): continue
+								if not Aux.inPad(clct.keyHalfStrip, 40 if cham == 1 else 60, cham): continue
 								for s,seg in enumerate(segs):
 									# Check on chamber, segment position, match the segment to the lct, and if we've already matched the segment
 									if seg.cham!=cham: continue
-									if not self.inPadSeg(seg,cham): continue
+									if not Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], cham): continue
 									if not self.matchSegCLCT(seg,clct): continue
 									if s in alreadyMatchedSeg: continue
 									alreadyMatchedSeg.append(s)
@@ -114,40 +115,6 @@ class MegaStruct():
 				self.clctLay[1][meas] = float(cols[1])
 				self.clctLay[110][meas] = float(cols[2])
 
-	# defines a paddle region
-	def inPadCLCT(self, hs,cham):
-		if cham == 1:
-			if hs >= 25 and hs <=  72:
-				return True
-			else:
-				return False
-		if cham == 110:
-			if hs >= 8 and hs <=  38:
-				return True
-			else:
-				return False
-
-	# defines a paddle region
-	def inPadSeg(self, seg, cham):
-		hs = seg.halfStrip[3]
-		wg = seg.wireGroup[3]
-		if cham == 1:
-			if      hs >=  25\
-			and hs <=  72\
-			and wg >=  37\
-			and wg <=  43:
-				return True
-			else:
-				return False
-		if cham == 110:
-			if      hs >=   8\
-			and hs <=  38\
-			and wg >=  55\
-			and wg <=  65:
-				return True
-			else:
-				return False
-	
 	# a segment match is if the lct halfstrip is within 2 halfstrips of the segment halfstrip and 1 wire group 
 	def matchSegCLCT(self, seg, clct):
 		diffHS = abs(seg.halfStrip[3] - clct.keyHalfStrip)

@@ -7,23 +7,12 @@
 #### Active
   - MakeHistosAndTree
     - cmsRun config files for running MakeSimpleGIFTree
-  - currents
-    - organization for current data
-  - rates
-    - analysis for trigger rates, LCT efficiencies, pattern ID analysis
-  - timber
-    - analysis for TIMBER data
-  - SegmentStudies
-    - analysis for segments at GIF
-  - GIFDisplay
-    - cmsRun config files for running GifDisplay
-
-#### Obsolete
-  - DrawComparisons
-  - LCTStudies
-  - Wells
-  - analyzeTuples
-
+  - EventDisplay
+    - replacement event display code
+  - DQM
+    - quick exploratory plots
+  - Everything else
+    - see README
 
 ### current_scraper
   - Scripts for getting current measurement data at GIF
@@ -35,6 +24,8 @@
   - Plotter class
   - Measurement class and dictionary
   - Tools
+  - Primitives
+  - Auxiliary
 
 ### include, plugins, src
   - CMSSW directory structure for histogram and tree making plugins and display plugins

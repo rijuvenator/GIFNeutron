@@ -2,6 +2,7 @@ import numpy as np
 import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.TestBeamAnalysis.Auxiliary as Aux
 
 ##### PARAMETERS #####
 # Which chambers to do
@@ -25,29 +26,9 @@ pretty = {
 	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
 	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
-# Scintillator definition
-SCINT = {1:{'HS':(25,72),'WG':(37,43)},110:{'HS':(8,38),'WG':(55,65)}}
 
 ##### BEGIN CODE #####
 R.gROOT.SetBatch(True)
-
-##### HELPER FUNCTIONS #####
-# defines a paddle region
-def inPad(hs, wg, CHAM):
-	if      hs >= SCINT[CHAM]['HS'][0]\
-		and hs <= SCINT[CHAM]['HS'][1]\
-		and wg >= SCINT[CHAM]['WG'][0]\
-		and wg <= SCINT[CHAM]['WG'][1]:
-		return True
-	else:
-		return False
-
-# determines if a segment and an lct match each other
-def matchSegLCT(seg, lct):
-	if abs(seg.halfStrip - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup - lct.keyWireGroup) <= 2:
-		return True
-	else:
-		return False
 
 ##### MEGASTRUCT CLASS #####
 class MegaStruct():

@@ -3,6 +3,7 @@ import ROOT as R
 import Gif.TestBeamAnalysis.Plotter as Plotter
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.roottools as tools
+import Gif.TestBeamAnalysis.Auxiliary as Aux
 import sys
 
 ### PARAMETERS
@@ -88,11 +89,11 @@ class MegaStruct():
 					for cham in [1,110]:
 						for lct in lcts:
 							if lct.cham!=cham: continue
-							if not self.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
+							if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
 							for seg in segs:
 								if seg.cham!=cham: continue
-								if not self.inPad(seg.halfStrip[3], seg.wireGroup[3], cham): continue
-								if not self.matchSegLCT(seg,lct): continue
+								if not Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], cham): continue
+								if not Aux.matchSegLCT(seg,lct): continue
 								rhList = seg.rhID
 								alreadyMatched = []
 								for rhID in rhList:
@@ -130,34 +131,6 @@ class MegaStruct():
 				self.makePlot(rh_e_nomatch2, meas, 110, att, self.lumi(cham,meas), ff,'nomatch')
 				self.makeStack(rh_e_match1,rh_e_nomatch1, meas,1,  att, self.lumi(cham,meas), ff)
 				self.makeStack(rh_e_match2,rh_e_nomatch2, meas, 110, att, self.lumi(cham,meas), ff)
-
-	# defines a paddle region
-	def inPad(self, hs, wg, cham):
-		if cham == 1:
-			if      hs >=  25\
-				and hs <=  72\
-				and wg >=  37\
-				and wg <=  43:
-				return True
-			else:
-				return False
-		if cham == 110:
-			if      hs >=   8\
-				and hs <=  38\
-				and wg >=  55\
-				and wg <=  65:
-				return True
-			else:
-				return False
-	
-	# a segment match is if the lct halfstrip is within 2 halfstrips of the segment halfstrip
-	def matchSegLCT(self, seg, lct):
-		diffHS = abs(seg.halfStrip[3] - lct.keyHalfStrip)
-		diffWG = abs(seg.wireGroup[3] - lct.keyWireGroup)
-		if diffHS<=2 and diffWG<=2:
-			return True
-		else:
-			return False
 
 	# a rechit/comparator match is if the comparator halfstrip is within 2 strips of the comparator halfstrip
 	def matchRHComp(self, rh, comp):

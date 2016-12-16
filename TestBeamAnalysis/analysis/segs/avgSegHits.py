@@ -3,6 +3,7 @@ import Gif.TestBeamAnalysis.Plotter as Plotter
 import ROOT as R
 import sys
 import Gif.TestBeamAnalysis.Primitives as Primitives
+import Gif.TestBeamAnalysis.Auxiliary as Aux
 
 ### PARAMETERS
 # Which chambers to do; to compare to Yuriy only use ME1/1
@@ -85,7 +86,7 @@ class MegaStruct():
 								if seg.cham != cham: continue
 								for lct in lcts:
 									if lct.cham != cham: continue
-									if self.inPad(seg.halfStrip[3], seg.wireGroup[3], cham if cham == 1 else 2) and self.matchSegLCT(seg, lct):
+									if Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], cham if cham == 1 else 2) and Aux.matchSegLCT(seg, lct):
 										nSegMuon  [cham] += 1
 										nNHitsMuon[cham] += seg.nHits
 										break
@@ -119,32 +120,6 @@ class MegaStruct():
 				self.Vals[1][meas]['muon'] = float(cols[3])
 				self.Vals[2][meas]['muon'] = float(cols[4])
 
-	# defines a paddle region
-	def inPad(self, hs, wg, cham):
-		if cham == 1:
-			if      hs >=  25\
-				and hs <=  72\
-				and wg >=  37\
-				and wg <=  43:
-				return True
-			else:
-				return False
-		if cham == 2:
-			if      hs >=   8\
-				and hs <=  38\
-				and wg >=  55\
-				and wg <=  65:
-				return True
-			else:
-				return False
-	
-	# determines if a segment and an lct match each other
-	def matchSegLCT(self, seg, lct):
-		if abs(seg.halfStrip[3] - lct.keyHalfStrip) <= 2 and abs(seg.wireGroup[3] - lct.keyWireGroup) <= 2:
-			return True
-		else:
-			return False
-	
 	# get a current measurement given a chamber and measurement number
 	def current(self, cham, meas):
 		if cham == 1:
