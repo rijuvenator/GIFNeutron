@@ -132,7 +132,7 @@ class Segment():
 
 		self.halfStrip          = {layer : 2 * self.strip[layer]                                               for layer in self.strip.keys()}
 		self.staggeredStrip     = {layer : self.strip[layer]     - 0.5 * (self.cham == 110) * (layer % 2 == 0) for layer in self.strip.keys()}
-		self.staggeredHalfStrip = {layer : self.halfStrip[layer] - 0.5 * (self.cham == 110) * (layer % 2 == 0) for layer in self.strip.keys()}
+		self.staggeredHalfStrip = {layer : self.halfStrip[layer] - 1.0 * (self.cham == 110) * (layer % 2 == 0) for layer in self.strip.keys()}
 
 		self.slope = {'x' : t.seg_slope[i][0], 'y' : t.seg_slope[i][1], 'z' : t.seg_slope[i][2]}
 

@@ -8,7 +8,10 @@ import commands
 if __name__ == '__main__' and 'submit' in sys.argv:
 	user = commands.getoutput('echo $USER')
 	cmssw_base = commands.getoutput('echo $CMSSW_BASE')
-	outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/15Dec/'
+	outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/16Dec/'
+	if not os.path.isdir(outDir):
+		print "Directory", outDir, "does not exist; exiting."
+		exit()
 	dryrun = 'dryrun' in sys.argv
 	import Gif.TestBeamAnalysis.DualMeasurements as Meas
 	#measurements = [Meas.meas[m] for m in ['2312','2095','2262','2064','2079','2224','2333']]
