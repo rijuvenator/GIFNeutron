@@ -148,7 +148,7 @@ class MegaStruct():
 										# and is inside the LCT pattern
 										if CloseRH:
 											comp = comps[closestComp]
-											if not self.inLCTPattern(lct,comp,cham) and self.matchRHComp(rechits[rhID],comp):
+											if not Aux.inLCTPattern(lct,comp) and self.matchRHComp(rechits[rhID],comp):
 												continue
 											'''
 											if not self.matchRHComp(rechits[rhID],comp): 
@@ -156,10 +156,10 @@ class MegaStruct():
 												if cham==110: B2 += 1
 												continue
 											'''
-											if self.matchRHComp(rechits[rhID],comp) and self.inLCTPattern(lct,comp,cham):
+											if self.matchRHComp(rechits[rhID],comp) and Aux.inLCTPattern(lct,comp):
 												if cham==1: A1 += 1
 												if cham==110: A2 += 1
-											if not self.matchRHComp(rechits[rhID],comp) and not self.inLCTPattern(lct,comp,cham):
+											if not self.matchRHComp(rechits[rhID],comp) and not Aux.inLCTPattern(lct,comp):
 												if cham==1: B1 += 1
 												if cham==110: B2 += 1
 										# Add to B if no comparator in same layer as rechit
@@ -199,37 +199,6 @@ class MegaStruct():
 		else:
 			return False
 	
-	# check if comparator is in LCT pattern
-	def inLCTPattern(self,lct,comp,cham):
-		id_ = lct.pattern
-		# lct khs is 0 indexed, comp hs is 1 indexed
-		khs = lct.keyHalfStrip+2
-
-		if id_ == 2:
-			pat = {6:[khs-5, khs-4, khs-3], 5:[khs-4, khs-3, khs-2], 4:[khs-2, khs-1, khs], 3:[khs], 2:[khs+1, khs+2], 1:[khs+3, khs+4, khs+5]}
-		elif id_ == 3:
-			pat = {1:[khs-5, khs-4, khs-3], 2:[khs-2, khs-1], 3:[khs], 4:[khs, khs+1, khs+2], 5:[khs+2, khs+3, khs+4], 6:[khs+3, khs+4, khs+5]}
-		elif id_ == 4:
-			pat = {6:[khs-4, khs-3, khs-2], 5:[khs-4, khs-3, khs-2], 4:[khs-2, khs-1], 3:[khs], 2:[khs+1, khs+2], 1:[khs+2, khs+3, khs+4]}
-		elif id_ == 5:
-			pat = {1:[khs-4, khs-3, khs-2], 2:[khs-2, khs-1], 3:[khs], 4:[khs+1, khs+2], 5:[khs+2, khs+3, khs+4], 6:[khs+2, khs+3, khs+4]}
-		elif id_ == 6:
-			pat = {6:[khs-3, khs-2, khs-1], 5:[khs-2, khs-1], 4:[khs-1, khs], 3:[khs], 2:[khs, khs+1], 1:[khs+1, khs+2, khs+3]}
-		elif id_ == 7:
-			pat = {1:[khs-3, khs-2, khs-1], 2:[khs-1, khs], 3:[khs], 4:[khs, khs+1], 5:[khs+1, khs+2], 6:[khs+1, khs+2, khs+3]}
-		elif id_ == 8:
-			pat = {6:[khs-2, khs-1, khs], 5:[khs-2, khs-1, khs], 4:[khs-1, khs], 3:[khs], 2:[khs, khs+1], 1:[khs, khs+1, khs+2]}
-		elif id_ == 9:
-			pat = {1:[khs-2, khs-1, khs], 2:[khs-1, khs], 3:[khs], 4:[khs, khs+1], 5:[khs, khs+1, khs+2], 6:[khs, khs+1, khs+2]}
-		elif id_ == 10:
-			pat = {6:[khs-1, khs, khs+1], 5:[khs-1, khs, khs+1], 4:[khs], 3:[khs], 2:[khs], 1:[khs-1, khs, khs+1]}
-
-		if comp.halfStrip in pat[comp.layer]:
-			return True
-		else: 
-			return False
-
-
 	# get a current measurement given a chamber and measurement number
 	def current(self, cham, meas):
 		if cham == 1:

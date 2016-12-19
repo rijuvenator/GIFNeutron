@@ -202,7 +202,6 @@ void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollect
   reset();
 
   for(CSCSegmentCollection::const_iterator dSiter=segments.begin(); dSiter != segments.end(); dSiter++) {
-	// Specifically for segment positon in (strip,wg) units
 	// Create the ChamberId
 	DetId gid = (*dSiter).geographicalId();
 
@@ -244,19 +243,20 @@ void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollect
 		// Only do the primitive slope stuff when in between layers
 		if (lay < 6) {
 			const CSCLayer *segLayP1 = segChamber->layer(lay+1);
-			/* This is the confusing part. 
+			/**
+			 * This is the confusing part. 
 			 * Convert (0,0,0) in layer N+1 into global CMS coordinates
 			 * then convert that position into local layer N coordinates
-			 */
+			 **/
 			LocalPoint lzero(0.0,0.0,0.0);
 			GlobalPoint layzero = segLayP1->toGlobal(lzero); 
 			LocalPoint layP1zeroInP = segLay->toLocal(layzero);
-			// Conversion cm/layer
+			// Conversions cm/layer, cm/strip, and cm/wiregroup
 			int strI = floor(segStrip);
 			int wireI = floor(segWire);
 			float cm2lay = fabs(layP1zeroInP.z());
 			float cm2strip = fabs(segLayGeo->xOfStrip(strI,tP.y()) - segLayGeo->xOfStrip(strI+1,tP.y()));
-			float cm2wire = fabs(segLayGeo->yOfWire(wireI,tP.x()) - segLayGeo->yOfWire(wireI+1,tP.x()));
+			float cm2wire = fabs(segLayGeo->yOfWireGroup(wireI,tP.x()) - segLayGeo->yOfWireGroup(wireI+1,tP.x()));
 
 			// Fill seg_slope_prim, once per in-between layer, once per segment
 			std::vector<float> slope_prim = {segdX/cm2strip, segdY/cm2wire, segdZ/cm2lay};
