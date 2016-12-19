@@ -9,7 +9,7 @@ import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.Auxiliary as Aux
 statusMsg('All modules imported.')
 
-f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/15Dec/ana_3284.root')
+f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_3284.root')
 t = f.Get('GIFTree/GIFDigiTree')
 statusMsg('File and tree obtained.')
 

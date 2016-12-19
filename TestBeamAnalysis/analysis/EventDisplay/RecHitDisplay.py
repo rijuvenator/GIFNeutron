@@ -1,6 +1,7 @@
 import numpy as np
 import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
+import Gif.TestBeamAnalysis.Auxiliary as Aux
 import DisplayHelper as ED # "Event Display"
 import Patterns
 import argparse
@@ -34,7 +35,7 @@ for event in EVENTFILE:
 OUTDIR = args.OUTDIR
 
 # Which displays to plot
-DOSEGMENTS = False
+DOSEGMENTS = True
 DOSCINT    = False
 DRAWZTITLE = False
 TITLESON   = False
@@ -45,7 +46,7 @@ SCINT = {1:{'HS':(25., 72.), 'WG':(37., 43.)}, 110:{'HS':(8., 38.), 'WG':(55., 6
 
 for MEAS in MEASLIST:
 	# Get file and tree
-	f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/15Dec/ana_'+str(MEAS)+'.root')
+	f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(MEAS)+'.root')
 	t = f.Get('GIFTree/GIFDigiTree')
 
 	for ENTRY in ENTRIES:
@@ -72,47 +73,70 @@ for MEAS in MEASLIST:
 			# Instantiate canvas
 			canvas = ED.Canvas('rechits' if not ORIGFORMAT else 'origrechits')
 
-			# Wires histogram: 2D, wire group vs. layer
-			hRHWG = R.TH2F('rhwg', ('' if not TITLESON else 'RECHIT WIRE GROUPS')+';Wire Group Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'), WIRE_MAX, 1, WIRE_MAX+1, 6, 1, 7)
-			hRHWG.GetXaxis().SetNdivisions(520 if CHAM==1 else 1020)
+			rhL = { 'all' : [8.                ], 'seg' : []}
+			rhS = { 'all' : [float(HS_MAX)     ], 'seg' : []}
+			rhW = { 'all' : [float(WIRE_MAX+10)], 'seg' : []}
 			for rh in rechits:
 				if rh.cham != CHAM: continue
-				hRHWG.Fill(rh.wireGroup, rh.layer, 1)
-			canvas.pads[2 if not ORIGFORMAT else 1].cd()
-			hRHWG.SetMarkerColor(R.kRed)
-			hRHWG.Draw('')
+				rhS['all'].append(float(rh.halfStrip)/2.+ 0.5)
+				rhW['all'].append(float(rh.wireGroup)   + 0.5)
+				rhL['all'].append(float(rh.layer)       + 0.5)
 
-			# Strips histogram: 2D, 3 strips vs. layer
-			hRHS = R.TH2F('rhs', ('' if not TITLESON else 'RECHIT STRIPS')+';Strip Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'), HS_MAX/2, 1, HS_MAX/2+1, 6, 1, 7)
-			hRHS.GetXaxis().SetNdivisions(1020 if CHAM==1 else 520)
-			for rh in rechits:
-				if rh.cham != CHAM: continue
-				hRHS.Fill(rh.halfStrip/2, rh.layer, 1)
+			gRHS = R.TGraph(len(rhS['all']), np.array(rhS['all']), np.array(rhL['all']))
 			canvas.pads[0].cd()
-			hRHS.SetMarkerColor(R.kRed)
-			hRHS.Draw('')
+			gRHS.Draw('AP')
+			gRHS.SetMarkerColor(R.kRed)
+			gRHS.GetXaxis().SetNdivisions(520 if CHAM==1 else 1020)
+			gRHS.SetTitle(('' if not TITLESON else 'RECHIT STRIPS')+';Strip Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'))
+			gRHS.SetMinimum(1.)
+			gRHS.SetMaximum(7.)
+			gRHS.GetXaxis().SetLimits(1., HS_MAX/2+1.)
+			gRHS.Draw('AP')
+			canvas.canvas.Update()
 
-			# Segment Dots
+			gRHW = R.TGraph(len(rhW['all']), np.array(rhW['all']), np.array(rhL['all']))
+			canvas.pads[2 if not ORIGFORMAT else 1].cd()
+			gRHW.Draw('AP')
+			gRHW.SetMarkerColor(R.kRed)
+			gRHW.GetXaxis().SetNdivisions(520 if CHAM==1 else 1020)
+			gRHW.SetTitle(('' if not TITLESON else 'RECHIT WIRE GROUPS')+';Wire Group Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'))
+			gRHW.SetMinimum(1.)
+			gRHW.SetMaximum(7.)
+			gRHW.GetXaxis().SetLimits(1., WIRE_MAX+1.)
+			gRHW.Draw('AP')
+			canvas.canvas.Update()
+
+			# Segments
 			if DOSEGMENTS:
-				L = []
+				SegDrawList = []
 				for seg in segs:
 					if seg.cham != CHAM: continue
 					for lct in lcts:
 						if lct.cham != CHAM: continue
-						diffS = abs(seg.halfStrip[3] - lct.keyHalfStrip)
-						diffW = abs(seg.wireGroup[3] - lct.keyWireGroup)
-						if diffS <= 3 and diffW <= 3:
-						#if True:
-							RADII = {110: (1., 0.2, 0.7, 0.2), 1: (1.4, 0.2, 0.31, 0.2)}
-							L.append(R.TEllipse(seg.strip[3]     + 1 + 0.5, 3.5, RADII[CHAM][0]/2, RADII[CHAM][1]))
-							canvas.pads[0].cd()
-							L[-1].SetFillColor(R.kWhite)
-							L[-1].Draw()
-							L.append(R.TEllipse(seg.wireGroup[3]     + 0.5, 3.5, RADII[CHAM][2], RADII[CHAM][3]))
-							canvas.pads[1].cd()
-							L[-1].SetFillColor(R.kWhite)
-							L[-1].Draw()
-							print '{:3d} {:3d} {:3d} {:3d}'.format(int(seg.halfStrip[3]), int(seg.wireGroup[3]), lct.keyHalfStrip, lct.keyWireGroup)
+						if Aux.matchSegLCT(seg, lct, thresh=(3., 3.)):
+							SegDrawList.append(seg)
+				SEGLAYERS = [1, 2, 3, 4, 5, 6]
+				layZ = np.array([float(i) + 0.5 for i in SEGLAYERS])
+				segGraphs = []
+				for seg in SegDrawList:
+					segGraphs.append({})
+					stX = np.array([seg.staggeredStrip    [lay]+0.5 for lay in SEGLAYERS])
+					wgX = np.array([seg.wireGroup         [lay] for lay in SEGLAYERS])
+					segGraphs[-1]['st'] = {'fill' : R.TGraph(len(layZ), stX, layZ), 'empt' : R.TGraph(len(layZ), stX, layZ), 'pad' : 0}
+					segGraphs[-1]['wg'] = {'fill' : R.TGraph(len(layZ), wgX, layZ), 'empt' : R.TGraph(len(layZ), wgX, layZ), 'pad' : 2}
+				for gr in segGraphs:
+					for key in ['st', 'wg']:
+						gr[key]['fill'].SetMarkerColor(R.kWhite)
+						gr[key]['fill'].SetMarkerStyle(R.kFullCircle)
+						gr[key]['empt'].SetMarkerColor(R.kBlack)
+						gr[key]['empt'].SetMarkerStyle(R.kOpenCircle)
+						for which in ['fill', 'empt']:
+							gr[key][which].SetMarkerSize(1)
+							gr[key][which].SetLineWidth(3)
+							gr[key][which].SetLineColor(R.kBlue)
+						canvas.pads[gr[key]['pad']].cd()
+						gr[key]['fill'].Draw('L same')
+						gr[key]['empt'].Draw('L same')
 
 			# Scintillator region
 			if DOSCINT:
@@ -141,6 +165,6 @@ for MEAS in MEASLIST:
 			R.SetOwnership(canvas.canvas, False)
 			print '\033[1mFILE \033[32m'+'RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
 
-			del hRHS, hRHWG
+			#del gRHS, gRHW
 
 	f.Close()

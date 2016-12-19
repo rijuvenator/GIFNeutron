@@ -233,11 +233,12 @@ void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollect
 		// Get strip and wire number in layer N
 		float segStrip = segLayGeo->strip(tP);
 		float segWire  = segLayGeo->wireGroup(segLayGeo->nearestWire(tP));
+		float segWireF = segWire + (segLayGeo->nearestWire(tP) - segLayGeo->middleWireOfGroup(segWire))/(segLayGeo->numberOfWiresPerGroup(segWire)) + 0.5;
 		// Fill seg_pos, once per layer, once per segment
 		float segX     = tP.x();
 		float segY     = tP.y();
 		float segZ     = segLPlayer.z();
-		std::vector<float> pos = {segX, segY, segZ, segStrip, segWire};
+		std::vector<float> pos = {segX, segY, segZ, segStrip, segWireF};
 		seg_pos.push_back(pos);
 
 		// Only do the primitive slope stuff when in between layers

@@ -70,7 +70,7 @@ class MegaStruct():
 			pass
 			for att in self.FFFMeas.keys():
 				for meas in self.FFFMeas[att]:
-					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/15Dec/ana_'+str(meas)+'.root')
+					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(meas)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					clctLay11 = []
 					clctLay21 = []

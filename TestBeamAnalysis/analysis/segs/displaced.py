@@ -104,7 +104,7 @@ class MegaStruct():
 							'ML' : R.TH1F('hML'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX), # "missing layer"
 							'IS' : R.TH1F('hIS'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX)  # "in segment"
 						}
-					f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/GIF/15Dec/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					for entry in t:
 						E = Primitives.ETree(t, DecList=['SEGMENT', 'LCT', 'RECHIT'])
