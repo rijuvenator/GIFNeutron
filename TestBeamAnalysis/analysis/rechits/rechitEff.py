@@ -17,9 +17,8 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-#F_DATAFILE = '../datafiles/data_*'
+F_DATAFILE = '../datafiles/data_recHitEff'
 #F_DATAFILE = None
-F_DATAFILE = 'recHitEff'
 
 # Cosmetic data dictionary, comment out for fewer ones
 pretty = {
