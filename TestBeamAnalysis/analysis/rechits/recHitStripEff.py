@@ -17,7 +17,7 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-F_DATAFILE = '../datafiles/data_recHitEff'
+F_DATAFILE = '../datafiles/data_recHitStripEff'
 #F_DATAFILE = None
 
 # Cosmetic data dictionary, comment out for fewer ones
@@ -118,13 +118,17 @@ class MegaStruct():
 							# Begin looping on LCTs to find the muon
 							for lct in lcts:
 								if lct.cham is not cham: continue
+								# require LCT in scintillator acceptance
+								if not Aux.inPad(lct.keyHalfStrip, lct.keyWireGroup, lct.cham): continue
 								stripsNearLCT = {1:[],2:[],3:[],4:[],5:[],6:[]}
 								recHitsNearStrips = {1:[],2:[],3:[],4:[],5:[],6:[]}
 								for strip in strips:
 									if strip.cham is not cham: continue
-									# Build dictionary of strips that are near to a LCT pattern
-									if self.stripNearLCT(strip,lct): 
-										stripsNearLCT[strip.layer].append(strip.number)
+									ped = float(strip.ADC[0]+strip.ADC[1])/2
+									if sum(strip.ADC[2:])-ped > 13.3: 
+										# Build dictionary of strips that are near to a LCT pattern
+										if self.stripNearLCT(strip,lct): 
+											stripsNearLCT[strip.layer].append(strip.number)
 								for rechit in rechits:
 									if rechit.cham is not cham: continue
 									# Check if rechit is near strip data
@@ -159,7 +163,7 @@ class MegaStruct():
 		# Near is defined as the adjacent strip
 		id_ = lct.pattern
 		khs = lct.keyHalfStrip
-		stripHS = strip.number * 2
+		stripHS = strip.staggeredNumber * 2
 
 		if id_ == 2:
 			pat = {6:[khs-5, khs-4, khs-3], 5:[khs-4, khs-3, khs-2], 4:[khs-2, khs-1, khs], 3:[khs], 2:[khs+1, khs+2], 1:[khs+3, khs+4, khs+5]}
