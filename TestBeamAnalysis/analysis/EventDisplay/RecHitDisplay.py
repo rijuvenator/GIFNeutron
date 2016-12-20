@@ -36,9 +36,9 @@ OUTDIR = args.OUTDIR
 
 # Which displays to plot
 DOSEGMENTS = True
-DOSCINT    = False
+DOSCINT    = True
 DRAWZTITLE = False
-TITLESON   = False
+TITLESON   = True
 ORIGFORMAT = False
 
 ##### BEGIN CODE #####
@@ -73,9 +73,9 @@ for MEAS in MEASLIST:
 			# Instantiate canvas
 			canvas = ED.Canvas('rechits' if not ORIGFORMAT else 'origrechits')
 
-			rhL = { 'all' : [8.                ], 'seg' : []}
-			rhS = { 'all' : [float(HS_MAX)     ], 'seg' : []}
-			rhW = { 'all' : [float(WIRE_MAX+10)], 'seg' : []}
+			rhL = { 'all' : [8.                ], 'seg' : [8.                ]}
+			rhS = { 'all' : [float(HS_MAX)     ], 'seg' : [float(HS_MAX)     ]}
+			rhW = { 'all' : [float(WIRE_MAX+10)], 'seg' : [float(WIRE_MAX+10)]}
 			for rh in rechits:
 				if rh.cham != CHAM: continue
 				rhS['all'].append(float(rh.halfStrip)/2.+ 0.5)
@@ -85,7 +85,7 @@ for MEAS in MEASLIST:
 			gRHS = R.TGraph(len(rhS['all']), np.array(rhS['all']), np.array(rhL['all']))
 			canvas.pads[0].cd()
 			gRHS.Draw('AP')
-			gRHS.SetMarkerColor(R.kRed)
+			gRHS.SetMarkerColor(R.kBlack)
 			gRHS.GetXaxis().SetNdivisions(520 if CHAM==1 else 1020)
 			gRHS.SetTitle(('' if not TITLESON else 'RECHIT STRIPS')+';Strip Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'))
 			gRHS.SetMinimum(1.)
@@ -97,7 +97,7 @@ for MEAS in MEASLIST:
 			gRHW = R.TGraph(len(rhW['all']), np.array(rhW['all']), np.array(rhL['all']))
 			canvas.pads[2 if not ORIGFORMAT else 1].cd()
 			gRHW.Draw('AP')
-			gRHW.SetMarkerColor(R.kRed)
+			gRHW.SetMarkerColor(R.kBlack)
 			gRHW.GetXaxis().SetNdivisions(520 if CHAM==1 else 1020)
 			gRHW.SetTitle(('' if not TITLESON else 'RECHIT WIRE GROUPS')+';Wire Group Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'))
 			gRHW.SetMinimum(1.)
@@ -113,17 +113,31 @@ for MEAS in MEASLIST:
 					if seg.cham != CHAM: continue
 					for lct in lcts:
 						if lct.cham != CHAM: continue
-						if Aux.matchSegLCT(seg, lct, thresh=(3., 3.)):
+						if Aux.matchSegLCT(seg, lct, thresh=(2., 2.)):
 							SegDrawList.append(seg)
 				SEGLAYERS = [1, 2, 3, 4, 5, 6]
 				layZ = np.array([float(i) + 0.5 for i in SEGLAYERS])
 				segGraphs = []
 				for seg in SegDrawList:
+					for i in seg.rhID:
+						rhS['seg'].append(float(rechits[i].halfStrip)/2.+ 0.5)
+						rhW['seg'].append(float(rechits[i].wireGroup)   + 0.5)
+						rhL['seg'].append(float(rechits[i].layer)       + 0.5)
 					segGraphs.append({})
-					stX = np.array([seg.staggeredStrip    [lay]+0.5 for lay in SEGLAYERS])
+					stX = np.array([seg.staggeredStrip    [lay]+1.0 for lay in SEGLAYERS])
 					wgX = np.array([seg.wireGroup         [lay] for lay in SEGLAYERS])
 					segGraphs[-1]['st'] = {'fill' : R.TGraph(len(layZ), stX, layZ), 'empt' : R.TGraph(len(layZ), stX, layZ), 'pad' : 0}
 					segGraphs[-1]['wg'] = {'fill' : R.TGraph(len(layZ), wgX, layZ), 'empt' : R.TGraph(len(layZ), wgX, layZ), 'pad' : 2}
+
+				gSRHS = R.TGraph(len(rhS['seg']), np.array(rhS['seg']), np.array(rhL['seg']))
+				canvas.pads[0].cd()
+				gSRHS.Draw('P')
+				gSRHS.SetMarkerColor(R.kRed)
+				gSRHW = R.TGraph(len(rhW['seg']), np.array(rhW['seg']), np.array(rhL['seg']))
+				canvas.pads[2 if not ORIGFORMAT else 1].cd()
+				gSRHW.Draw('P')
+				gSRHW.SetMarkerColor(R.kRed)
+
 				for gr in segGraphs:
 					for key in ['st', 'wg']:
 						gr[key]['fill'].SetMarkerColor(R.kWhite)
@@ -149,8 +163,8 @@ for MEAS in MEASLIST:
 				for line in SL:
 					line.SetLineColor(R.kRed)
 					line.SetLineWidth(2)
-				canvas.pads[0].cd(); SL[0].Draw(); SL[1].Draw()
-				canvas.pads[1].cd(); SL[2].Draw(); SL[3].Draw()
+				canvas.pads[0                         ].cd(); SL[0].Draw(); SL[1].Draw()
+				canvas.pads[2 if not ORIGFORMAT else 1].cd(); SL[2].Draw(); SL[3].Draw()
 
 			##### CLEAN UP #####
 			for pad in canvas.pads:
@@ -164,7 +178,5 @@ for MEAS in MEASLIST:
 			canvas.canvas.SaveAs(OUTDIR+'/RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
 			print '\033[1mFILE \033[32m'+'RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
-
-			#del gRHS, gRHW
 
 	f.Close()

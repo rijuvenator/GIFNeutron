@@ -24,13 +24,13 @@ fromFile = '../datafiles/data_seghits'
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
 	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
-	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
-	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
-	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
-	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
-	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
-	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
+#	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+#	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+#	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+#	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+#	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+#	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
+#	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
 R.gROOT.SetBatch(True)
@@ -225,7 +225,7 @@ for cham in chamlist:
 		[data.valVector(cham, ff, 'all') for ff in pretty.keys()],
 		cham,
 		'Luminosity [Hz/cm^{2}]',
-		'#LT Segment nHits, all #GT',
+		'#LT Segment nHits #GT',
 		'lumi_all'
 	)
 	makePlot(\
@@ -233,6 +233,6 @@ for cham in chamlist:
 		[data.valVector(cham, ff, 'muon') for ff in pretty.keys()],
 		cham,
 		'Luminosity [Hz/cm^{2}]',
-		'#LT Segment nHits, muon #GT',
+		'#LT Muon Segment nHits #GT',
 		'lumi_muon'
 	)

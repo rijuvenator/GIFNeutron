@@ -179,8 +179,8 @@ data = MegaStruct()
 ##### MAKEPLOT FUNCTIONS #####
 def makeDistPlot(cham, hists, xtitle, ytitle, title):
 
-	hists['ML'].Scale(1./hists['ML'].Integral())
-	hists['IS'].Scale(1./hists['IS'].Integral())
+	hists['ML'].Scale(1./hists['ML'].GetEntries())
+	hists['IS'].Scale(1./hists['IS'].GetEntries())
 
 	hML = hists['ML']
 	hIS = hists['IS']
@@ -191,14 +191,14 @@ def makeDistPlot(cham, hists, xtitle, ytitle, title):
 	plots['IS'] = Plotter.Plot(hIS, legName='In Segment'   , legType='l', option='hist')
 
 	# Step 2
-	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
+	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=True, extra='Internal', cWidth=800, cHeight=700)
 
 	# Step 3
 	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='tl', lOffset=0.04, fontsize=0.03)
 
 	# Step 4
-	canvas.addMainPlot(plots['ML'], isFirst=True , addToLegend=True)
-	canvas.addMainPlot(plots['IS'], isFirst=False, addToLegend=True)
+	canvas.addMainPlot(plots['IS'], isFirst=True, addToLegend=True)
+	canvas.addMainPlot(plots['ML'], isFirst=False , addToLegend=True)
 
 	# Step 5
 	aplot = plots['ML']
