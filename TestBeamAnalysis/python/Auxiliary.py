@@ -22,6 +22,8 @@ def inLCTPattern(lct,comp):
 	# lct khs is 0 indexed, comp hs is 1 indexed
 	khs = lct.keyHalfStrip+2
 
+	#if comp.cham!=lct.cham: return False
+
 	if id_ == 2:
 		pat = {6:[khs-5, khs-4, khs-3], 5:[khs-4, khs-3, khs-2], 4:[khs-2, khs-1, khs], 3:[khs], 2:[khs+1, khs+2], 1:[khs+3, khs+4, khs+5]}
 	elif id_ == 3:
@@ -41,7 +43,8 @@ def inLCTPattern(lct,comp):
 	elif id_ == 10:
 		pat = {6:[khs-1, khs, khs+1], 5:[khs-1, khs, khs+1], 4:[khs], 3:[khs], 2:[khs], 1:[khs-1, khs, khs+1]}
 
-	if comp.halfStrip in pat[comp.layer]:
+	#print comp.layer, comp.halfStrip, pat[comp.layer], comp.cham
+	if comp.staggeredHalfStrip in pat[comp.layer]:
 		return True
 	else:
 		return False
