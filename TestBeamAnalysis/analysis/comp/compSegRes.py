@@ -1,7 +1,8 @@
-''' Purpose of this script is to measure the Comp efficiency.
-Efficiency is defined as given ADC count data on a specific strip and layer
-and the presence of wire group data, what is the probability that there is a 
-Comp made at the location of strip ADC data'''
+''' Purpose of this script is to measure the Comp resolution.
+Resolution = RMS(comparator pos - segment pos)
+Bias       = Mean(comparator pos - segment pos)
+Plus plots for each measurement of the distribution
+'''
 
 import numpy as np
 import ROOT as R
@@ -17,9 +18,8 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-#F_DATAFILE = '../datafiles/data_recHitEff'
-#F_DATAFILE = 'compEff'
-F_DATAFILE = None
+F_DATAFILE = '../datafiles/data_compSegRes'
+#F_DATAFILE = None
 
 # Cosmetic data dictionary, comment out for fewer ones
 pretty = {
@@ -169,7 +169,12 @@ class MegaStruct():
 		else:
 			f = open(F_DATAFILE)
 			for line in f:
-				pass
+				cols = line.strip('\n').split()
+				MEAS = cols[0]
+				self.mean[1][MEAS] = cols[3]
+				self.resolution[1][MEAS] = cols[4]
+				self.mean[110][MEAS] = cols[5]
+				self.resolution[110][MEAS] = cols[6]
 
 	# get a value given a chamber and measurement number
 	def mean(self, cham, meas):
