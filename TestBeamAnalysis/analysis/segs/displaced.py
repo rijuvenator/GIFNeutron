@@ -12,9 +12,9 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-#F_DATAFILE = None
-F_DATAFILE = '../datafiles/data_segrh.root'
-#F_OUT = R.TFile('../datafiles/data_segrh.root', 'RECREATE')
+F_DATAFILE = None
+#F_DATAFILE = '../datafiles/data_segrh.root'
+F_OUT = R.TFile('../datafiles/data_segrh.root', 'RECREATE')
 
 # Cosmetic data dictionary, comment out for fewer ones
 #pretty = {
@@ -102,7 +102,9 @@ class MegaStruct():
 					for CHAM in CHAMLIST:
 						self.HISTS[CHAM][MEAS] = {\
 							'ML' : R.TH1F('hML'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX), # "missing layer"
-							'IS' : R.TH1F('hIS'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX)  # "in segment"
+							'IS' : R.TH1F('hIS'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX), # "in segment"
+							'2D' : R.TH2F('h2D'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX, 400, -200., 200.), # "2D"
+							'2S' : R.TH2F('h2S'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX, 400, -200., 200.)  # "2S"
 						}
 					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
@@ -122,17 +124,21 @@ class MegaStruct():
 										for i in seg.rhID:
 											D = rechits[i].pos['x'] - seg.pos[rechits[i].layer]['x']
 											self.HISTS[CHAM][MEAS]['IS'].Fill(D)
+											self.HISTS[CHAM][MEAS]['2S'].Fill(D, rechits[i].time)
 										for layer in [1, 2, 3, 4, 5, 6]:
 											if layer in layers: continue
 											closestRHPosXDiff = float('inf')
 											fillVal = float('inf')
+											time = float('inf')
 											for rh in rechits:
 												if rh.layer == layer and Aux.inPad(30, rh.wireGroup, CHAM):
 													D = rh.pos['x']-seg.pos[layer]['x']
 													if abs(D) < closestRHPosXDiff:
 														closestRHPosXDiff = abs(D)
 														fillVal = D
+														time = rh.time
 											self.HISTS[CHAM][MEAS]['ML'].Fill(fillVal)
+											self.HISTS[CHAM][MEAS]['2D'].Fill(fillVal, time)
 					f.Close()
 					for CHAM in CHAMLIST:
 						self.VALDATA[CHAM][MEAS] = {\
@@ -142,6 +148,8 @@ class MegaStruct():
 						F_OUT.cd()
 						self.HISTS[CHAM][MEAS]['ML'].Write()
 						self.HISTS[CHAM][MEAS]['IS'].Write()
+						self.HISTS[CHAM][MEAS]['2D'].Write()
+						self.HISTS[CHAM][MEAS]['2S'].Write()
 					print MEAS, 'Done'
 
 		# for obtaining data dictionary from a file
@@ -155,12 +163,18 @@ class MegaStruct():
 					for CHAM in CHAMLIST:
 						hML = f.Get('hML'+str(CHAM)+str(MEAS))
 						hIS = f.Get('hIS'+str(CHAM)+str(MEAS))
+						h2D = f.Get('h2D'+str(CHAM)+str(MEAS))
+						h2S = f.Get('h2S'+str(CHAM)+str(MEAS))
 						self.HISTS[CHAM][MEAS] = {\
 							'ML' : hML.Rebin(BINS, 'hNML'+str(CHAM)+str(MEAS), np.array([MIN + i*(MAX-MIN)/float(BINS) for i in range(BINS+1)])),
 							'IS' : hIS.Rebin(BINS, 'hNIS'+str(CHAM)+str(MEAS), np.array([MIN + i*(MAX-MIN)/float(BINS) for i in range(BINS+1)])),
+							'2D' : h2D,
+							'2S' : h2S
 						}
 						self.HISTS[CHAM][MEAS]['ML'].SetDirectory(0)
 						self.HISTS[CHAM][MEAS]['IS'].SetDirectory(0)
+						self.HISTS[CHAM][MEAS]['2D'].SetDirectory(0)
+						self.HISTS[CHAM][MEAS]['2S'].SetDirectory(0)
 						self.VALDATA[CHAM][MEAS] = {\
 							'ML' : hML.GetStdDev(),
 							'IS' : hIS.GetStdDev()
@@ -281,14 +295,69 @@ def makeSDPlot(cham, x, y, xtitle, ytitle, title):
 	canvas.c.SaveAs('pdfs/CRHX_ME'+str(cham)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
+def make2DPlot(cham, hists, xtitle, ytitle, title):
+
+	h2D = hists['2D']
+	h2S = hists['2S']
+
+	# Step 1
+	plots = {}
+	plots['2D'] = Plotter.Plot(h2D, legName='', legType='l', option='hist')
+	plots['2S'] = Plotter.Plot(h2S, legName='', legType='l', option='hist')
+
+	# Step 2
+	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
+
+	# Step 3
+	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='tl', lOffset=0.04, fontsize=0.03)
+
+	# Step 4
+	canvas.addMainPlot(plots['2D'], isFirst=True, addToLegend=False)
+	canvas.addMainPlot(plots['2S'], isFirst=False, addToLegend=False)
+
+	# Step 5
+	aplot = plots['2D']
+
+	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
+	aplot.setTitles(X=xtitle, Y=ytitle)
+	#aplot.plot.SetMinimum(0.0)
+	#aplot.plot.SetMaximum(1.1)
+	aplot.scaleTitles(0.8, axes='XYZ')
+	aplot.scaleLabels(0.8, axes='XYZ')
+	aplot.scaleTitleOffsets(1.2, 'Y')
+	aplot.plot.SetMarkerSize(1)
+	aplot.plot.SetMarkerColor(R.kRed)
+	canvas.makeTransparent()
+
+	plots['2S'].plot.SetMarkerColor(R.kBlue)
+
+	att = [key for key in data.MEASDATA.keys() if int(title) in data.MEASDATA[key]][0]
+	ft = str(list(data.attVector()).index(att))
+
+	# Step 6
+
+	# Step 7
+
+	# Step 8
+	canvas.finishCanvas()
+	canvas.c.SaveAs('pdfs/CRHX2D_ME'+str(cham)+'1_'+ft+'.pdf')
+	R.SetOwnership(canvas.c, False)
+
 ##### MAKE PLOTS #####
 for cham in CHAMLIST:
 	for meas in data.HISTS[cham].keys():
 		makeDistPlot(\
 			cham if cham == 1 else 2,
 			data.HISTS[cham][meas],
-			'Distance [cm]]',
+			'Distance [cm]',
 			'Counts',
+			str(meas)
+		)
+		make2DPlot(\
+			cham if cham == 1 else 2,
+			data.HISTS[cham][meas],
+			'Distance [cm]',
+			'Time Peak [??]',
 			str(meas)
 		)
 
