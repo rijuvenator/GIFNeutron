@@ -159,6 +159,8 @@ class Canvas:
 		self.logy = logy
 		self.ratioFactor = float(ratioFactor)
 
+		self.axesDrawn = False
+
 		setStyle(self.cWidth,self.cHeight,self.font,self.tsize)
 
 		self.c = R.TCanvas("c","Canvas",self.cWidth,self.cHeight)
@@ -237,6 +239,30 @@ class Canvas:
 			plot.plot.GetXaxis().SetLabelSize(0)
 
 		if (addToLegend):
+			self.addLegendEntry(plot)
+	
+	# trying out a new way of drawing
+	def addMainPlotExp(self, plot, addToLegend=1):
+		plot.plot.UseCurrentStyle()
+		self.c.cd()
+		self.mainPad.cd()
+
+		if not self.axesDrawn:
+			self.axesDrawn = True
+			self.firstPlot = plot
+			if type(plot.plot) is R.TGraph:
+				plot.plot.Draw('A'+plot.option)
+			else:
+				plot.plot.Draw(plot.option)
+			plot.plot.GetXaxis().CenterTitle()
+			plot.plot.GetYaxis().CenterTitle()
+		else:
+			plot.plot.Draw(plot.option+' same')
+
+		if self.ratioFactor != 0:
+			plot.plot.GetXaxis().SetLabelSize(0)
+
+		if addToLegend:
 			self.addLegendEntry(plot)
 
 	# the user calls this; sets style for the stats box, if there is one.
@@ -381,3 +407,13 @@ class Canvas:
 		if type(extList) == list:
 			for ext in extList:
 				self.c.SaveAs(name+ext)
+	
+	def scaleMargins(self, factor, edges=''):
+		if 'L' in edges:
+			self.mainPad.SetLeftMargin  (self.mainPad.GetLeftMargin  () * factor)
+		if 'R' in edges:
+			self.mainPad.SetRightMargin (self.mainPad.GetRightMargin () * factor)
+		if 'T' in edges:
+			self.mainPad.SetTopMargin   (self.mainPad.GetTopMargin   () * factor)
+		if 'B' in edges:
+			self.mainPad.SetBottomMargin(self.mainPad.GetBottomMargin() * factor)

@@ -113,7 +113,7 @@ for MEAS in MEASLIST:
 					if seg.cham != CHAM: continue
 					for lct in lcts:
 						if lct.cham != CHAM: continue
-						if Aux.matchSegLCT(seg, lct, thresh=(2., 2.)):
+						if Aux.matchSegLCT(seg, lct, thresh=(2., 2.), old=False):
 							SegDrawList.append(seg)
 				SEGLAYERS = [1, 2, 3, 4, 5, 6]
 				layZ = np.array([float(i) + 0.5 for i in SEGLAYERS])

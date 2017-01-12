@@ -12,9 +12,9 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-F_DATAFILE = None
-#F_DATAFILE = '../datafiles/data_segrh.root'
-F_OUT = R.TFile('../datafiles/data_segrh.root', 'RECREATE')
+#F_DATAFILE = None
+F_DATAFILE = '../datafiles/data_segrh.root'
+#F_OUT = R.TFile('../datafiles/data_segrh.root', 'RECREATE')
 
 # Cosmetic data dictionary, comment out for fewer ones
 #pretty = {
@@ -94,9 +94,10 @@ class MegaStruct():
 		self.VALDATA = { 1 : {}, 110 : {} }
 		self.HISTS   = { 1 : {}, 110 : {} }
 		CBINS = 4000
-		CMIN = -10.
+		CMIN = 0.
 		CMAX = 10.
 		if F_DATAFILE is None:
+			#for ATT in [22.]:
 			for ATT in self.MEASDATA.keys():
 				for MEAS in self.MEASDATA[ATT][0:1]: # only interested in Original for now
 					for CHAM in CHAMLIST:
@@ -108,36 +109,63 @@ class MegaStruct():
 						}
 					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
-					for entry in t:
+					for IDX, entry in enumerate(t):
 						E = Primitives.ETree(t, DecList=['SEGMENT', 'LCT', 'RECHIT'])
 						segs    = [Primitives.Segment(E, i) for i in xrange(len(E.seg_cham))]
 						lcts    = [Primitives.LCT    (E, i) for i in xrange(len(E.lct_cham))]
 						rechits = [Primitives.RecHit (E, i) for i in xrange(len(E.rh_cham ))]
 
+						def inTime(time, CHAM):
+							if CHAM == 1:
+								if      time <=  25. \
+									and time >= -55.:
+									return True
+								else:
+									return False
+							if CHAM == 110:
+								if      time <= -30. \
+									and time >= -125.:
+									return True
+								else:
+									return False
+
 						for CHAM in CHAMLIST:
 							for seg in segs:
 								if seg.cham != CHAM: continue
+								atLeastOneLayerInPad = False
+								for layer in [1, 2, 3, 4, 5, 6]:
+									if Aux.inPad(seg.halfStrip[layer], seg.wireGroup[layer], CHAM):
+										atLeastOneLayerInPad = True
+										break
 								for lct in lcts:
 									if lct.cham != CHAM: continue
-									if Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], CHAM) and Aux.matchSegLCT(seg, lct):
-										layers = [rechits[i].layer for i in seg.rhID]
+									if atLeastOneLayerInPad and Aux.matchSegLCT(seg, lct, old=False):
 										for i in seg.rhID:
-											D = rechits[i].pos['x'] - seg.pos[rechits[i].layer]['x']
+											#D = rechits[i].pos['x'] - seg.pos[rechits[i].layer]['x']
+											D = ((rechits[i].pos['x'] - seg.pos[rechits[i].layer]['x'])**2. +\
+												 (rechits[i].pos['y'] - seg.pos[rechits[i].layer]['y'])**2.)**0.5
 											self.HISTS[CHAM][MEAS]['IS'].Fill(D)
 											self.HISTS[CHAM][MEAS]['2S'].Fill(D, rechits[i].time)
+										layers = [rechits[i].layer for i in seg.rhID]
 										for layer in [1, 2, 3, 4, 5, 6]:
 											if layer in layers: continue
-											closestRHPosXDiff = float('inf')
+											closestRHPosDiff = float('inf')
 											fillVal = float('inf')
 											time = float('inf')
 											for rh in rechits:
-												if rh.layer == layer and Aux.inPad(30, rh.wireGroup, CHAM):
-													D = rh.pos['x']-seg.pos[layer]['x']
-													if abs(D) < closestRHPosXDiff:
-														closestRHPosXDiff = abs(D)
+												if rh.layer == layer:
+													#D = rh.pos['x']-seg.pos[layer]['x']
+													D = ((rh.pos['x']-seg.pos[layer]['x'])**2. + (rh.pos['y']-seg.pos[layer]['y'])**2.)**0.5
+													if abs(D) < closestRHPosDiff:
+														closestRHPosDiff = abs(D)
 														fillVal = D
 														time = rh.time
-											self.HISTS[CHAM][MEAS]['ML'].Fill(fillVal)
+											if abs(fillVal) <= 0.8:
+												pass
+												#print MEAS, (CHAM/110+1), IDX, t.Event_EventNumber
+											#if inTime(time, CHAM):
+											if True:
+												self.HISTS[CHAM][MEAS]['ML'].Fill(fillVal)
 											self.HISTS[CHAM][MEAS]['2D'].Fill(fillVal, time)
 					f.Close()
 					for CHAM in CHAMLIST:
@@ -154,10 +182,11 @@ class MegaStruct():
 
 		# for obtaining data dictionary from a file
 		else:
-			MIN = -6.
-			MAX = 6.
-			BINS = int((MAX-MIN)/((CMAX-CMIN)/CBINS))/16
+			MIN = 0.
+			MAX = 10.
+			BINS = int((MAX-MIN)/((CMAX-CMIN)/CBINS))/32
 			f = R.TFile.Open(F_DATAFILE)
+			#for ATT in [22.]:
 			for ATT in self.MEASDATA.keys():
 				for MEAS in self.MEASDATA[ATT][0:1]: # only interested in Original for now
 					for CHAM in CHAMLIST:
@@ -193,8 +222,8 @@ data = MegaStruct()
 ##### MAKEPLOT FUNCTIONS #####
 def makeDistPlot(cham, hists, xtitle, ytitle, title):
 
-	hists['ML'].Scale(1./hists['ML'].GetEntries())
-	hists['IS'].Scale(1./hists['IS'].GetEntries())
+	#hists['ML'].Scale(1./hists['ML'].GetEntries())
+	#hists['IS'].Scale(1./hists['IS'].GetEntries())
 
 	hML = hists['ML']
 	hIS = hists['IS']
@@ -205,25 +234,23 @@ def makeDistPlot(cham, hists, xtitle, ytitle, title):
 	plots['IS'] = Plotter.Plot(hIS, legName='In Segment'   , legType='l', option='hist')
 
 	# Step 2
-	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=True, extra='Internal', cWidth=800, cHeight=700)
+	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
 
 	# Step 3
 	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='tl', lOffset=0.04, fontsize=0.03)
 
 	# Step 4
-	canvas.addMainPlot(plots['IS'], isFirst=True, addToLegend=True)
-	canvas.addMainPlot(plots['ML'], isFirst=False , addToLegend=True)
+	canvas.addMainPlotExp(plots['IS'])
+	canvas.addMainPlotExp(plots['ML'])
 
 	# Step 5
-	aplot = plots['ML']
-
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	aplot.setTitles(X=xtitle, Y=ytitle)
-	#aplot.plot.SetMinimum(0.0)
-	#aplot.plot.SetMaximum(1.1)
-	aplot.scaleTitles(0.8)
-	aplot.scaleLabels(0.8)
-	aplot.scaleTitleOffsets(1.2, 'Y')
+	canvas.firstPlot.setTitles(X=xtitle, Y=ytitle)
+	#canvas.firstPlot.plot.SetMinimum(0.0)
+	#canvas.firstPlot.plot.SetMaximum(1.1)
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
+	canvas.firstPlot.scaleTitleOffsets(1.2, 'Y')
 	canvas.makeTransparent()
 
 	plots['ML'].plot.SetLineColor(R.kRed)
@@ -312,23 +339,22 @@ def make2DPlot(cham, hists, xtitle, ytitle, title):
 	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='tl', lOffset=0.04, fontsize=0.03)
 
 	# Step 4
-	canvas.addMainPlot(plots['2D'], isFirst=True, addToLegend=False)
-	canvas.addMainPlot(plots['2S'], isFirst=False, addToLegend=False)
+	canvas.addMainPlotExp(plots['2S'])
+	canvas.addMainPlotExp(plots['2D'])
 
 	# Step 5
-	aplot = plots['2D']
 
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	aplot.setTitles(X=xtitle, Y=ytitle)
-	#aplot.plot.SetMinimum(0.0)
-	#aplot.plot.SetMaximum(1.1)
-	aplot.scaleTitles(0.8, axes='XYZ')
-	aplot.scaleLabels(0.8, axes='XYZ')
-	aplot.scaleTitleOffsets(1.2, 'Y')
-	aplot.plot.SetMarkerSize(1)
-	aplot.plot.SetMarkerColor(R.kRed)
+	canvas.firstPlot.setTitles(X=xtitle, Y=ytitle)
+	#canvas.firstPlot.plot.SetMinimum(0.0)
+	#canvas.firstPlot.plot.SetMaximum(1.1)
+	canvas.firstPlot.scaleTitles(0.8, axes='XYZ')
+	canvas.firstPlot.scaleLabels(0.8, axes='XYZ')
+	canvas.firstPlot.scaleTitleOffsets(1.2, 'Y')
+	canvas.firstPlot.plot.SetMarkerSize(1)
 	canvas.makeTransparent()
 
+	plots['2D'].plot.SetMarkerColor(R.kRed)
 	plots['2S'].plot.SetMarkerColor(R.kBlue)
 
 	att = [key for key in data.MEASDATA.keys() if int(title) in data.MEASDATA[key]][0]
