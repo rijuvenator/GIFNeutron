@@ -17,19 +17,20 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-F_DATAFILE = '../datafiles/data_compStripEff'
+#F_DATAFILE = '../datafiles/data_compStripEff'
+F_DATAFILE = 'data_compStripEff'
 #F_DATAFILE = None
 
 # Cosmetic data dictionary, comment out for fewer ones
 pretty = {
 	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
-	#1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
-	#2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-	#3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
-	#4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
-	#5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
-	#6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
-	#7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
+	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
+	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
 ##### BEGIN CODE #####
@@ -97,7 +98,7 @@ class MegaStruct():
 		self.denominator = { 1 : {}, 110: {} }
 		if F_DATAFILE is None:
 			for ATT in self.MEASDATA.keys():
-				for MEAS in self.MEASDATA[ATT][0:1]:
+				for MEAS in self.MEASDATA[ATT]:
 					for cham in CHAMLIST:
 						self.numerator[cham][MEAS] = 0
 						self.denominator[cham][MEAS] = 0
@@ -120,29 +121,30 @@ class MegaStruct():
 								if lct.cham is not cham: continue
 								stripsNearLCT = {1:[],2:[],3:[],4:[],5:[],6:[]}
 								compsInLCT    = {1:[],2:[],3:[],4:[],5:[],6:[]}
+								# Loop on strips to find ones close to a LCT
 								for strip in strips:
 									if strip.cham is not cham: continue
+									# Need maximum pedestal corrected adc count to be above threshold
 									ped = float(strip.ADC[0]+strip.ADC[1])/2
 									if max([adc-ped for adc in strip.ADC[2:]]) > 13.3: 
-										# Build dictionary of strips that are near to a LCT pattern
 										if self.stripNearLCT(strip,lct): 
+											# append strip number info per layer
 											stripsNearLCT[strip.layer].append(strip.number)
+								# Loop on comparators to find ones close to a LCT
 								for comp in comps:
 									if comp.cham is not cham: continue
-									# Check if comp is near strip data
-									# Build a dictionary of comps that are near to strips near to a LCT pattern
 									if Aux.inLCTPattern(lct,comp):
+										# append strip number info per layer
 										compsInLCT[comp.layer].append(int(comp.strip))
+								# Determine if a strip and comparator are near each other on a per layer basis
 								for lay in stripsNearLCT.keys():
-									#print lay, stripsNearLCT[lay], compsInLCT[lay]
-									# Add to denominator for each layer that has strip data
-									# Need at least two strips to make a comparator
+									# Need at least one strip to make a comparator
 									if len(stripsNearLCT[lay])>0:
+										# Add to denominator since there's a layer with strip data
 										self.denominator[cham][MEAS] += 1
-										# Add to numerator for each layer that has a comp near strip data
-										#if len(compsInLCT[lay])>0:
 										for compStripInLCT in compsInLCT[lay]:
 											if compStripInLCT in stripsNearLCT[lay]:
+												# Add to numerator for each layer that has a comp near strip data
 												self.numerator[cham][MEAS] += 1
 
 					print MEAS,ATT,
@@ -254,7 +256,7 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/compStripEff_ME'+str(cham)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('test/compStripEff_ME'+str(cham)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ##### MAKE PLOTS #####
@@ -264,6 +266,6 @@ for cham in CHAMLIST:
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.effVector (cham, ff) for ff in pretty.keys()],
 		'Luminosity [Hz/cm^{2}]',
-		'Comparator/Strip Efficiency',
+		'Comparator-Strip Efficiency',
 		'lumi'
 	)
