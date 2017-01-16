@@ -18,19 +18,20 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-F_DATAFILE = '../datafiles/data_compSegRes'
-#F_DATAFILE = None
+#F_DATAFILE = '../datafiles/data_compSegRes'
+#F_DATAFILE = 'data_compSegRes'
+F_DATAFILE = None
 
 # Cosmetic data dictionary, comment out for fewer ones
 pretty = {
 	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
-	#1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
-	#2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-	#3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
-	#4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
-	#5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
-	#6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
-	#7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
+	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
+	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
 ##### BEGIN CODE #####
@@ -98,7 +99,7 @@ class MegaStruct():
 		self.mean = { 1 : {}, 110 : {} }
 		if F_DATAFILE is None:
 			for ATT in self.MEASDATA.keys():
-				for MEAS in self.MEASDATA[ATT][0:1]:
+				for MEAS in self.MEASDATA[ATT]:
 					for cham in CHAMLIST:
 						self.mean[cham][MEAS] = 0
 						self.resolution[cham][MEAS] = 0
@@ -138,7 +139,8 @@ class MegaStruct():
 											if comp.cham is not cham: continue
 											if comp.layer is not lay: continue
 											# -2 offset because comparator hs starts counting from 1
-											CompSegDist = comp.staggeredHalfStrip-seg.staggeredHalfStrip[lay]-2
+											# Divide by 2 to convert to strip units
+											CompSegDist = (comp.staggeredHalfStrip-seg.staggeredHalfStrip[lay]-2)/2.
 											if abs(CompSegDist) < minDist:
 												minDist = abs(CompSegDist)
 												minCompSegDist[lay] = CompSegDist
@@ -170,19 +172,19 @@ class MegaStruct():
 			f = open(F_DATAFILE)
 			for line in f:
 				cols = line.strip('\n').split()
-				MEAS = cols[0]
-				self.mean[1][MEAS] = cols[3]
-				self.resolution[1][MEAS] = cols[4]
-				self.mean[110][MEAS] = cols[5]
-				self.resolution[110][MEAS] = cols[6]
+				MEAS = int(cols[0])
+				self.mean[1][MEAS] = cols[2]
+				self.resolution[1][MEAS] = cols[3]
+				self.mean[110][MEAS] = cols[4]
+				self.resolution[110][MEAS] = cols[5]
 
 	# get a value given a chamber and measurement number
-	def mean(self, cham, meas):
+	def meanValue(self, cham, meas):
 		return float(self.mean[cham][meas])
 
 	# get a vector of values
-	def meanVector(self, cham, ff):
-		return np.array([self.mean(cham, self.MEASDATA[att][ff]) for att in self.attVector()])
+	def meanValueVector(self, cham, ff):
+		return np.array([self.meanValue(cham, self.MEASDATA[att][ff]) for att in self.attVector()])
 	
 	# get a value given a chamber and measurement number
 	def res(self, cham, meas):
@@ -223,7 +225,10 @@ def makePlot(cham, x, y, xtitle, ytitle, title, name):
 	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
 
 	# Step 3
-	canvas.makeLegend(lWidth=0.2, lHeight=0.25, pos='bl', lOffset=0.04, fontsize=0.03)
+	if name=='Res':
+		canvas.makeLegend(lWidth=0.2, lHeight=0.25, pos='br', lOffset=0.04, fontsize=0.03)
+	else:
+		canvas.makeLegend(lWidth=0.2, lHeight=0.25, pos='bl', lOffset=0.04, fontsize=0.03)
 
 	# Step 4
 	for i in range(ntypes):
@@ -232,9 +237,9 @@ def makePlot(cham, x, y, xtitle, ytitle, title, name):
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
 	plots[0].setTitles(X=xtitle, Y=ytitle)
-	if name=='res':
+	if name=='Res':
 		graphs[0].SetMinimum(0.0)
-		graphs[0].SetMaximum(15.0)
+		graphs[0].SetMaximum(20.0)
 	else:
 		graphs[0].SetMinimum(-5.0)
 		graphs[0].SetMaximum(5.0)
@@ -254,7 +259,7 @@ def makePlot(cham, x, y, xtitle, ytitle, title, name):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/compStrip'+name+'_ME'+str(cham)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('pdfs/compSeg'+name+'_ME'+str(cham)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ##### MAKE PLOTS #####
@@ -266,14 +271,14 @@ for cham in CHAMLIST:
 		'Luminosity [Hz/cm^{2}]',
 		'Comparator-Segment Resolution',
 		'lumi',
-		'res'
+		'Res'
 	)
 	makePlot(\
 		cham if cham == 1 else 2,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
-		[data.meanVector (cham, ff) for ff in pretty.keys()],
+		[data.meanValueVector (cham, ff) for ff in pretty.keys()],
 		'Luminosity [Hz/cm^{2}]',
 		'Comparator-Segment Mean',
 		'lumi',
-		'mean'
+		'Mean'
 	)
