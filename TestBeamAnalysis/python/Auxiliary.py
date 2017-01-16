@@ -11,11 +11,35 @@ def inPad(hs, wg, CHAM):
 		return False
 
 # determines if a segment and an lct match each other
-def matchSegLCT(seg, lct, layer=3, thresh=(2, 1)):
-	if abs(seg.halfStrip[layer] - lct.keyHalfStrip) <= thresh[0] and abs(seg.wireGroup[layer] - lct.keyWireGroup) <= thresh[1]:
-		return True
+def matchSegLCT(seg, lct, layer=3, thresh=(2, 1), old=True):
+	if old:
+		if abs(seg.halfStrip[layer] - lct.keyHalfStrip) <= thresh[0] and abs(seg.wireGroup[layer] - lct.keyWireGroup) <= thresh[1]:
+			return True
+		else:
+			return False
 	else:
-		return False
+		id_ = lct.pattern
+		khs = lct.keyHalfStrip
+		pat = {\
+			2  : {6:[khs-5, khs-4, khs-3], 5:[khs-4, khs-3, khs-2], 4:[khs-2, khs-1, khs], 3:[khs], 2:[khs+1, khs+2], 1:[khs+3, khs+4, khs+5]},
+			3  : {1:[khs-5, khs-4, khs-3], 2:[khs-2, khs-1], 3:[khs], 4:[khs, khs+1, khs+2], 5:[khs+2, khs+3, khs+4], 6:[khs+3, khs+4, khs+5]},
+			4  : {6:[khs-4, khs-3, khs-2], 5:[khs-4, khs-3, khs-2], 4:[khs-2, khs-1], 3:[khs], 2:[khs+1, khs+2], 1:[khs+2, khs+3, khs+4]},
+			5  : {1:[khs-4, khs-3, khs-2], 2:[khs-2, khs-1], 3:[khs], 4:[khs+1, khs+2], 5:[khs+2, khs+3, khs+4], 6:[khs+2, khs+3, khs+4]},
+			6  : {6:[khs-3, khs-2, khs-1], 5:[khs-2, khs-1], 4:[khs-1, khs], 3:[khs], 2:[khs, khs+1], 1:[khs+1, khs+2, khs+3]},
+			7  : {1:[khs-3, khs-2, khs-1], 2:[khs-1, khs], 3:[khs], 4:[khs, khs+1], 5:[khs+1, khs+2], 6:[khs+1, khs+2, khs+3]},
+			8  : {6:[khs-2, khs-1, khs], 5:[khs-2, khs-1, khs], 4:[khs-1, khs], 3:[khs], 2:[khs, khs+1], 1:[khs, khs+1, khs+2]},
+			9  : {1:[khs-2, khs-1, khs], 2:[khs-1, khs], 3:[khs], 4:[khs, khs+1], 5:[khs, khs+1, khs+2], 6:[khs, khs+1, khs+2]},
+			10 : {6:[khs-1, khs, khs+1], 5:[khs-1, khs, khs+1], 4:[khs], 3:[khs], 2:[khs], 1:[khs-1, khs, khs+1]}
+		}
+
+		layerHalfStripCount = 0
+		for lay in range(1, 7):
+			layerHalfStripCount += min(abs(seg.halfStrip[1] - x) for x in pat[id_][lay]) <= thresh[0]
+
+		if layerHalfStripCount >= 3 and abs(seg.wireGroup[3] - lct.keyWireGroup) <= thresh[1]:
+			return True
+		else:
+			return False
 
 def inLCTPattern(lct,comp):
 	id_ = lct.pattern

@@ -36,7 +36,7 @@ OUTDIR = args.OUTDIR
 
 # Which displays to plot
 DOPATTERN  = True
-DOSEGMENTS = True
+DOSEGMENTS = False
 DOSCINT    = True
 DRAWZTITLE = True
 
@@ -188,7 +188,7 @@ for MEAS in MEASLIST:
 				segGraphs = []
 				for seg in SegDrawList:
 					segGraphs.append({})
-					hsX = np.array([seg.staggeredHalfStrip[lay]+1.0 for lay in SEGLAYERS])
+					hsX = np.array([seg.staggeredHalfStrip[lay]+1.5 for lay in SEGLAYERS])
 					stX = np.array([seg.staggeredStrip    [lay]+0.5 for lay in SEGLAYERS])
 					wgX = np.array([seg.wireGroup         [lay] for lay in SEGLAYERS])
 					segGraphs[-1]['hs'] = {'fill' : R.TGraph(len(layZ), hsX, layZ), 'empt' : R.TGraph(len(layZ), hsX, layZ), 'pad' : 1}
@@ -205,8 +205,8 @@ for MEAS in MEASLIST:
 							gr[key][which].SetLineWidth(3)
 							gr[key][which].SetLineColor(R.kBlue)
 						canvas.pads[gr[key]['pad']].cd()
-						gr[key]['fill'].Draw('L same')
-						gr[key]['empt'].Draw('L same')
+						gr[key]['fill'].Draw('P same')
+						gr[key]['empt'].Draw('P same')
 
 			# Scintillator region
 			if DOSCINT:

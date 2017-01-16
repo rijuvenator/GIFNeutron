@@ -39,6 +39,7 @@ class ETree():
 			self.rh_nStrips   = [ord(x) for x in list(t.rh_n_strips)]
 			self.rh_wireGroup = [ord(x) for x in list(t.rh_wireGrp)]
 			self.rh_energy    = list(t.rh_energy)
+			self.rh_time      = list(t.rh_time)
 
 		if 'LCT' in DecList:
 			self.lct_cham         = list(t.lct_id)
@@ -107,6 +108,7 @@ class RecHit():
 		self.nStrips   = t.rh_nStrips[i]
 		self.wireGroup = t.rh_wireGroup[i]
 		self.energy    = t.rh_energy[i]
+		self.time      = t.rh_time[i]
 
 		self.halfStrip = (self.strips[0 if self.nStrips == 1 else 1] + self.posStrip) * 2
 
