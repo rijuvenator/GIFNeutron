@@ -68,7 +68,7 @@ class MegaStruct():
 		# Fill dictionary connecting chamber, measurement number, and efftype to efficiency value
 		for att in self.FFFMeas.keys():
 			for ff,meas in enumerate(self.FFFMeas[att]):
-				f = R.TFile.Open('../trees/ana_'+str(meas)+'.root')
+				f = R.TFile.Open('../../trees/ana_'+str(meas)+'.root')
 				t = f.Get('GIFTree/GIFDigiTree')
 				rh_e1 = R.TH1F('rh_e1','',100,0,1500)
 				rh_e2 = R.TH1F('rh_e2','',100,0,1500)

@@ -17,7 +17,7 @@ h = {}
 h[1  ] = R.TH2F('h1','',xmax[0]-xmin[0],xmin[0],xmax[0],ymax[0]-ymin[0],ymin[0],ymax[0])
 h[110] = R.TH2F('h2','',xmax[1]-xmin[1],xmin[1],xmax[1],ymax[1]-ymin[1],ymin[1],ymax[1])
 
-f = R.TFile.Open('../trees/ana_3284.root')
+f = R.TFile.Open('../../trees/ana_3284.root')
 t = f.Get('GIFTree/GIFDigiTree')
 for entry in t:
 	E = Primitives.ETree(t, DecList=['LCT'])

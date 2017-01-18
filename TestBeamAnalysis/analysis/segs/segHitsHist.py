@@ -80,7 +80,7 @@ class MegaStruct():
 		if F_DATAFILE is None:
 			for ATT in self.MEASDATA.keys():
 				for MEAS in self.MEASDATA[ATT][0:1]: # I only cared about Original for this plot
-					f = R.TFile.Open('../trees/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					# indexed by meas, cham, and nHits; 0 for total (just for fewer lines of code; it's less readable fasho)
 					self.VALDATA[MEAS] = {1:{0:0, 3:0, 4:0, 5:0, 6:0}, 110:{0:0, 3:0, 4:0, 5:0, 6:0}}

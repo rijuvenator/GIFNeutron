@@ -101,7 +101,7 @@ class MegaStruct():
 					for cham in CHAMLIST:
 						self.numerator[cham][MEAS] = 0
 						self.denominator[cham][MEAS] = 0
-					f = R.TFile.Open('../trees/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					DecList = ['STRIP','WIRE','RECHIT','LCT']
 					for entry in t:

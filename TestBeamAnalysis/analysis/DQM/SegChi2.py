@@ -20,7 +20,7 @@ CHIMAX = 5
 h = {}
 p = {}
 for MEAS in MEASLIST:
-	f = R.TFile.Open('../trees/ana_'+str(MEAS)+'.root')
+	f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
 	t = f.Get('GIFTree/GIFDigiTree')
 
 	h[MEAS] = {1: {}, 110: {}}

@@ -92,7 +92,7 @@ class MegaStruct():
 		if F_DATAFILE is None:
 			for ATT in self.MEASDATA.keys():
 				for MEAS in self.MEASDATA[ATT][0:1]: # only original
-					f = R.TFile.Open('../trees/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					nSeg       = {1:0, 110:0}
 					nNHits     = {1:0, 110:0}
