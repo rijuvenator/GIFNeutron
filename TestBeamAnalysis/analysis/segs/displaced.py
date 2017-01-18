@@ -12,9 +12,9 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-F_DATAFILE = None
-#F_DATAFILE = '../datafiles/data_segrh.root'
-F_OUT = R.TFile('../datafiles/data_segrh.root', 'RECREATE')
+#F_DATAFILE = None
+F_DATAFILE = '../datafiles/data_segrh.root'
+#F_OUT = R.TFile('../datafiles/data_segrh.root', 'RECREATE')
 
 # Cosmetic data dictionary, comment out for fewer ones
 #pretty = {
@@ -214,9 +214,9 @@ class MegaStruct():
 							'2M' : h2M.Rebin2D(BINS, 5, 'hN2M'+str(CHAM)+str(MEAS)),
 							'2S' : h2S.Rebin2D(BINS, 5, 'hN2S'+str(CHAM)+str(MEAS)),
 							'SM' : hSM.Rebin2D(50, 50, 'hNSM'+str(CHAM)+str(MEAS)),
-							'SS' : hSS.Rebin2D(50, 50, 'hNSM'+str(CHAM)+str(MEAS)),
-							'TM' : hSM.Rebin2D(50, 50, 'hNTM'+str(CHAM)+str(MEAS)),
-							'TS' : hSS.Rebin2D(50, 50, 'hNTM'+str(CHAM)+str(MEAS)),
+							'SS' : hSS.Rebin2D(50, 50, 'hNSS'+str(CHAM)+str(MEAS)),
+							'TM' : hTM.Rebin(50, 'hNTM'+str(CHAM)+str(MEAS), np.array([-200 + i*400/float(50) for i in range(50+1)])),
+							'TS' : hTS.Rebin(50, 'hNTS'+str(CHAM)+str(MEAS), np.array([-200 + i*400/float(50) for i in range(50+1)])),
 						}
 						self.HISTS[CHAM][MEAS]['ML'].SetDirectory(0)
 						self.HISTS[CHAM][MEAS]['IS'].SetDirectory(0)
@@ -264,8 +264,8 @@ def makeDistPlot(cham, hists, xtitle, ytitle, title):
 	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='tl', lOffset=0.04, fontsize=0.03)
 
 	# Step 4
-	canvas.addMainPlotExp(plots['IS'])
-	canvas.addMainPlotExp(plots['ML'])
+	canvas.addMainPlot(plots['IS'])
+	canvas.addMainPlot(plots['ML'])
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
@@ -282,15 +282,11 @@ def makeDistPlot(cham, hists, xtitle, ytitle, title):
 	plots['IS'].plot.SetLineColor(R.kBlue)
 
 	att = [key for key in data.MEASDATA.keys() if int(title) in data.MEASDATA[key]][0]
-	text = R.TLatex()
-	text.SetTextAlign(11)
-	text.SetTextFont(42)
-	text.SetTextSize(0.04)
-	text.DrawLatexNDC(.70, .80, 'A = {:.1f}'.format(att) if att < float('inf') else 'A = off')
-	text.DrawLatexNDC(.75, .75, '#color[2]{#mu:'    + '{:.4f}'.format(plots['ML'].plot.GetMean())   + '}')
-	text.DrawLatexNDC(.75, .70, '#color[2]{#sigma:' + '{:.4f}'.format(plots['ML'].plot.GetStdDev()) + '}')
-	text.DrawLatexNDC(.75, .65, '#color[4]{#mu:'    + '{:.4f}'.format(plots['IS'].plot.GetMean())   + '}')
-	text.DrawLatexNDC(.75, .60, '#color[4]{#sigma:' + '{:.4f}'.format(plots['IS'].plot.GetStdDev()) + '}')
+	canvas.drawText(text='A = {:.1f}'.format(att) if att < float('inf') else 'A = off'            , pos=(.70, .80))
+	canvas.drawText(text='#color[2]{#mu:'    + '{:.4f}'.format(plots['ML'].plot.GetMean())   + '}', pos=(.70, .75))
+	canvas.drawText(text='#color[2]{#sigma:' + '{:.4f}'.format(plots['ML'].plot.GetStdDev()) + '}', pos=(.70, .70))
+	canvas.drawText(text='#color[4]{#mu:'    + '{:.4f}'.format(plots['IS'].plot.GetMean())   + '}', pos=(.70, .65))
+	canvas.drawText(text='#color[4]{#sigma:' + '{:.4f}'.format(plots['IS'].plot.GetStdDev()) + '}', pos=(.70, .60))
 
 	ft = str(list(data.attVector()).index(att))
 
@@ -320,8 +316,8 @@ def makeTimePlot(cham, hists, xtitle, ytitle, title):
 	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='tl', lOffset=0.04, fontsize=0.03)
 
 	# Step 4
-	canvas.addMainPlotExp(plots['TS'])
-	canvas.addMainPlotExp(plots['TM'])
+	canvas.addMainPlot(plots['TS'])
+	canvas.addMainPlot(plots['TM'])
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
@@ -338,15 +334,11 @@ def makeTimePlot(cham, hists, xtitle, ytitle, title):
 	plots['TS'].plot.SetLineColor(R.kBlue)
 
 	att = [key for key in data.MEASDATA.keys() if int(title) in data.MEASDATA[key]][0]
-	text = R.TLatex()
-	text.SetTextAlign(11)
-	text.SetTextFont(42)
-	text.SetTextSize(0.04)
-	text.DrawLatexNDC(.70, .80, 'A = {:.1f}'.format(att) if att < float('inf') else 'A = off')
-	text.DrawLatexNDC(.75, .75, '#color[2]{#mu:'    + '{:.4f}'.format(plots['TM'].plot.GetMean())   + '}')
-	text.DrawLatexNDC(.75, .70, '#color[2]{#sigma:' + '{:.4f}'.format(plots['TM'].plot.GetStdDev()) + '}')
-	text.DrawLatexNDC(.75, .65, '#color[4]{#mu:'    + '{:.4f}'.format(plots['TS'].plot.GetMean())   + '}')
-	text.DrawLatexNDC(.75, .60, '#color[4]{#sigma:' + '{:.4f}'.format(plots['TS'].plot.GetStdDev()) + '}')
+	canvas.drawText(text='A = {:.1f}'.format(att) if att < float('inf') else 'A = off'            , pos=(.70, .80))
+	canvas.drawText(text='#color[2]{#mu:'    + '{:.4f}'.format(plots['TM'].plot.GetMean())   + '}', pos=(.70, .75))
+	canvas.drawText(text='#color[2]{#sigma:' + '{:.4f}'.format(plots['TM'].plot.GetStdDev()) + '}', pos=(.70, .70))
+	canvas.drawText(text='#color[4]{#mu:'    + '{:.4f}'.format(plots['TS'].plot.GetMean())   + '}', pos=(.70, .65))
+	canvas.drawText(text='#color[4]{#sigma:' + '{:.4f}'.format(plots['TS'].plot.GetStdDev()) + '}', pos=(.70, .60))
 
 	ft = str(list(data.attVector()).index(att))
 
@@ -366,7 +358,7 @@ def makeLumiPlot(cham, x, y, xtitle, ytitle, title):
 
 	# Step 1
 	plots = {}
-	plots['ML'] = Plotter.Plot(gML, legName='Missing Layer', legType='p', option='AP')
+	plots['ML'] = Plotter.Plot(gML, legName='Missing Layer', legType='p', option='P')
 	plots['IS'] = Plotter.Plot(gIS, legName='In Segment'   , legType='p', option='P')
 
 	# Step 2
@@ -376,19 +368,17 @@ def makeLumiPlot(cham, x, y, xtitle, ytitle, title):
 	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='tl', lOffset=0.04, fontsize=0.03)
 
 	# Step 4
-	canvas.addMainPlot(plots['ML'], isFirst=True , addToLegend=True)
-	canvas.addMainPlot(plots['IS'], isFirst=False, addToLegend=True)
+	canvas.addMainPlot(plots['ML'], addToLegend=True)
+	canvas.addMainPlot(plots['IS'], addToLegend=True)
 
 	# Step 5
-	aplot = plots['ML']
-
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	aplot.setTitles(X=xtitle, Y=ytitle)
-	aplot.plot.SetMinimum(0.0)
-	aplot.plot.SetMaximum(3.5)
-	aplot.scaleTitles(0.8)
-	aplot.scaleLabels(0.8)
-	aplot.scaleTitleOffsets(1.2, 'Y')
+	canvas.firstPlot.setTitles(X=xtitle, Y=ytitle)
+	canvas.firstPlot.plot.SetMinimum(0.0)
+	canvas.firstPlot.plot.SetMaximum(3.5)
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
+	canvas.firstPlot.scaleTitleOffsets(1.2, 'Y')
 	canvas.makeTransparent()
 
 	plots['ML'].plot.SetMarkerColor(R.kRed)
@@ -414,14 +404,14 @@ def make2DPlot(cham, hists, xtitle, ytitle, meas, suffix):
 	plots['2S'] = Plotter.Plot(h2S, legName='In Segment'   , legType='l', option='hist')
 
 	# Step 2
-	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
+	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=1600, cHeight=1400)
 
 	# Step 3
 	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='br', lOffset=0.04, fontsize=0.03)
 
 	# Step 4
-	canvas.addMainPlotExp(plots['2S'], addToLegend=False)
-	canvas.addMainPlotExp(plots['2M'], addToLegend=False)
+	canvas.addMainPlot(plots['2S'], addToLegend=False)
+	canvas.addMainPlot(plots['2M'], addToLegend=False)
 
 	# Step 5
 	R.gStyle.SetPalette(55)
@@ -442,11 +432,7 @@ def make2DPlot(cham, hists, xtitle, ytitle, meas, suffix):
 	plots['2S'].plot.SetLineColor(R.kBlue)
 
 	att = [key for key in data.MEASDATA.keys() if int(meas) in data.MEASDATA[key]][0]
-	text = R.TLatex()
-	text.SetTextAlign(11)
-	text.SetTextFont(42)
-	text.SetTextSize(0.04)
-	text.DrawLatexNDC(.7, .80, 'A = {:.1f}'.format(att) if att < float('inf') else 'A = off')
+	canvas.drawText(text='A = {:.1f}'.format(att) if att < float('inf') else 'A = off', pos=(.70, .80))
 
 	ft = str(list(data.attVector()).index(att))
 

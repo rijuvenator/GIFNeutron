@@ -149,7 +149,7 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 
 	plots = []
 	for i, p in enumerate(pretty.keys()):
-		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'p', 'AP' if i==0 else 'P'))
+		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'p', 'P'))
 
 	# Step 2
 	canvas = Plotter.Canvas('ME'+str(cham)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
@@ -159,17 +159,16 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 
 	# Step 4
 	for i in range(ntypes):
-		canvas.addMainPlot(plots[i], i==0, True)
+		canvas.addMainPlot(plots[i])
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	graphs[0].GetYaxis().SetTitle(ytitle)
-	graphs[0].GetXaxis().SetTitle(xtitle)
-	graphs[0].SetMinimum(0.0)
-	graphs[0].SetMaximum(1.1)
-	plots[0].scaleTitles(0.8)
-	plots[0].scaleLabels(0.8)
-	graphs[0].GetYaxis().SetTitleOffset(graphs[0].GetYaxis().GetTitleOffset() * 1.2)
+	canvas.firstPlot.plot.SetMinimum(0.0)
+	canvas.firstPlot.plot.SetMaximum(1.1)
+	canvas.firstPlot.setTitles(X=xtitle, Y=ytitle)
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
+	canvas.firstPlot.scaleTitleOffsets(1.2, 'Y')
 	canvas.makeTransparent()
 
 	for i,p in enumerate(pretty.keys()):

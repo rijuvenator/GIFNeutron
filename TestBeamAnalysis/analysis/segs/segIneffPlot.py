@@ -180,21 +180,17 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 
 	# Step 4
 	for i in reversed(range(n)): # add in reverse order so that the fills will look nice
-		if i == 4:
-			plots[i].option = 'AF'
-			canvas.addMainPlot(plots[i], isFirst=True, addToLegend=False)
-		else:
-			canvas.addMainPlot(plots[i], isFirst=False, addToLegend=False)
+		canvas.addMainPlot(plots[i], addToLegend=False)
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	plots[4].setTitles(X=xtitle, Y=ytitle)
-	graphs[4].SetMinimum(0.0)
-	graphs[4].SetMaximum(1.0)
-	graphs[4].GetXaxis().SetRangeUser(0., x[i][0])
-	plots[4].scaleTitles(0.8)
-	plots[4].scaleLabels(0.8)
-	plots[4].scaleTitleOffsets(1.2, 'Y')
+	canvas.firstPlot.setTitles(X=xtitle, Y=ytitle)
+	canvas.firstPlot.plot.SetMinimum(0.0)
+	canvas.firstPlot.plot.SetMaximum(1.0)
+	canvas.firstPlot.plot.GetXaxis().SetRangeUser(0., x[i][0])
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
+	canvas.firstPlot.scaleTitleOffsets(1.2, 'Y')
 	canvas.makeTransparent()
 
 	# set colors
@@ -212,17 +208,6 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 		graphs[i].SetLineColor  (colors[i])
 		graphs[i].SetFillColor  (colors[i])
 	
-	# write on the plot
-	'''
-	text = R.TLatex()
-	text.SetTextAlign(11)
-	text.DrawLatexNDC(.7, .16, '#color[0]{Segment outside scintillator}')
-	text.DrawLatexNDC(.7, .33, '#color[0]{Chamber not read out}')
-	text.DrawLatexNDC(.7, .50, '#color[0]{No Wire Group Hits}')
-	text.DrawLatexNDC(.7, .67, '#color[0]{No Strip Hits}')
-	text.DrawLatexNDC(.7, .83, '#color[0]{No RecHits Made}')
-	'''
-
 	# Step 6
 
 	# Step 7

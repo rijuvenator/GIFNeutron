@@ -156,7 +156,7 @@ class MegaStruct():
 		#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 		#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
 		#  3) call Plotter.Canvas.makeLegend(lWidth=0.125, lHeight=0.2, pos="tr", lOffset=0.02, fontsize=0.04)
-		#  4) call Plotter.Canvas.addMainPlot(Plot, isFirst, addToLegend)
+		#  4) call Plotter.Canvas.addMainPlot(Plot, addToLegend)
 		#  5) apply any cosmetic commands here
 		# *6) call Plotter.Canvas.addLegendEntry(Plot)
 		# *7) call Plotter.Canvas.makeRatioPlot(top, bottom, plusminus, option, ytit, xtit)
@@ -165,9 +165,6 @@ class MegaStruct():
 		# * = optional; if addToLegend is always true, and/or if no ratio plot needed (ratioFactor = 0), neither of these steps are required
 		#
 		# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
-		#
-		# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
-		# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
 		#
 
 		# Step 1
@@ -183,7 +180,7 @@ class MegaStruct():
 		canvas.makeLegend()
 
 		# Step 4
-		canvas.addMainPlot(plot, True, False)
+		canvas.addMainPlot(plot, False)
 
 		# Step 5
 		R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
@@ -210,7 +207,7 @@ class MegaStruct():
 		#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 		#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
 		#  3) call Plotter.Canvas.makeLegend(lWidth=0.125, lHeight=0.2, pos="tr", lOffset=0.02, fontsize=0.04)
-		#  4) call Plotter.Canvas.addMainPlot(Plot, isFirst, addToLegend)
+		#  4) call Plotter.Canvas.addMainPlot(Plot, addToLegend)
 		#  5) apply any cosmetic commands here
 		# *6) call Plotter.Canvas.addLegendEntry(Plot)
 		# *7) call Plotter.Canvas.makeRatioPlot(top, bottom, plusminus, option, ytit, xtit)
@@ -219,9 +216,6 @@ class MegaStruct():
 		# * = optional; if addToLegend is always true, and/or if no ratio plot needed (ratioFactor = 0), neither of these steps are required
 		#
 		# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
-		#
-		# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
-		# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
 		#
 
 		# Step 1
@@ -252,7 +246,7 @@ class MegaStruct():
 		canvas.makeLegend()
 
 		# Step 4
-		canvas.addMainPlot(stackPlot, True, False)
+		canvas.addMainPlot(stackPlot, False)
 
 		# Step 5
 		R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")

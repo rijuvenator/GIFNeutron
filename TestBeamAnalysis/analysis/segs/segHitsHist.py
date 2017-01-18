@@ -171,21 +171,17 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 
 	# Step 4
 	for i in reversed(range(n)): # add in reverse order so that the fills will look nice
-		if i == 3:
-			plots[i].option = 'AF'
-			canvas.addMainPlot(plots[i], isFirst=True, addToLegend=False)
-		else:
-			canvas.addMainPlot(plots[i], isFirst=False, addToLegend=False)
+		canvas.addMainPlot(plots[i], addToLegend=False)
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	plots[3].setTitles(X=xtitle, Y=ytitle)
-	graphs[3].SetMinimum(0.0)
-	graphs[3].SetMaximum(1.0)
-	graphs[3].GetXaxis().SetRangeUser(0., x[i][0])
-	plots[3].scaleTitles(0.8)
-	plots[3].scaleLabels(0.8)
-	plots[3].scaleTitleOffsets(1.2, 'Y')
+	canvas.firstPlot.setTitles(X=xtitle, Y=ytitle)
+	canvas.firstPlot.plot.SetMinimum(0.0)
+	canvas.firstPlot.plot.SetMaximum(1.0)
+	canvas.firstPlot.plot.GetXaxis().SetRangeUser(0., x[i][0])
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
+	canvas.firstPlot.scaleTitleOffsets(1.2, 'Y')
 	canvas.makeTransparent()
 
 	# set colors
@@ -198,12 +194,10 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 		graphs[i].SetFillColor  (colors[i])
 	
 	# write on the plot
-	text = R.TLatex()
-	text.SetTextAlign(11)
-	text.DrawLatexNDC(.75, .17, '#color[0]{3 hits}')
-	text.DrawLatexNDC(.75, .3 , '#color[0]{4 hits}')
-	text.DrawLatexNDC(.75, .55, '#color[0]{5 hits}')
-	text.DrawLatexNDC(.75, .8 , '#color[0]{6 hits}')
+	canvas.drawText(text='#color[0]{3 hits}', pos=(.75, .17), font='b')
+	canvas.drawText(text='#color[0]{4 hits}', pos=(.75, .3 ), font='b')
+	canvas.drawText(text='#color[0]{5 hits}', pos=(.75, .55), font='b')
+	canvas.drawText(text='#color[0]{6 hits}', pos=(.75, .8 ), font='b')
 
 	# Step 6
 

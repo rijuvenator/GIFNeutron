@@ -72,14 +72,14 @@ def makePlot(H, isH, CHAM, DOF, xtitle, ytitle):
 
 	# Step 4
 	for i, plot in enumerate(plots):
-		canvas.addMainPlot(plot, isFirst=(i==0), addToLegend=False)
+		canvas.addMainPlot(plot, addToLegend=False)
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	plots[0].setTitles(X=xtitle, Y=ytitle)
-	plots[0].scaleTitles(0.8)
-	plots[0].scaleLabels(0.8)
-	plots[0].scaleTitleOffsets(1.3, 'Y')
+	canvas.firstPlot.setTitles(X=xtitle, Y=ytitle)
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
+	canvas.firstPlot.scaleTitleOffsets(1.3, 'Y')
 	if isH: plots[0].plot.SetMaximum(hMax)
 
 	plots[1].plot.SetLineColor(R.kRed)
@@ -87,16 +87,12 @@ def makePlot(H, isH, CHAM, DOF, xtitle, ytitle):
 	canvas.makeTransparent()
 
 	if isH:
-		text = R.TLatex()
-		text.SetTextAlign(11)
-		text.SetTextFont(42)
-		text.SetTextSize(0.04)
-		text.DrawLatexNDC(.7, .85, '#color[1]{' + '#mu: '    + '{:.4f}'.format(plots[0].plot.GetMean  ()) + '}')
-		text.DrawLatexNDC(.7, .80, '#color[1]{' + '#sigma: ' + '{:.4f}'.format(plots[0].plot.GetStdDev()) + '}')
-		text.DrawLatexNDC(.7, .75, '#color[2]{' + '#mu: '    + '{:.4f}'.format(plots[1].plot.GetMean  ()) + '}')
-		text.DrawLatexNDC(.7, .70, '#color[2]{' + '#sigma: ' + '{:.4f}'.format(plots[1].plot.GetStdDev()) + '}')
-		text.DrawLatexNDC(.7, .65, '#color[4]{' + '#mu: '    + '{:.4f}'.format(plots[2].plot.GetMean  ()) + '}')
-		text.DrawLatexNDC(.7, .60, '#color[4]{' + '#sigma: ' + '{:.4f}'.format(plots[2].plot.GetStdDev()) + '}')
+		canvas.drawText(text='#color[1]{' + '#mu: '    + '{:.4f}'.format(plots[0].plot.GetMean  ()) + '}', pos=(.7, .85))
+		canvas.drawText(text='#color[1]{' + '#sigma: ' + '{:.4f}'.format(plots[0].plot.GetStdDev()) + '}', pos=(.7, .80))
+		canvas.drawText(text='#color[2]{' + '#mu: '    + '{:.4f}'.format(plots[1].plot.GetMean  ()) + '}', pos=(.7, .75))
+		canvas.drawText(text='#color[2]{' + '#sigma: ' + '{:.4f}'.format(plots[1].plot.GetStdDev()) + '}', pos=(.7, .70))
+		canvas.drawText(text='#color[4]{' + '#mu: '    + '{:.4f}'.format(plots[2].plot.GetMean  ()) + '}', pos=(.7, .65))
+		canvas.drawText(text='#color[4]{' + '#sigma: ' + '{:.4f}'.format(plots[2].plot.GetStdDev()) + '}', pos=(.7, .60))
 
 	# Step 6
 

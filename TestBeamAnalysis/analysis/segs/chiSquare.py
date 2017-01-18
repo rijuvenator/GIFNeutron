@@ -177,7 +177,7 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 			DOF = 'All DOF'
 		else:
 			DOF = str(2 * i) + ' DOF'
-		plots.append(Plotter.Plot(graphs[i], legName=DOF, legType='p', option='AP' if i==0 else 'P'))
+		plots.append(Plotter.Plot(graphs[i], legName=DOF, legType='p', option='P'))
 
 	# Step 2
 	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
@@ -188,16 +188,16 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 	# Step 4
 	for i in range(ngraphs):
 		#if i == 1: continue
-		canvas.addMainPlot(plots[i], isFirst=(i==0), addToLegend=True)
+		canvas.addMainPlot(plots[i], addToLegend=True)
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	plots[0].setTitles(X=xtitle, Y=ytitle)
-	graphs[0].SetMinimum(0.0)
-	graphs[0].SetMaximum(4.0)
-	plots[0].scaleTitles(0.8)
-	plots[0].scaleLabels(0.8)
-	plots[0].scaleTitleOffsets(1.2, 'Y')
+	canvas.firstPlot.setTitles(X=xtitle, Y=ytitle)
+	canvas.firstPlot.plot.SetMinimum(0.0)
+	canvas.firstPlot.plot.SetMaximum(4.0)
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
+	canvas.firstPlot.scaleTitleOffsets(1.2, 'Y')
 	canvas.makeTransparent()
 
 	colors = [R.kBlack, R.kRed+1, R.kOrange+1, R.kGreen+2, R.kBlue-3]

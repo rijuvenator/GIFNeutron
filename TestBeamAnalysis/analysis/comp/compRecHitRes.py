@@ -192,7 +192,7 @@ class MegaStruct():
 		#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 		#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
 		#  3) call Plotter.Canvas.makeLegend(lWidth=0.125, lHeight=0.2, pos="tr", lOffset=0.02, fontsize=0.04)
-		#  4) call Plotter.Canvas.addMainPlot(Plot, isFirst, addToLegend)
+		#  4) call Plotter.Canvas.addMainPlot(Plot, addToLegend)
 		#  5) apply any cosmetic commands here
 		# *6) call Plotter.Canvas.addLegendEntry(Plot)
 		# *7) call Plotter.Canvas.makeRatioPlot(top, bottom, plusminus, option, ytit, xtit)
@@ -201,9 +201,6 @@ class MegaStruct():
 		# * = optional; if addToLegend is always true, and/or if no ratio plot needed (ratioFactor = 0), neither of these steps are required
 		#
 		# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
-		#
-		# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
-		# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
 		#
 
 		# Step 1
@@ -218,7 +215,7 @@ class MegaStruct():
 		canvas.makeLegend()
 
 		# Step 4
-		canvas.addMainPlot(plot, True, False)
+		canvas.addMainPlot(plot, False)
 
 		# Step 5
 		R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
@@ -261,7 +258,7 @@ def makePlot(x, y,cham, xtitle, ytitle, title, RES=False,pretty=pretty):
 	#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 	#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
 	#  3) call Plotter.Canvas.makeLegend(lWidth=0.125, lHeight=0.2, pos="tr", lOffset=0.02, fontsize=0.04)
-	#  4) call Plotter.Canvas.addMainPlot(Plot, isFirst, addToLegend)
+	#  4) call Plotter.Canvas.addMainPlot(Plot, addToLegend)
 	#  5) apply any cosmetic commands here
 	# *6) call Plotter.Canvas.addLegendEntry(Plot)
 	# *7) call Plotter.Canvas.makeRatioPlot(top, bottom, plusminus, option, ytit, xtit)
@@ -270,9 +267,6 @@ def makePlot(x, y,cham, xtitle, ytitle, title, RES=False,pretty=pretty):
 	# * = optional; if addToLegend is always true, and/or if no ratio plot needed (ratioFactor = 0), neither of these steps are required
 	#
 	# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
-	#
-	# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
-	# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
 	#
 
 	CHAM = 2 if cham==110 else 1
@@ -284,7 +278,7 @@ def makePlot(x, y,cham, xtitle, ytitle, title, RES=False,pretty=pretty):
 	# Step 1
 	plots = []
 	for i,p in enumerate(pretty.keys()):
-		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'pe', 'APE' if i==0 else 'PE'))
+		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'pe', 'PE'))
 
 	# Step 2
 	canvas = Plotter.Canvas('ME'+str(CHAM)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
@@ -294,7 +288,7 @@ def makePlot(x, y,cham, xtitle, ytitle, title, RES=False,pretty=pretty):
 
 	# Step 4
 	for i in range(ntypes):
-		canvas.addMainPlot(plots[i], i==0, True)
+		canvas.addMainPlot(plots[i], True)
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
