@@ -13,8 +13,8 @@ CHAMLIST = [1, 110]
 
 # Which files contain the relevant list of measurements and currents
 f_measgrid = '../datafiles/measgrid'
-#f_measgrid = 'measgrid_15'
 f_attenhut = '../datafiles/attenhut'
+fromFile = '../datafiles/data_compRecHitEff'
 
 # Whether or not to only use Yuriy's 5 attenuations
 castrated = False
@@ -22,7 +22,6 @@ castrated = False
 # Whether or not to get the data from a file. None if not; filename if so.
 #fromFile = None
 #fromFile = '../datafiles/compEff'
-fromFile = 'compEff'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {

@@ -169,11 +169,11 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 	R.SetOwnership(canvas.c, False)
 
 ##### MAKE PLOTS #####
-for cham in CHAMLIST:
+for CHAM in CHAMLIST:
 	makePlot(\
-		cham if cham == 1 else 2,
-		[data.resVector(cham, ff) for ff in pretty.keys()],
-		[data.effVector(cham, ff) for ff in pretty.keys()],
+		CHAM if CHAM == 1 else 2,
+		[data.resVector(CHAM, ff) for ff in pretty.keys()],
+		[data.effVector(CHAM, ff) for ff in pretty.keys()],
 		'Comparator Resolution',
 		'Comparator Efficiency',
 		'all'

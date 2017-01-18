@@ -15,13 +15,13 @@ CHAMLIST = [1, 110]
 #f_measgrid = 'measgrid_slim'
 f_measgrid = '../datafiles/measgrid'
 f_attenhut = '../datafiles/attenhut'
+fromFile = '../datafiles/data_compRecHitRes'
 
 # Whether or not to only use Yuriy's 5 attenuations
 castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
 #fromFile = None
-fromFile = '../datafiles/compRes'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
