@@ -12,9 +12,9 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-#F_DATAFILE = None
-F_DATAFILE = '../datafiles/data_segrh.root'
-#F_OUT = R.TFile('../datafiles/data_segrh.root', 'RECREATE')
+F_DATAFILE = None
+#F_DATAFILE = '../datafiles/data_segrh.root'
+F_OUT = R.TFile('../datafiles/data_segrh.root', 'RECREATE')
 
 # Cosmetic data dictionary, comment out for fewer ones
 #pretty = {
@@ -27,8 +27,6 @@ F_DATAFILE = '../datafiles/data_segrh.root'
 #	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
 #	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 #}
-# Scintillator definition
-SCINT = {1:{'HS':(25,72),'WG':(37,43)},110:{'HS':(8,38),'WG':(55,65)}}
 
 ##### BEGIN CODE #####
 R.gROOT.SetBatch(True)
@@ -102,12 +100,16 @@ class MegaStruct():
 				for MEAS in self.MEASDATA[ATT][0:1]: # only interested in Original for now
 					for CHAM in CHAMLIST:
 						self.HISTS[CHAM][MEAS] = {\
-							'ML' : R.TH1F('hML'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX), # "missing layer"
-							'IS' : R.TH1F('hIS'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX), # "in segment"
-							'2D' : R.TH2F('h2D'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX, 400, -200., 200.), # "2D"
-							'2S' : R.TH2F('h2S'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX, 400, -200., 200.)  # "2S"
+							'ML'  : R.TH1F('hML'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX),                   # "missing layer"
+							'IS'  : R.TH1F('hIS'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX),                   # "in segment"
+							'2M'  : R.TH2F('h2M'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX, 400, -200., 200.), # "2D Missing"
+							'2S'  : R.TH2F('h2S'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX, 400, -200., 200.), # "2D Segment"
+							'SM'  : R.TH2F('hSM'+str(CHAM)+str(MEAS), '', 4000, -10., 10., 4000, -10., 10.),    # "Scatter Missing"
+							'SS'  : R.TH2F('hSS'+str(CHAM)+str(MEAS), '', 4000, -10., 10., 4000, -10., 10.),    # "Scatter Segment"
+							'TM'  : R.TH1F('hTM'+str(CHAM)+str(MEAS), '', 400, -200., 200.),                    # "Time Missing"
+							'TS'  : R.TH1F('hTS'+str(CHAM)+str(MEAS), '', 400, -200., 200.),                    # "Time Segment"
 						}
-					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					for IDX, entry in enumerate(t):
 						E = Primitives.ETree(t, DecList=['SEGMENT', 'LCT', 'RECHIT'])
@@ -130,61 +132,69 @@ class MegaStruct():
 									return False
 
 						for CHAM in CHAMLIST:
-							for seg in segs:
-								if seg.cham != CHAM: continue
-								atLeastOneLayerInPad = False
+							for lct in lcts:
+								if lct.cham != CHAM: continue
+								if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,CHAM): continue
+								found, seg = Aux.bestSeg(lct, segs)
+								if not found: continue
+								for i in seg.rhID:
+									DX = (rechits[i].pos['x'] - seg.pos[rechits[i].layer]['x'])
+									DY = (rechits[i].pos['y'] - seg.pos[rechits[i].layer]['y'])
+									D  = (DX**2. + DY**2.)**0.5
+									self.HISTS[CHAM][MEAS]['IS'].Fill(D)
+									self.HISTS[CHAM][MEAS]['SS'].Fill(DX, DY)
+									self.HISTS[CHAM][MEAS]['2S'].Fill(D, rechits[i].time)
+									self.HISTS[CHAM][MEAS]['TS'].Fill(rechits[i].time)
+								layers = [rechits[i].layer for i in seg.rhID]
 								for layer in [1, 2, 3, 4, 5, 6]:
-									if Aux.inPad(seg.halfStrip[layer], seg.wireGroup[layer], CHAM):
-										atLeastOneLayerInPad = True
-										break
-								for lct in lcts:
-									if lct.cham != CHAM: continue
-									if atLeastOneLayerInPad and Aux.matchSegLCT(seg, lct, old=False):
-										for i in seg.rhID:
-											#D = rechits[i].pos['x'] - seg.pos[rechits[i].layer]['x']
-											D = ((rechits[i].pos['x'] - seg.pos[rechits[i].layer]['x'])**2. +\
-												 (rechits[i].pos['y'] - seg.pos[rechits[i].layer]['y'])**2.)**0.5
-											self.HISTS[CHAM][MEAS]['IS'].Fill(D)
-											self.HISTS[CHAM][MEAS]['2S'].Fill(D, rechits[i].time)
-										layers = [rechits[i].layer for i in seg.rhID]
-										for layer in [1, 2, 3, 4, 5, 6]:
-											if layer in layers: continue
-											closestRHPosDiff = float('inf')
-											fillVal = float('inf')
-											time = float('inf')
-											for rh in rechits:
-												if rh.layer == layer:
-													#D = rh.pos['x']-seg.pos[layer]['x']
-													D = ((rh.pos['x']-seg.pos[layer]['x'])**2. + (rh.pos['y']-seg.pos[layer]['y'])**2.)**0.5
-													if abs(D) < closestRHPosDiff:
-														closestRHPosDiff = abs(D)
-														fillVal = D
-														time = rh.time
-											if abs(fillVal) <= 0.8:
-												pass
-												#print MEAS, (CHAM/110+1), IDX, t.Event_EventNumber
-											#if inTime(time, CHAM):
-											if True:
-												self.HISTS[CHAM][MEAS]['ML'].Fill(fillVal)
-											self.HISTS[CHAM][MEAS]['2D'].Fill(fillVal, time)
+									if layer in layers: continue
+									closestRHPosDiff = float('inf')
+									fillValD         = float('inf')
+									fillValDX        = float('inf')
+									fillValDY        = float('inf')
+									fillTime         = float('inf')
+									for rh in rechits:
+										if rh.layer == layer:
+											DX = (rh.pos['x']-seg.pos[layer]['x'])
+											DY = (rh.pos['y']-seg.pos[layer]['y'])
+											D  = (DX**2. + DY**2.)**0.5
+											if D < closestRHPosDiff:
+												closestRHPosDiff = D
+												fillValD         = D
+												fillValDX        = DX
+												fillValDY        = DY
+												fillTime         = rh.time
+									#if inTime(time, CHAM):
+									if True:
+										self.HISTS[CHAM][MEAS]['ML'].Fill(fillValD)
+										self.HISTS[CHAM][MEAS]['SM'].Fill(fillValDX, fillValDY)
+										self.HISTS[CHAM][MEAS]['TM'].Fill(fillTime)
+									self.HISTS[CHAM][MEAS]['2M'].Fill(fillValD, fillTime)
 					f.Close()
 					for CHAM in CHAMLIST:
 						self.VALDATA[CHAM][MEAS] = {\
-							'ML': self.HISTS[CHAM][MEAS]['ML'].GetStdDev(),
-							'IS': self.HISTS[CHAM][MEAS]['IS'].GetStdDev()
+							'ML_SD': self.HISTS[CHAM][MEAS]['ML'].GetStdDev(),
+							'IS_SD': self.HISTS[CHAM][MEAS]['IS'].GetStdDev(),
+							'ML_MU': self.HISTS[CHAM][MEAS]['ML'].GetMean(),
+							'IS_MU': self.HISTS[CHAM][MEAS]['IS'].GetMean()
 						}
 						F_OUT.cd()
 						self.HISTS[CHAM][MEAS]['ML'].Write()
 						self.HISTS[CHAM][MEAS]['IS'].Write()
-						self.HISTS[CHAM][MEAS]['2D'].Write()
+						self.HISTS[CHAM][MEAS]['2M'].Write()
 						self.HISTS[CHAM][MEAS]['2S'].Write()
+						self.HISTS[CHAM][MEAS]['SM'].Write()
+						self.HISTS[CHAM][MEAS]['SS'].Write()
+						self.HISTS[CHAM][MEAS]['TM'].Write()
+						self.HISTS[CHAM][MEAS]['TS'].Write()
 					print MEAS, 'Done'
 
 		# for obtaining data dictionary from a file
 		else:
 			MIN = 0.
-			MAX = 10.
-			BINS = int((MAX-MIN)/((CMAX-CMIN)/CBINS))/32
+			MAX = 5.
+			#BINS = int((MAX-MIN)/((CMAX-CMIN)/CBINS))/32
+			BINS = 50
 			f = R.TFile.Open(F_DATAFILE)
 			#for ATT in [22.]:
 			for ATT in self.MEASDATA.keys():
@@ -192,21 +202,35 @@ class MegaStruct():
 					for CHAM in CHAMLIST:
 						hML = f.Get('hML'+str(CHAM)+str(MEAS))
 						hIS = f.Get('hIS'+str(CHAM)+str(MEAS))
-						h2D = f.Get('h2D'+str(CHAM)+str(MEAS))
+						h2M = f.Get('h2M'+str(CHAM)+str(MEAS))
 						h2S = f.Get('h2S'+str(CHAM)+str(MEAS))
+						hSM = f.Get('hSM'+str(CHAM)+str(MEAS))
+						hSS = f.Get('hSS'+str(CHAM)+str(MEAS))
+						hTM = f.Get('hTM'+str(CHAM)+str(MEAS))
+						hTS = f.Get('hTS'+str(CHAM)+str(MEAS))
 						self.HISTS[CHAM][MEAS] = {\
 							'ML' : hML.Rebin(BINS, 'hNML'+str(CHAM)+str(MEAS), np.array([MIN + i*(MAX-MIN)/float(BINS) for i in range(BINS+1)])),
 							'IS' : hIS.Rebin(BINS, 'hNIS'+str(CHAM)+str(MEAS), np.array([MIN + i*(MAX-MIN)/float(BINS) for i in range(BINS+1)])),
-							'2D' : h2D,
-							'2S' : h2S
+							'2M' : h2M.Rebin2D(BINS, 5, 'hN2M'+str(CHAM)+str(MEAS)),
+							'2S' : h2S.Rebin2D(BINS, 5, 'hN2S'+str(CHAM)+str(MEAS)),
+							'SM' : hSM.Rebin2D(50, 50, 'hNSM'+str(CHAM)+str(MEAS)),
+							'SS' : hSS.Rebin2D(50, 50, 'hNSM'+str(CHAM)+str(MEAS)),
+							'TM' : hSM.Rebin2D(50, 50, 'hNTM'+str(CHAM)+str(MEAS)),
+							'TS' : hSS.Rebin2D(50, 50, 'hNTM'+str(CHAM)+str(MEAS)),
 						}
 						self.HISTS[CHAM][MEAS]['ML'].SetDirectory(0)
 						self.HISTS[CHAM][MEAS]['IS'].SetDirectory(0)
-						self.HISTS[CHAM][MEAS]['2D'].SetDirectory(0)
+						self.HISTS[CHAM][MEAS]['2M'].SetDirectory(0)
 						self.HISTS[CHAM][MEAS]['2S'].SetDirectory(0)
+						self.HISTS[CHAM][MEAS]['SM'].SetDirectory(0)
+						self.HISTS[CHAM][MEAS]['SS'].SetDirectory(0)
+						self.HISTS[CHAM][MEAS]['TM'].SetDirectory(0)
+						self.HISTS[CHAM][MEAS]['TS'].SetDirectory(0)
 						self.VALDATA[CHAM][MEAS] = {\
-							'ML' : hML.GetStdDev(),
-							'IS' : hIS.GetStdDev()
+							'ML_SD' : hML.GetStdDev(),
+							'IS_SD' : hIS.GetStdDev(),
+							'ML_MU' : hML.GetMean(),
+							'IS_MU' : hIS.GetMean()
 						}
 
 	# get a value given a chamber and measurement number
@@ -250,6 +274,7 @@ def makeDistPlot(cham, hists, xtitle, ytitle, title):
 	#canvas.firstPlot.plot.SetMaximum(1.1)
 	canvas.firstPlot.scaleTitles(0.8)
 	canvas.firstPlot.scaleLabels(0.8)
+	R.TGaxis.SetMaxDigits(3)
 	canvas.firstPlot.scaleTitleOffsets(1.2, 'Y')
 	canvas.makeTransparent()
 
@@ -261,7 +286,7 @@ def makeDistPlot(cham, hists, xtitle, ytitle, title):
 	text.SetTextAlign(11)
 	text.SetTextFont(42)
 	text.SetTextSize(0.04)
-	text.DrawLatexNDC(.75, .80, '{:.1f}'.format(att))
+	text.DrawLatexNDC(.70, .80, 'A = {:.1f}'.format(att) if att < float('inf') else 'A = off')
 	text.DrawLatexNDC(.75, .75, '#color[2]{#mu:'    + '{:.4f}'.format(plots['ML'].plot.GetMean())   + '}')
 	text.DrawLatexNDC(.75, .70, '#color[2]{#sigma:' + '{:.4f}'.format(plots['ML'].plot.GetStdDev()) + '}')
 	text.DrawLatexNDC(.75, .65, '#color[4]{#mu:'    + '{:.4f}'.format(plots['IS'].plot.GetMean())   + '}')
@@ -278,7 +303,63 @@ def makeDistPlot(cham, hists, xtitle, ytitle, title):
 	canvas.c.SaveAs('pdfs/CRHX_ME'+str(cham)+'1_'+ft+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
-def makeSDPlot(cham, x, y, xtitle, ytitle, title):
+def makeTimePlot(cham, hists, xtitle, ytitle, title):
+
+	hTM = hists['TM']
+	hTS = hists['TS']
+
+	# Step 1
+	plots = {}
+	plots['TM'] = Plotter.Plot(hTM, legName='Missing Layer', legType='l', option='hist')
+	plots['TS'] = Plotter.Plot(hTS, legName='In Segment'   , legType='l', option='hist')
+
+	# Step 2
+	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
+
+	# Step 3
+	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='tl', lOffset=0.04, fontsize=0.03)
+
+	# Step 4
+	canvas.addMainPlotExp(plots['TS'])
+	canvas.addMainPlotExp(plots['TM'])
+
+	# Step 5
+	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
+	canvas.firstPlot.setTitles(X=xtitle, Y=ytitle)
+	#canvas.firstPlot.plot.SetMinimum(0.0)
+	#canvas.firstPlot.plot.SetMaximum(1.1)
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
+	R.TGaxis.SetMaxDigits(3)
+	canvas.firstPlot.scaleTitleOffsets(1.2, 'Y')
+	canvas.makeTransparent()
+
+	plots['TM'].plot.SetLineColor(R.kRed)
+	plots['TS'].plot.SetLineColor(R.kBlue)
+
+	att = [key for key in data.MEASDATA.keys() if int(title) in data.MEASDATA[key]][0]
+	text = R.TLatex()
+	text.SetTextAlign(11)
+	text.SetTextFont(42)
+	text.SetTextSize(0.04)
+	text.DrawLatexNDC(.70, .80, 'A = {:.1f}'.format(att) if att < float('inf') else 'A = off')
+	text.DrawLatexNDC(.75, .75, '#color[2]{#mu:'    + '{:.4f}'.format(plots['TM'].plot.GetMean())   + '}')
+	text.DrawLatexNDC(.75, .70, '#color[2]{#sigma:' + '{:.4f}'.format(plots['TM'].plot.GetStdDev()) + '}')
+	text.DrawLatexNDC(.75, .65, '#color[4]{#mu:'    + '{:.4f}'.format(plots['TS'].plot.GetMean())   + '}')
+	text.DrawLatexNDC(.75, .60, '#color[4]{#sigma:' + '{:.4f}'.format(plots['TS'].plot.GetStdDev()) + '}')
+
+	ft = str(list(data.attVector()).index(att))
+
+	# Step 6
+
+	# Step 7
+
+	# Step 8
+	canvas.finishCanvas()
+	canvas.c.SaveAs('pdfs/CRHTime_ME'+str(cham)+'1_'+ft+'.pdf')
+	R.SetOwnership(canvas.c, False)
+
+def makeLumiPlot(cham, x, y, xtitle, ytitle, title):
 
 	gML = R.TGraph(len(x[0]), x[0], y[0])
 	gIS = R.TGraph(len(x[1]), x[1], y[1])
@@ -322,27 +403,28 @@ def makeSDPlot(cham, x, y, xtitle, ytitle, title):
 	canvas.c.SaveAs('pdfs/CRHX_ME'+str(cham)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
-def make2DPlot(cham, hists, xtitle, ytitle, title):
+def make2DPlot(cham, hists, xtitle, ytitle, meas, suffix):
 
-	h2D = hists['2D']
-	h2S = hists['2S']
+	h2M = hists[0] # hists['2M']
+	h2S = hists[1] # hists['2S']
 
 	# Step 1
 	plots = {}
-	plots['2D'] = Plotter.Plot(h2D, legName='', legType='l', option='hist')
-	plots['2S'] = Plotter.Plot(h2S, legName='', legType='l', option='hist')
+	plots['2M'] = Plotter.Plot(h2M, legName='Missing Layer', legType='l', option='hist')
+	plots['2S'] = Plotter.Plot(h2S, legName='In Segment'   , legType='l', option='hist')
 
 	# Step 2
 	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
 
 	# Step 3
-	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='tl', lOffset=0.04, fontsize=0.03)
+	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='br', lOffset=0.04, fontsize=0.03)
 
 	# Step 4
-	canvas.addMainPlotExp(plots['2S'])
-	canvas.addMainPlotExp(plots['2D'])
+	canvas.addMainPlotExp(plots['2S'], addToLegend=False)
+	canvas.addMainPlotExp(plots['2M'], addToLegend=False)
 
 	# Step 5
+	R.gStyle.SetPalette(55)
 
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
 	canvas.firstPlot.setTitles(X=xtitle, Y=ytitle)
@@ -354,10 +436,18 @@ def make2DPlot(cham, hists, xtitle, ytitle, title):
 	canvas.firstPlot.plot.SetMarkerSize(1)
 	canvas.makeTransparent()
 
-	plots['2D'].plot.SetMarkerColor(R.kRed)
+	plots['2M'].plot.SetMarkerColor(R.kRed)
 	plots['2S'].plot.SetMarkerColor(R.kBlue)
+	plots['2M'].plot.SetLineColor(R.kRed)
+	plots['2S'].plot.SetLineColor(R.kBlue)
 
-	att = [key for key in data.MEASDATA.keys() if int(title) in data.MEASDATA[key]][0]
+	att = [key for key in data.MEASDATA.keys() if int(meas) in data.MEASDATA[key]][0]
+	text = R.TLatex()
+	text.SetTextAlign(11)
+	text.SetTextFont(42)
+	text.SetTextSize(0.04)
+	text.DrawLatexNDC(.7, .80, 'A = {:.1f}'.format(att) if att < float('inf') else 'A = off')
+
 	ft = str(list(data.attVector()).index(att))
 
 	# Step 6
@@ -366,7 +456,7 @@ def make2DPlot(cham, hists, xtitle, ytitle, title):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/CRHX2D_ME'+str(cham)+'1_'+ft+'.pdf')
+	canvas.c.SaveAs('pdfs/CRHX2D_ME'+str(cham)+'1_'+ft+suffix+'.png')
 	R.SetOwnership(canvas.c, False)
 
 ##### MAKE PLOTS #####
@@ -377,21 +467,46 @@ for cham in CHAMLIST:
 			data.HISTS[cham][meas],
 			'Distance [cm]',
 			'Counts',
-			str(meas)
+			str(meas),
+		)
+		makeTimePlot(\
+			cham if cham == 1 else 2,
+			data.HISTS[cham][meas],
+			'Time [ns]',
+			'Counts',
+			str(meas),
 		)
 		make2DPlot(\
 			cham if cham == 1 else 2,
-			data.HISTS[cham][meas],
+			[data.HISTS[cham][meas]['2M'], data.HISTS[cham][meas]['2S']],
 			'Distance [cm]',
-			'Time Peak [??]',
-			str(meas)
+			'Time Peak [ns]',
+			str(meas),
+			''
+		)
+		make2DPlot(\
+			cham if cham == 1 else 2,
+			[data.HISTS[cham][meas]['SM'], data.HISTS[cham][meas]['SS']],
+			'x Distance [cm]',
+			'y Distance [cm]',
+			str(meas),
+			'_SCAT'
 		)
 
-	makeSDPlot(\
+	makeLumiPlot(\
 		cham if cham == 1 else 2,
-		[data.lumiVector(cham, 0) for which in ['ML', 'IS']],
-		[data.valVector(cham, 0, which) for which in ['ML', 'IS']],
+		[data.lumiVector(cham, 0) for which in ['ML_SD', 'IS_SD']],
+		[data.valVector(cham, 0, which) for which in ['ML_SD', 'IS_SD']],
 		'Luminosity [Hz/cm^{2}]',
 		'Standard Deviation [cm]',
 		'stddev'
+	)
+
+	makeLumiPlot(\
+		cham if cham == 1 else 2,
+		[data.lumiVector(cham, 0) for which in ['ML_MU', 'IS_MU']],
+		[data.valVector(cham, 0, which) for which in ['ML_MU', 'IS_MU']],
+		'Luminosity [Hz/cm^{2}]',
+		'Mean [cm]',
+		'mean'
 	)

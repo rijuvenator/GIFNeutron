@@ -81,7 +81,7 @@ class MegaStruct():
 			for ATT in self.MEASDATA.keys():
 				for MEAS in self.MEASDATA[ATT]:
 					# Get file and tree
-					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 
 					# keep track for entire measurement

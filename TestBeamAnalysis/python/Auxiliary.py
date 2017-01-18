@@ -41,6 +41,7 @@ def matchSegLCT(seg, lct, layer=3, thresh=(2, 1), old=True):
 		else:
 			return False
 
+# determine if a comparator is within an LCT pattern
 def inLCTPattern(lct,comp):
 	id_ = lct.pattern
 	# lct khs is 0 indexed, comp hs is 1 indexed
@@ -72,3 +73,27 @@ def inLCTPattern(lct,comp):
 		return True
 	else:
 		return False
+
+# given an LCT and a list of Segments, find the "best" segment
+def bestSeg(lct, segs):
+	cham = lct.cham
+	mostHits = 0
+	found = False
+	for seg in segs:
+		if seg.cham != cham: continue
+		if not matchSegLCT(seg, lct, thresh=(2., 2.,)): continue
+		found = True
+		if seg.nHits > mostHits:
+			mostHits = seg.nHits
+			matchedSegs = [seg]
+		elif seg.nHits == mostHits:
+			matchedSegs.append(seg)
+	closestSeg = float('inf')
+	if found:
+		for mseg in matchedSegs:
+			if abs(lct.keyHalfStrip-mseg.halfStrip[3]) < closestSeg:
+				closestSeg = abs(lct.keyHalfStrip-mseg.halfStrip[3])
+				seg = mseg
+		return found, seg
+	else:
+		return found, None

@@ -1,3 +1,25 @@
+== To-Do List -- January 18, 2016
+
+	- [ ] Try to run over some P5 data
+	- [ ] Make displaced projections in distance
+	- [ ] Consider anode time instead of time peak
+	- [ ] Random RecHit distribution, sample from illumination
+
+_Enumeration of data files_
+#3284-3291 : A = off
+#3222-3229 : A = 4.6/46000
+#3308-3315 : A = 1.5/330
+#3295-3303 : A = 3.3/100   (copy 8; skip 3302 (SC change))
+#3317-3325 : A = 1.5/69    (copy 6; skip 3322 (SC change))
+#3232-3240 : A = 2.2/46    (copy 7; skip 3238 (SC change))
+#3241-3249 : A = 10/33     (copy 8; skip 3248 (access; SC change))
+#3250-3257 : A = 10/22
+#3339-3346 : A = 46/15     (22/15 starting at 5)
+#3347-3354 : A = 22/10
+#3384-3391 : A = 4.6/4.6
+
+3248 and 3367 do not have TMB dumps; 3248 because it was stopped early, 3367 unclear
+
 == To-Do List -- December 5, 2016
 
 	- [ ] _CHRIS_ Comparator resolution
