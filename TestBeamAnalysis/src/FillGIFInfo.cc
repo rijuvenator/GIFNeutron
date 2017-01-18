@@ -24,10 +24,14 @@ void FillGIFRecHitInfo::fill(const CSCRecHit2DCollection& recHits){
       rh_strip_2 .push_back(GIFHelper::convertTo<size8>(hiti->channels(1),"rh_strip_2"));
       rh_strip_3 .push_back(GIFHelper::convertTo<size8>(hiti->channels(2),"rh_strip_3"));
       rh_pos_strip		.push_back(hiti->positionWithinStrip());
+      rh_pos_strip_err		.push_back(hiti->errorWithinStrip());
 	  rh_wireGrp		.push_back(GIFHelper::convertTo<size8>(hiti->hitWire(),"rh_wireGrp"));
       rh_n_wiregroups	.push_back(GIFHelper::convertTo<size8>(hiti->nWireGroups(),"rh_n_wiregroups"));
 	  rh_n_timebins		.push_back(GIFHelper::convertTo<size8>(hiti->nTimeBins(),"rh_n_timebins"));
 	  rh_n_strips		.push_back(GIFHelper::convertTo<size8>(hiti->nStrips(),"rh_n_strips"));
+	  rh_pos_err_xx .push_back(hiti->localPositionError().xx());
+	  rh_pos_err_xy .push_back(hiti->localPositionError().xy());
+	  rh_pos_err_yy .push_back(hiti->localPositionError().yy());
 
 	  // Find the charge associated with this hit
 	  int centerID = hiti->nStrips()/2;
@@ -53,7 +57,8 @@ void FillGIFRecHitInfo::fill(const CSCRecHit2DCollection& recHits){
 	  // RH energy
 	  rh_energy.push_back(hiti->energyDepositedInLayer());
 	  // RH time
-	  rh_time.push_back(hiti->tpeak());
+	  rh_tpeak.push_back(hiti->tpeak());
+	  rh_wireTime.push_back(hiti->wireTime());
 
   }
 }
@@ -281,6 +286,18 @@ void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollect
     segment_dof.push_back((*dSiter).degreesOfFreedom());
     segment_nHits.push_back(GIFHelper::convertTo<size8>(segmentHits.size()  ,"segment_nHits"));
 	segment_quality.push_back(segmentQuality(dSiter));
+	segment_time.push_back((*dSiter).time());
+
+	segment_cov_dxdz       .push_back(float(covMatrix[0][0]));
+    segment_cov_dxdz_dydz  .push_back(float(covMatrix[0][1]));
+    segment_cov_dxdz_x     .push_back(float(covMatrix[0][2]));
+    segment_cov_dxdz_y     .push_back(float(covMatrix[0][3]));
+    segment_cov_dydz       .push_back(float(covMatrix[1][1]));
+    segment_cov_dydz_x     .push_back(float(covMatrix[1][2]));
+    segment_cov_dydz_y     .push_back(float(covMatrix[1][3]));
+    segment_cov_x          .push_back(float(covMatrix[2][2]));
+    segment_cov_x_y        .push_back(float(covMatrix[2][3]));
+    segment_cov_y          .push_back(float(covMatrix[3][3]));
 
     segment_recHitIdx_1 .push_back((recHits && segmentHits.size() > 0) ?findRecHitIdx(segmentHits[0],recHits) : 0);
     segment_recHitIdx_2 .push_back((recHits && segmentHits.size() > 1) ?findRecHitIdx(segmentHits[1],recHits) : 0);
