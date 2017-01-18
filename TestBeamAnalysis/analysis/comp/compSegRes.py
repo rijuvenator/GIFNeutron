@@ -97,15 +97,18 @@ class MegaStruct():
 		# fill a data dictionary as desired
 		self.resolution = { 1 : {}, 110: {} }
 		self.mean = { 1 : {}, 110 : {} }
+		self.hists = { 1 : {}, 110 : {} }
 		if F_DATAFILE is None:
 			for ATT in self.MEASDATA.keys():
 				for MEAS in self.MEASDATA[ATT]:
+					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(MEAS)+'.root')
+					t = f.Get('GIFTree/GIFDigiTree')
 					for cham in CHAMLIST:
 						self.mean[cham][MEAS] = 0
 						self.resolution[cham][MEAS] = 0
-					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(MEAS)+'.root')
-					t = f.Get('GIFTree/GIFDigiTree')
-					CompSegDists11 = []
+						self.hists[cham][MEAS] = {
+							'res' : R.TH1F('hRes_'+str(cham)+'_'+str(MEAS), 200, -15, 15)
+						}
 					CompSegDists21 = []
 					compSegHist11 = R.TH1F('compSegHist11', '', 200, -15, 15)
 					compSegHist21 = R.TH1F('compSegHist21', '', 200, -15, 15)
@@ -146,19 +149,15 @@ class MegaStruct():
 									# Fill histograms per segment
 									if minCompSegDist[lay]<999.:
 										if cham==1:
-											CompSegDists11.append(minCompSegDist[lay])
-											compSegHist11.Fill(float(minCompSegDist[lay]))
+											self.hists[1][MEAS].Fill(float(minCompSegDist[lay]))
 										else:
-											CompSegDists21.append(minCompSegDist[lay])
-											compSegHist21.Fill(float(minCompSegDist[lay]))
+											self.hists[110][MEAS].Fill(float(minCompSegDist[lay]))
 					# Save per chamber, measurement plots
-					self.savePlot(compSegHist11,1,MEAS)
-					self.savePlot(compSegHist21,2,MEAS)
 					# Fill per measurement dictionaries
-					self.resolution[1][MEAS]   = np.array(CompSegDists11).std(ddof=1)
-					self.mean[1][MEAS]         = np.array(CompSegDists11).mean()
-					self.resolution[110][MEAS] = np.array(CompSegDists21).std(ddof=1)
-					self.mean[110][MEAS]       = np.array(CompSegDists21).mean()
+					for CHAM in CHAMLIST:
+						self.resolution[CHAM][MEAS]   = self.hists[CHAM][MEAS].GetMean()
+						self.mean[CHAM][MEAS]         = self.hists[CHAM][MEAS].GetStdDev()
+						self.savePlot(self.hists[CHAM][MEAS],CHAM,MEAS)
 
 					print MEAS,ATT,
 					print self.mean[1][MEAS], self.resolution[1][MEAS],
@@ -194,12 +193,27 @@ class MegaStruct():
 	# Plot Saver function
 	def savePlot(self,hist,cham,MEAS):
 		plot = Plotter.Plot(hist,option='hist')
+
 		canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
 		canvas.makeLegend()
 		canvas.addMainPlot(plot,True,False)
+
 		plot.setTitles('Comparator position - Segment position [strip]','Counts')
 		canvas.makeTransparent()
 		hist.SetLineWidth(2)
+		hist.SetFillColor(R.kBlue+1)
+
+        text = R.TLatex()
+        text.SetTextAlign(11)
+        text.SetTextFont(42)
+        text.SetTextSize(0.04)
+        if ATT!=float('inf'):
+            text.DrawLatexNDC(.75, .80, '{:.1f}'.format(ATT))
+        else:
+            text.DrawLatexNDC(.75, .80, 'No Source')
+        text.DrawLatexNDC(.75, .75, '#color[1]{#mu:'    + '{:.4f}'.format(hist.GetMean())   + '}')
+        text.DrawLatexNDC(.75, .70, '#color[1]{#sigma:' + '{:.4f}'.format(hist.GetStdDev()) + '}')
+
 		canvas.finishCanvas()
 		canvas.c.SaveAs('pdfs/compSegRes_m'+str(MEAS)+'.pdf')
 		R.SetOwnership(canvas.c, False)

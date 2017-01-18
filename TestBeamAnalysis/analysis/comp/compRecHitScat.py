@@ -8,8 +8,7 @@ import sys
 
 ### PARAMETERS
 # Which chambers to do; to compare to Yuriy only use ME1/1
-# chamlist = [1]
-chamlist = [1, 110]
+CHAMLIST = [1, 110]
 
 # Which files contain the relevant list of measurements and currents
 #f_measgrid = 'measgrid_slim'
@@ -67,14 +66,16 @@ class MegaStruct():
 
 		# Fill dictionary connecting chamber, measurement number, and efftype to efficiency value
 		if fromFile is None:
+			self.hists = { 1 : {}, 110 : {} }
 			for att in self.FFFMeas.keys():
-				for ff,meas in enumerate(self.FFFMeas[att][0:1]):
-					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(meas)+'.root')
+				for ff,MEAS in enumerate(self.FFFMeas[att][0:1]):
+					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
-					nStrips11=112.
-					nStrips21=80.
-					compResScat11 = R.TH2F('compResScat11','',500,0,nStrips11/2,int(nStrips11),0,nStrips11/2)
-					compResScat21 = R.TH2F('compResScat21','',500,0,nStrips21/2,int(nStrips21),0,nStrips21/2)
+					nStrips = [112.,80.]
+					for CHAM,nStrips in zip(CHAMLIST,nStrips):
+						self.hists[CHAM][MEAS] = {
+							'compResScat' : R.TH2F('compResScat_'+str(CHAM)+'_'+str(MEAS),'',500,0,nStrips/2,int(nStrips),0,nStrips/2)
+						}
 					for entry in t:
 						DecList = ['SEGMENT','LCT','COMP','RECHIT']#,'STRIP','WIRE']
 						E = Primitives.ETree(t, DecList)
@@ -85,20 +86,20 @@ class MegaStruct():
 						#strips  = [Primitives.Strip  (E, i) for i in range(len(E.strip_cham))]
 						#wires   = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham  ))]
 
-						for cham in [1,110]:
+						for CHAM in CHAMLIST:
 							alreadyMatchedComp = []
 							alreadyMatchedSeg = []
 							for lct in lcts:
 								# Check on chamber and LCT position
-								if lct.cham!=cham: continue
-								if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
+								if lct.cham!=CHAM: continue
+								if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,lct.cham): continue
 								found, seg = Aux.bestSeg(lct, segs)
 								if not found: continue
 								# Make list of rechits from the segment
 								rhList = seg.rhID
 								for rhID in rhList:
 									# Check on chamber
-									if rechits[rhID].cham!=cham: continue
+									if rechits[rhID].cham!=CHAM: continue
 									maxDiff = 999.
 									compPos = float('inf')
 									rechitPos = float('inf')
@@ -106,7 +107,7 @@ class MegaStruct():
 									FOUND = False
 									for c,comp in enumerate(comps):
 										# Check on chamber, layer, matching comp to rechit, and if we've already matched the comparator
-										if comp.cham!=cham: continue
+										if comp.cham!=CHAM: continue
 										if comp.layer!=rechits[rhID].layer: continue
 										#if not self.matchRHComp(rechits[rhID],comp): continue
 										if c in alreadyMatchedComp: continue
@@ -122,15 +123,15 @@ class MegaStruct():
 											FOUND = True
 									if FOUND:
 										alreadyMatchedComp.append(matchIndex)
-										if cham==1: 
-											compResScat11.Fill(rechitPos,compPos)
-										if cham==110:
-											compResScat21.Fill(rechitPos,compPos)
+										if CHAM==1: 
+											self.hists[1][MEAS]['compResScat'].Fill(rechitPos,compPos)
+										if CHAM==110:
+											self.hists[110][MEAS]['compResScat'].Fill(rechitPos,compPos)
 								# Break out of segment loop since we've already found the matching segment to the lct
 					# Make histogram
-					self.makeHist(compResScat11,meas,1,att,self.lumi(1,meas),ff)
-					self.makeHist(compResScat21,meas,110,att,self.lumi(110,meas),ff)
-					print meas
+					for CHAM in CHAMLIST:
+						self.makeHist(self.hists[CHAM][MEAS]['compResScat'],MEAS,CHAM,att,self.lumi(CHAM,MEAS),ff)
+					print MEAS
 		else:
 			# this file is the output of the printout above
 			pass
