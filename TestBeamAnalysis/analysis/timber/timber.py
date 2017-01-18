@@ -65,7 +65,7 @@ def timePlot():
 	#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 	#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
 	#  3) call Plotter.Canvas.makeLegend(lWidth=0.125, lHeight=0.2, pos="tr", lOffset=0.02, fontsize=0.04)
-	#  4) call Plotter.Canvas.addMainPlot(Plot, isFirst, addToLegend)
+	#  4) call Plotter.Canvas.addMainPlot(Plot, addToLegend)
 	#  5) apply any cosmetic commands here
 	# *6) call Plotter.Canvas.addLegendEntry(Plot)
 	# *7) call Plotter.Canvas.makeRatioPlot(top, bottom, plusminus, option, ytit, xtit)
@@ -147,7 +147,7 @@ def intPlot():
 	#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 	#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
 	#  3) call Plotter.Canvas.makeLegend(lWidth=0.125, lHeight=0.2, pos="tr", lOffset=0.02, fontsize=0.04)
-	#  4) call Plotter.Canvas.addMainPlot(Plot, isFirst, addToLegend)
+	#  4) call Plotter.Canvas.addMainPlot(Plot, addToLegend)
 	#  5) apply any cosmetic commands here
 	# *6) call Plotter.Canvas.addLegendEntry(Plot)
 	# *7) call Plotter.Canvas.makeRatioPlot(top, bottom, plusminus, option, ytit, xtit)

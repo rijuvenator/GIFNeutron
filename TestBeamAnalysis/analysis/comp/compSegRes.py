@@ -196,7 +196,7 @@ class MegaStruct():
 
 		canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
 		canvas.makeLegend()
-		canvas.addMainPlot(plot,True,False)
+		canvas.addMainPlot(plot,False)
 
 		plot.setTitles('Comparator position - Segment position [strip]','Counts')
 		canvas.makeTransparent()
@@ -230,7 +230,7 @@ def makePlot(cham, x, y, xtitle, ytitle, title, name):
 	# Step 1
 	plots = []
 	for i, p in enumerate(pretty.keys()):
-		plots.append(Plotter.Plot(graphs[i], legName=pretty[p]['name'], legType='p', option='AP' if i==0 else 'P'))
+		plots.append(Plotter.Plot(graphs[i], legName=pretty[p]['name'], legType='p', option='P'))
 
 	# Step 2
 	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
@@ -243,7 +243,7 @@ def makePlot(cham, x, y, xtitle, ytitle, title, name):
 
 	# Step 4
 	for i in range(ntypes):
-		canvas.addMainPlot(plots[i], isFirst=(i==0), addToLegend=True)
+		canvas.addMainPlot(plots[i], addToLegend=True)
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
