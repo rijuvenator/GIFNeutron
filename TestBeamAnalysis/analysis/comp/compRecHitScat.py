@@ -92,47 +92,41 @@ class MegaStruct():
 								# Check on chamber and LCT position
 								if lct.cham!=cham: continue
 								if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
-								for s,seg in enumerate(segs):
-									# Check on chamber, segment position, match the segment to the lct, and if we've already matched the segment
-									if seg.cham!=cham: continue
-									if not Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], cham): continue
-									if not Aux.matchSegLCT(seg,lct): continue
-									if s in alreadyMatchedSeg: continue
-									alreadyMatchedSeg.append(s)
-									# Make list of rechits from the segment
-									rhList = seg.rhID
-									for rhID in rhList:
-										# Check on chamber
-										if rechits[rhID].cham!=cham: continue
-										maxDiff = 999.
-										compPos = float('inf')
-										rechitPos = float('inf')
-										matchIndex = 999
-										FOUND = False
-										for c,comp in enumerate(comps):
-											# Check on chamber, layer, matching comp to rechit, and if we've already matched the comparator
-											if comp.cham!=cham: continue
-											if comp.layer!=rechits[rhID].layer: continue
-											#if not self.matchRHComp(rechits[rhID],comp): continue
-											if c in alreadyMatchedComp: continue
-											# Add 1/2 to comparator half strip to align it with rec hit
-											# Multiply by 1/2 to convert to strip units
-											compPosTemp = 0.5*(comp.halfStrip+0.5)
-											rechitPosTemp = 0.5*(rechits[rhID].halfStrip)
-											if abs(compPosTemp - rechitPosTemp) < maxDiff:
-												maxDiff = abs(compPosTemp - rechitPosTemp)
-												compPos = compPosTemp
-												rechitPos = rechitPosTemp
-												matchIndex = c
-												FOUND = True
-										if FOUND:
-											alreadyMatchedComp.append(matchIndex)
-											if cham==1: 
-												compResScat11.Fill(rechitPos,compPos)
-											if cham==110:
-												compResScat21.Fill(rechitPos,compPos)
-									# Break out of segment loop since we've already found the matching segment to the lct
-									break
+								found, seg = Aux.bestSeg(lct, segs)
+								if not found: continue
+								# Make list of rechits from the segment
+								rhList = seg.rhID
+								for rhID in rhList:
+									# Check on chamber
+									if rechits[rhID].cham!=cham: continue
+									maxDiff = 999.
+									compPos = float('inf')
+									rechitPos = float('inf')
+									matchIndex = 999
+									FOUND = False
+									for c,comp in enumerate(comps):
+										# Check on chamber, layer, matching comp to rechit, and if we've already matched the comparator
+										if comp.cham!=cham: continue
+										if comp.layer!=rechits[rhID].layer: continue
+										#if not self.matchRHComp(rechits[rhID],comp): continue
+										if c in alreadyMatchedComp: continue
+										# Add 1/2 to comparator half strip to align it with rec hit
+										# Multiply by 1/2 to convert to strip units
+										compPosTemp = 0.5*(comp.halfStrip+0.5)
+										rechitPosTemp = 0.5*(rechits[rhID].halfStrip)
+										if abs(compPosTemp - rechitPosTemp) < maxDiff:
+											maxDiff = abs(compPosTemp - rechitPosTemp)
+											compPos = compPosTemp
+											rechitPos = rechitPosTemp
+											matchIndex = c
+											FOUND = True
+									if FOUND:
+										alreadyMatchedComp.append(matchIndex)
+										if cham==1: 
+											compResScat11.Fill(rechitPos,compPos)
+										if cham==110:
+											compResScat21.Fill(rechitPos,compPos)
+								# Break out of segment loop since we've already found the matching segment to the lct
 					# Make histogram
 					self.makeHist(compResScat11,meas,1,att,self.lumi(1,meas),ff)
 					self.makeHist(compResScat21,meas,110,att,self.lumi(110,meas),ff)

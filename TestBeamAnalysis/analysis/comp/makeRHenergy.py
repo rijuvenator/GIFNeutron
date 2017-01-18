@@ -90,38 +90,36 @@ class MegaStruct():
 						for lct in lcts:
 							if lct.cham!=cham: continue
 							if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
-							for seg in segs:
-								if seg.cham!=cham: continue
-								if not Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], cham): continue
-								if not Aux.matchSegLCT(seg,lct): continue
-								rhList = seg.rhID
-								alreadyMatched = []
-								for rhID in rhList:
-									if rechits[rhID].cham!=cham: continue
-									matched = False
-									for c,comp in enumerate(comps):
-										if comp.cham!=cham: continue
-										if comp.layer!=rechits[rhID].layer: continue
-										if not self.matchRHComp(rechits[rhID],comp): continue
-										if c in alreadyMatched: continue
-										if not Aux.inLCTPattern(lct,comp): continue
-										alreadyMatched.append(c)
-										matched = True
-										break
+							found, seg = Aux.bestSeg(lct,segs)
+							if not found: continue
+							rhList = seg.rhID
+							alreadyMatched = []
+							for rhID in rhList:
+								if rechits[rhID].cham!=cham: continue
+								matched = False
+								for c,comp in enumerate(comps):
+									if comp.cham!=cham: continue
+									if comp.layer!=rechits[rhID].layer: continue
+									if not self.matchRHComp(rechits[rhID],comp): continue
+									if c in alreadyMatched: continue
+									if not Aux.inLCTPattern(lct,comp): continue
+									alreadyMatched.append(c)
+									matched = True
+									break
+								if cham==1:
+									rh_e1.Fill(rechits[rhID].energy)
+								if cham==110:
+									rh_e2.Fill(rechits[rhID].energy)
+								if matched:
 									if cham==1:
-										rh_e1.Fill(rechits[rhID].energy)
+										rh_e_match1.Fill(rechits[rhID].energy)
 									if cham==110:
-										rh_e2.Fill(rechits[rhID].energy)
-									if matched:
-										if cham==1:
-											rh_e_match1.Fill(rechits[rhID].energy)
-										if cham==110:
-											rh_e_match2.Fill(rechits[rhID].energy)
-									else:
-										if cham==1:
-											rh_e_nomatch1.Fill(rechits[rhID].energy)
-										if cham==110:
-											rh_e_nomatch2.Fill(rechits[rhID].energy)
+										rh_e_match2.Fill(rechits[rhID].energy)
+								else:
+									if cham==1:
+										rh_e_nomatch1.Fill(rechits[rhID].energy)
+									if cham==110:
+										rh_e_nomatch2.Fill(rechits[rhID].energy)
 
 				self.makePlot(rh_e1, meas, 1, att, self.lumi(cham,meas), ff,'all')
 				self.makePlot(rh_e2, meas, 110, att, self.lumi(cham,meas), ff,'all')

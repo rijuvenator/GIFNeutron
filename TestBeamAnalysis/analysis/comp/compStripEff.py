@@ -17,8 +17,7 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-#F_DATAFILE = '../datafiles/data_compStripEff'
-F_DATAFILE = 'data_compStripEff'
+F_DATAFILE = '../datafiles/data_compStripEff'
 #F_DATAFILE = None
 
 # Cosmetic data dictionary, comment out for fewer ones

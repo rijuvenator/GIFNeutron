@@ -127,33 +127,30 @@ class MegaStruct():
 							for lct in lcts:
 								if lct.cham is not cham: continue
 								if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,lct.cham): continue
-								for seg in segs:
-									if seg.cham is not cham: continue
-									#if not Aux.inPad(seg.halfStrip, seg.wireGroup, seg.cham): continue
-									if not Aux.matchSegLCT(seg,lct): continue
-									# Loop on comparators and find the nearest comparator to the segment position in each layer
-									minCompSegDist = {1:999., 2:999., 3:999., 4:999., 5:999., 6:999.}
-									for lay in range(1,7):
-										minDist = 999.
-										for comp in comps:
-											if comp.cham is not cham: continue
-											if comp.layer is not lay: continue
-											# -2 offset because comparator hs starts counting from 1
-											# Divide by 2 to convert to strip units
-											CompSegDist = (comp.staggeredHalfStrip-seg.staggeredHalfStrip[lay]-2)/2.
-											if abs(CompSegDist) < minDist:
-												minDist = abs(CompSegDist)
-												minCompSegDist[lay] = CompSegDist
-										#print lay, minCompSegDist[lay]
-										# Fill histograms per segment
-										if minCompSegDist[lay]<999.:
-											if cham==1:
-												CompSegDists11.append(minCompSegDist[lay])
-												compSegHist11.Fill(float(minCompSegDist[lay]))
-											else:
-												CompSegDists21.append(minCompSegDist[lay])
-												compSegHist21.Fill(float(minCompSegDist[lay]))
-									break
+								found, seg = Aux.bestSeg(lct, segs)
+								if not found: continue
+								# Loop on comparators and find the nearest comparator to the segment position in each layer
+								minCompSegDist = {1:999., 2:999., 3:999., 4:999., 5:999., 6:999.}
+								for lay in range(1,7):
+									minDist = 999.
+									for comp in comps:
+										if comp.cham is not cham: continue
+										if comp.layer is not lay: continue
+										# -2 offset because comparator hs starts counting from 1
+										# Divide by 2 to convert to strip units
+										CompSegDist = (comp.staggeredHalfStrip-seg.staggeredHalfStrip[lay]-2)/2.
+										if abs(CompSegDist) < minDist:
+											minDist = abs(CompSegDist)
+											minCompSegDist[lay] = CompSegDist
+									#print lay, minCompSegDist[lay]
+									# Fill histograms per segment
+									if minCompSegDist[lay]<999.:
+										if cham==1:
+											CompSegDists11.append(minCompSegDist[lay])
+											compSegHist11.Fill(float(minCompSegDist[lay]))
+										else:
+											CompSegDists21.append(minCompSegDist[lay])
+											compSegHist21.Fill(float(minCompSegDist[lay]))
 					# Save per chamber, measurement plots
 					self.savePlot(compSegHist11,1,MEAS)
 					self.savePlot(compSegHist21,2,MEAS)

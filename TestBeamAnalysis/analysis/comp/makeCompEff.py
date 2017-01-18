@@ -102,70 +102,49 @@ class MegaStruct():
 								# Check on chamber and LCT position
 								if lct.cham!=cham: continue
 								if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
-								mostHits = -999.
-								found = False
-								bestSeg = -999
-								closeSeg = False
-								for s,seg in enumerate(segs):
-									# Check on chamber, segment position, match the segment to the lct, and if we've already matched the segment
-									if seg.cham!=lct.cham: continue
-									if not Aux.matchSegLCT(seg,lct): continue
-									if not Aux.inPad(seg.halfStrip, seg.wireGroup, cham): continue
-									#print abs(seg.halfStrip - lct.keyHalfStrip), seg.nHits, s
-									if seg.nHits > mostHits:
-										if seg in alreadyMatchedSeg: continue
-										mostHits = seg.nHits
-										bestSeg = s
-										found = True
-								if found==True:
-									if cham==1: nMatchedSegs1 +=1
-									if cham==110: nMatchedSegs2 +=1
-									alreadyMatchedSeg.append(bestSeg)
-									#print abs(segs[bestSeg].halfStrip - lct.keyHalfStrip),segs[bestSeg].nHits,  bestSeg, segs[bestSeg].cham, lct.cham
-									seg = segs[bestSeg]
-									# Make list of rechits from the segment
-									rhList = seg.rhID
-
-									matchedRHComp = 0
-									for rhID in rhList:
-										# Check on chamber
-										if rechits[rhID].cham!=lct.cham: continue
-										closestRHDist = 999
-										CloseRH = False
-										closestComp = -999
-										# Find closest comparator in same layer
-										for c,comp in enumerate(comps):
-											# Check on chamber and layer 
-											if comp.cham!=lct.cham: continue
-											if comp.layer!=rechits[rhID].layer: continue
-											# Find closest comparator in the layer
-											RHdist = abs(rechits[rhID].halfStrip-comp.halfStrip+0.5)
-											if RHdist < closestRHDist: 
-												closestRHDist = RHdist
-												closestComp = c
-												CloseRH = True
-										# Make sure that the closest comp is w/in 2 half strips, wasn't already matched
-										# and is inside the LCT pattern
-										if CloseRH:
-											comp = comps[closestComp]
-											if not Aux.inLCTPattern(lct,comp) and self.matchRHComp(rechits[rhID],comp):
-												continue
-											'''
-											if not self.matchRHComp(rechits[rhID],comp): 
-												if cham==1: B1 += 1
-												if cham==110: B2 += 1
-												continue
-											'''
-											if self.matchRHComp(rechits[rhID],comp) and Aux.inLCTPattern(lct,comp):
-												if cham==1: A1 += 1
-												if cham==110: A2 += 1
-											if not self.matchRHComp(rechits[rhID],comp) and not Aux.inLCTPattern(lct,comp):
-												if cham==1: B1 += 1
-												if cham==110: B2 += 1
-										# Add to B if no comparator in same layer as rechit
-										else:
+								found, seg = Aux.bestSeg(lct,segs)
+								if not found: continue
+								rhList = seg.rhID
+								matchedRHComp = 0
+								for rhID in rhList:
+									# Check on chamber
+									if rechits[rhID].cham!=lct.cham: continue
+									closestRHDist = 999
+									CloseRH = False
+									closestComp = -999
+									# Find closest comparator in same layer
+									for c,comp in enumerate(comps):
+										# Check on chamber and layer 
+										if comp.cham!=lct.cham: continue
+										if comp.layer!=rechits[rhID].layer: continue
+										# Find closest comparator in the layer
+										RHdist = abs(rechits[rhID].halfStrip-comp.halfStrip+0.5)
+										if RHdist < closestRHDist: 
+											closestRHDist = RHdist
+											closestComp = c
+											CloseRH = True
+									# Make sure that the closest comp is w/in 2 half strips, wasn't already matched
+									# and is inside the LCT pattern
+									if CloseRH:
+										comp = comps[closestComp]
+										if not Aux.inLCTPattern(lct,comp) and self.matchRHComp(rechits[rhID],comp):
+											continue
+										'''
+										if not self.matchRHComp(rechits[rhID],comp): 
 											if cham==1: B1 += 1
 											if cham==110: B2 += 1
+											continue
+										'''
+										if self.matchRHComp(rechits[rhID],comp) and Aux.inLCTPattern(lct,comp):
+											if cham==1: A1 += 1
+											if cham==110: A2 += 1
+										if not self.matchRHComp(rechits[rhID],comp) and not Aux.inLCTPattern(lct,comp):
+											if cham==1: B1 += 1
+											if cham==110: B2 += 1
+									# Add to B if no comparator in same layer as rechit
+									else:
+										if cham==1: B1 += 1
+										if cham==110: B2 += 1
 
 					eff1,errUp1,errDown1 = tools.clopper_pearson(A1,A1+B1)
 					eff2,errUp2,errDown2 = tools.clopper_pearson(A2,A2+B2)
