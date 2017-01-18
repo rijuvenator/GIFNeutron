@@ -72,7 +72,7 @@ class MegaStruct():
 			pass
 			for att in self.FFFMeas.keys():
 				for ff,meas in enumerate(self.FFFMeas[att]):
-					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(meas)+'.root')
+					f = R.TFile.Open('../trees/ana_'+str(meas)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					compDiff11 = []
 					compDiff21 = []

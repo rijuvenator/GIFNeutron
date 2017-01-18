@@ -5,23 +5,18 @@ import sys
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.Auxiliary as Aux
 
-### PARAMETERS
-# Which chambers to do; to compare to Yuriy only use ME1/1
-# chamlist = [1]
-chamlist = [1, 2]
+##### PARAMETERS #####
+# Which chambers to do
+CHAMLIST = (1, 110)
 
-# Which files contain the relevant list of measurements and currents
-f_measgrid = '../datafiles/measgrid'
-f_attenhut = '../datafiles/attenhut'
+##### SEMI-PARAMETERS #####
+# Filenames
+F_MEASGRID = '../datafiles/measgrid'
+F_ATTENHUT = '../datafiles/attenhut'
+#F_DATAFILE = None
+F_DATAFILE = '../datafiles/data_seghits'
 
-# Whether or not to only use Yuriy's 5 attenuations
-castrated = False
-
-# Whether or not to get the data from a file. None if not; filename if so.
-#fromFile = None
-fromFile = '../datafiles/data_seghits'
-
-# Dictionary containing cosmetic data, comment out for fewer ones
+# Cosmetic data dictionary, comment out for fewer ones
 pretty = {
 	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
 #	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
@@ -33,42 +28,71 @@ pretty = {
 #	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
+##### BEGIN CODE #####
 R.gROOT.SetBatch(True)
 
-###############################################################################################
-### BEGIN CODE
-### DATA STRUCTURE CLASS
+##### MEGASTRUCT CLASS #####
 class MegaStruct():
-	def __init__(self,measgrid,attenhut,fromFile,castrated):
-		self.castrated = castrated
-
-		# Fill dictionary connecting attenuation to list of measurement numbers, ordered by FF
-		f = open(measgrid)
-		self.FFFMeas = {}
+	#### BEGIN MEGASTRUCT COMMON: DO NOT EDIT BETWEEN THESE TAGS #####
+	def __init__(self):
+		self.fillMeas()
+		self.fillCurr()
+		self.fillData()
+	
+	# general fill measurement data function
+	def fillMeas(self):
+		f = open(F_MEASGRID)
+		self.MEASDATA = {}
 		for line in f:
 			cols = line.strip('\n').split()
-			self.FFFMeas[float(cols[0])] = [int(j) for j in cols[1:]]
+			self.MEASDATA[float(cols[0])] = [int(j) for j in cols[1:]]
 		f.close()
 
-		# Fill dictionary connecting chamber and measurement number to list of currents
-		f = open(attenhut)
-		self.Currs = { 1 : {}, 2 : {} }
+	# general fill current data function
+	def fillCurr(self):
+		f = open(F_ATTENHUT)
+		self.CURRDATA = { 1 : {}, 110: {} }
 		currentCham = 1
 		for line in f:
 			if line == '\n':
-				currentCham = 2
+				currentCham = 110
 				continue
 			cols = line.strip('\n').split()
 			currentMeas = int(cols[1])
-			self.Currs[currentCham][currentMeas] = [float(i) for i in cols[2:]]
+			self.CURRDATA[currentCham][currentMeas] = [float(i) for i in cols[2:]]
 		f.close()
 
-		# Fill dictionary connecting chamber and measurement number to average segment nHits
-		self.Vals = { 1 : {}, 2 : {} }
-		if fromFile is None:
-			for att in self.FFFMeas.keys():
-				for meas in self.FFFMeas[att]:
-					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(meas)+'.root')
+	# get a current measurement given a chamber and measurement number
+	def current(self, cham, meas):
+		if cham == 1:
+			return sum(self.CURRDATA[cham][meas])/6.0
+		elif cham == 110:
+			return sum(self.CURRDATA[cham][meas][6:12])/6.0
+	
+	# get a vector of attenuations
+	def attVector(self, castrated=False):
+		if castrated: # for comparing to Yuriy
+			return np.array([33., 46., 100., float('inf')])
+		else:
+			return np.array(sorted(self.MEASDATA.keys()))
+
+	# get a vector of currents
+	def currentVector(self, cham, ff, castrated=False):
+		return np.array([self.current(cham, self.MEASDATA[att][ff]) for att in self.attVector(castrated)])
+
+	# get a vector of equivalent luminosities
+	def lumiVector(self, cham, ff, castrated=False):
+		factor = 3.e33 if cham == 1 else 5.e33
+		return factor * np.array([self.current(cham, self.MEASDATA[att][ff]) for att in self.attVector(castrated)])
+	##### END MEGASTRUCT COMMON: DO NOT EDIT BETWEEN THESE TAGS #####
+
+	# fill data: this function, and the access functions below it, are "user-defined" and script-dependent
+	def fillData(self):
+		self.VALDATA = { 1 : {}, 110: {} }
+		if F_DATAFILE is None:
+			for ATT in self.MEASDATA.keys():
+				for MEAS in self.MEASDATA[ATT][0:1]: # only original
+					f = R.TFile.Open('../trees/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					nSeg       = {1:0, 110:0}
 					nNHits     = {1:0, 110:0}
@@ -78,80 +102,54 @@ class MegaStruct():
 						E = Primitives.ETree(t, DecList=['SEGMENT', 'LCT'])
 						segs = [Primitives.Segment(E, i) for i in range(len(E.seg_cham))]
 						lcts = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham))]
-						for cham in (1, 110):
-							nSeg  [cham] += E.seg_cham.count(cham)
-							nNHits[cham] += sum([seg.nHits for seg in segs if seg.cham == cham])
+						for CHAM in CHAMLIST:
+							nSeg  [CHAM] += E.seg_cham.count(CHAM)
+							nNHits[CHAM] += sum([seg.nHits for seg in segs if seg.cham == CHAM])
 
-							for seg in segs:
-								if seg.cham != cham: continue
-								for lct in lcts:
-									if lct.cham != cham: continue
-									if Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], cham if cham == 1 else 2) and Aux.matchSegLCT(seg, lct):
-										nSegMuon  [cham] += 1
-										nNHitsMuon[cham] += seg.nHits
-										break
+							for lct in lcts:
+								if lct.cham != CHAM: continue
+								if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,CHAM): continue
+								found, seg = Aux.bestSeg(lct, segs)
+								if not found: continue
+								nSegMuon  [CHAM] += 1
+								nNHitsMuon[CHAM] += seg.nHits
 
-					self.Vals[1][meas] = {'all':0., 'muon':0.}
-					self.Vals[2][meas] = {'all':0., 'muon':0.}
-
-					self.Vals[1][meas]['all' ] = float(nNHits    [1  ])/nSeg    [1  ] if nSeg    [1  ] != 0 else 0
-					self.Vals[2][meas]['all' ] = float(nNHits    [110])/nSeg    [110] if nSeg    [110] != 0 else 0
-					self.Vals[1][meas]['muon'] = float(nNHitsMuon[1  ])/nSegMuon[1  ] if nSegMuon[1  ] != 0 else 0
-					self.Vals[2][meas]['muon'] = float(nNHitsMuon[110])/nSegMuon[110] if nSegMuon[110] != 0 else 0
+					for CHAM in CHAMLIST:
+						self.VALDATA[CHAM][MEAS] = {\
+							'all' : float(nNHits    [CHAM])/nSeg    [CHAM] if nSeg    [CHAM] != 0 else 0.,
+							'muon': float(nNHitsMuon[CHAM])/nSegMuon[CHAM] if nSegMuon[CHAM] != 0 else 0.
+						}
 
 					print '{:4d} {:7.3f} {:7.3f} {:7.3f} {:7.3f}'.format(\
-						meas,
-						self.Vals[1][meas]['all' ],
-						self.Vals[2][meas]['all' ],
-						self.Vals[1][meas]['muon'],
-						self.Vals[2][meas]['muon']
+						MEAS,
+						self.VALDATA[1  ][MEAS]['all' ],
+						self.VALDATA[110][MEAS]['all' ],
+						self.VALDATA[1  ][MEAS]['muon'],
+						self.VALDATA[110][MEAS]['muon']
 					)
 		else:
 			# this file is the output of the printout above
-			f = open(fromFile)
+			f = open(F_DATAFILE)
 			for line in f:
 				cols = line.strip('\n').split()
-				meas = int(cols[0])
-				self.Vals[1][meas] = {'all':0., 'muon':0.}
-				self.Vals[2][meas] = {'all':0., 'muon':0.}
+				MEAS = int(cols[0])
+				self.VALDATA[1  ][MEAS] = {'all':0., 'muon':0.}
+				self.VALDATA[110][MEAS] = {'all':0., 'muon':0.}
 
-				self.Vals[1][meas]['all' ] = float(cols[1])
-				self.Vals[2][meas]['all' ] = float(cols[2])
-				self.Vals[1][meas]['muon'] = float(cols[3])
-				self.Vals[2][meas]['muon'] = float(cols[4])
+				self.VALDATA[1  ][MEAS]['all' ] = float(cols[1])
+				self.VALDATA[110][MEAS]['all' ] = float(cols[2])
+				self.VALDATA[1  ][MEAS]['muon'] = float(cols[3])
+				self.VALDATA[110][MEAS]['muon'] = float(cols[4])
 
-	# get a current measurement given a chamber and measurement number
-	def current(self, cham, meas):
-		if cham == 1:
-			return sum(self.Currs[cham][meas])/6.0
-		elif cham == 2:
-			return sum(self.Currs[cham][meas][6:12])/6.0
-	
 	# get a value given a chamber and measurement number
-	def val(self, cham, meas, type_):
-		return self.Vals[cham][meas][type_]
-
-	# get a vector of attenuations
-	def attVector(self):
-		if self.castrated:
-			return np.array([33., 46., 100., float('inf')])
-		else:
-			return np.array(sorted(self.FFFMeas.keys()))
-
-	# get a vector of currents
-	def currentVector(self, cham, ff):
-		return np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
-
-	# get a vector of equivalent luminosities
-	def lumiVector(self, cham, ff):
-		factor = 3.e33 if cham == 1 else 5.e33
-		return factor * np.array([self.current(cham, self.FFFMeas[att][ff]) for att in self.attVector()])
+	def val(self, cham, meas, which):
+		return float(self.VALDATA[cham][meas][which])
 
 	# get a vector of values
-	def valVector(self, cham, ff, type_):
-		return np.array([self.val(cham, self.FFFMeas[att][ff], type_) for att in self.attVector()])
+	def valVector(self, cham, ff, which):
+		return np.array([self.val(cham, self.MEASDATA[att][ff], which) for att in self.attVector()])
 
-data = MegaStruct(f_measgrid, f_attenhut, fromFile, castrated)
+data = MegaStruct()
 
 ### MAKEPLOT FUNCTION
 def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
@@ -218,20 +216,20 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS
-for cham in chamlist:
+for CHAM in CHAMLIST:
 	# Plots with luminosity on x-axis
 	makePlot(\
-		[data.lumiVector(cham, ff) for ff in pretty.keys()],
-		[data.valVector(cham, ff, 'all') for ff in pretty.keys()],
-		cham,
+		[data.lumiVector(CHAM, ff) for ff in pretty.keys()],
+		[data.valVector(CHAM, ff, 'all') for ff in pretty.keys()],
+		CHAM/110+1,
 		'Luminosity [Hz/cm^{2}]',
 		'#LT Segment nHits #GT',
 		'lumi_all'
 	)
 	makePlot(\
-		[data.lumiVector(cham, ff) for ff in pretty.keys()],
-		[data.valVector(cham, ff, 'muon') for ff in pretty.keys()],
-		cham,
+		[data.lumiVector(CHAM, ff) for ff in pretty.keys()],
+		[data.valVector(CHAM, ff, 'muon') for ff in pretty.keys()],
+		CHAM/110+1,
 		'Luminosity [Hz/cm^{2}]',
 		'#LT Muon Segment nHits #GT',
 		'lumi_muon'

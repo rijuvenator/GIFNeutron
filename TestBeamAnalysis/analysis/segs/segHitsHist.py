@@ -15,8 +15,6 @@ F_ATTENHUT = '../datafiles/attenhut'
 F_DATAFILE = '../datafiles/data_seghitssplit'
 #F_DATAFILE = None
 
-SCINT = {1:{'HS':(25,72),'WG':(37,43)},110:{'HS':(8,38),'WG':(55,65)}}
-
 ##### BEGIN CODE #####
 R.gROOT.SetBatch(True)
 
@@ -82,7 +80,7 @@ class MegaStruct():
 		if F_DATAFILE is None:
 			for ATT in self.MEASDATA.keys():
 				for MEAS in self.MEASDATA[ATT][0:1]: # I only cared about Original for this plot
-					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open('../trees/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					# indexed by meas, cham, and nHits; 0 for total (just for fewer lines of code; it's less readable fasho)
 					self.VALDATA[MEAS] = {1:{0:0, 3:0, 4:0, 5:0, 6:0}, 110:{0:0, 3:0, 4:0, 5:0, 6:0}}
@@ -90,14 +88,14 @@ class MegaStruct():
 						E = Primitives.ETree(t, DecList=['SEGMENT', 'LCT'])
 						segs = [Primitives.Segment(E, i) for i in range(len(E.seg_cham))]
 						lcts = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham))]
+
 						for CHAM in CHAMLIST:
-							for seg in segs:
-								if seg.cham != CHAM: continue
-								for lct in lcts:
-									if lct.cham != CHAM: continue
-									if Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], CHAM) and Aux.matchSegLCT(seg, lct):
-										self.VALDATA[MEAS][CHAM][0        ] += 1
-										self.VALDATA[MEAS][CHAM][seg.nHits] += 1
+							for lct in lcts:
+								if lct.cham != CHAM: continue
+								found, seg = Aux.bestSeg(lct, segs)
+								if not found: continue
+								self.VALDATA[MEAS][CHAM][0        ] += 1
+								self.VALDATA[MEAS][CHAM][seg.nHits] += 1
 					print '{:4d} {:5d} {:5d} {:5d} {:5d} {:5d} {:5d} {:5d} {:5d} {:5d} {:5d}'.format(\
 						MEAS,
 						self.VALDATA[MEAS][1  ][0],
@@ -202,10 +200,10 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 	# write on the plot
 	text = R.TLatex()
 	text.SetTextAlign(11)
-	text.DrawLatexNDC(.7, .2, '#color[0]{3 hits}')
-	text.DrawLatexNDC(.7, .4, '#color[0]{4 hits}')
-	text.DrawLatexNDC(.7, .6, '#color[0]{5 hits}')
-	text.DrawLatexNDC(.7, .8, '#color[0]{6 hits}')
+	text.DrawLatexNDC(.75, .17, '#color[0]{3 hits}')
+	text.DrawLatexNDC(.75, .3 , '#color[0]{4 hits}')
+	text.DrawLatexNDC(.75, .55, '#color[0]{5 hits}')
+	text.DrawLatexNDC(.75, .8 , '#color[0]{6 hits}')
 
 	# Step 6
 
@@ -223,6 +221,6 @@ for cham in CHAMLIST:
 		[data.lumiVector(cham, 0)     for nhits in [3, 4, 5, 6]],
 		[data.fracVector(cham, nhits) for nhits in [3, 4, 5, 6]],
 		'Luminosity [Hz/cm^{2}]',
-		'Fraction of Muon Segments',
+		'Fraction of "Good" Segments',
 		'all'
 	)
