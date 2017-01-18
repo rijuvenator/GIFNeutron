@@ -75,9 +75,6 @@ def timePlot():
 	#
 	# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
 	#
-	# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
-	# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
-	#
 
 	gr1 = TGraph(len(times), times, np.array(scalars[:,0]))
 	gr2 = TGraph(len(times), times, np.array(scalars[:,1]))
@@ -85,10 +82,10 @@ def timePlot():
 	gr4 = TGraph(len(times), times, np.array(scalars[:,3]))
 
 	# Step 1
-	gr1plot = Plotter.Plot(gr1, "Upstream"       , "lp","AP")
-	gr2plot = Plotter.Plot(gr2, "Downstream"     , "lp","P" )
-	gr3plot = Plotter.Plot(gr3, "Coincidence"    , "lp","P" )
-	gr4plot = Plotter.Plot(gr4, "Coincidence*CSC", "lp","P" )
+	gr1plot = Plotter.Plot(gr1, "Upstream"       , "lp","P")
+	gr2plot = Plotter.Plot(gr2, "Downstream"     , "lp","P")
+	gr3plot = Plotter.Plot(gr3, "Coincidence"    , "lp","P")
+	gr4plot = Plotter.Plot(gr4, "Coincidence*CSC", "lp","P")
 
 	# Step 2
 	canvas = Plotter.Canvas("GIF++", False, 0., "Internal", 2000, 700)
@@ -97,10 +94,10 @@ def timePlot():
 	canvas.makeLegend(.125)
 
 	# Step 4
-	canvas.addMainPlot(gr1plot,True,True)
-	canvas.addMainPlot(gr2plot,False,True)
-	canvas.addMainPlot(gr3plot,False,True)
-	canvas.addMainPlot(gr4plot,False,True)
+	canvas.addMainPlot(gr1plot)
+	canvas.addMainPlot(gr2plot)
+	canvas.addMainPlot(gr3plot)
+	canvas.addMainPlot(gr4plot)
 
 	# Step 5
 	gr1.GetXaxis().SetTimeDisplay(True)
@@ -160,9 +157,6 @@ def intPlot():
 	#
 	# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
 	#
-	# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
-	# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
-	#
 
 	h = TH1F("name", "title", 100, 0., 60.)
 	for i,t in enumerate(times):
@@ -179,7 +173,7 @@ def intPlot():
 	canvas.makeLegend(.18,.06)
 
 	# Step 4
-	canvas.addMainPlot(hplot, True, True)
+	canvas.addMainPlot(hplot)
 
 	# Step 5
 	h.SetFillColor(kOrange)

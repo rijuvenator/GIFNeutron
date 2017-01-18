@@ -183,9 +183,6 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 	#
 	# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
 	#
-	# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
-	# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
-	#
 
 	graphs = []
 	ntypes = len(pretty.keys())
@@ -195,7 +192,7 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 	# Step 1
 	plots = []
 	for i,p in enumerate(pretty.keys()):
-		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'p', 'AP' if i==0 else 'P'))
+		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'p', 'P'))
 
 	# Step 2
 	canvas = Plotter.Canvas('ME'+str(cham)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
@@ -205,16 +202,16 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 
 	# Step 4
 	for i in range(ntypes):
-		canvas.addMainPlot(plots[i], i==0, True)
+		canvas.addMainPlot(plots[i], True)
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	graphs[0].GetYaxis().SetTitle(ytitle)
-	graphs[0].GetXaxis().SetTitle(xtitle)
-	graphs[0].SetMinimum(0.0)
-	graphs[0].SetMaximum(6.1)
-	plots[0].scaleTitles(0.8)
-	plots[0].scaleLabels(0.8)
+	canvas.firstPlot.plot.GetYaxis().SetTitle(ytitle)
+	canvas.firstPlot.plot.GetXaxis().SetTitle(xtitle)
+	canvas.firstPlot.plot.SetMinimum(0.0)
+	canvas.firstPlot.plot.SetMaximum(6.1)
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
 
 	for i,p in enumerate(pretty.keys()):
 		graphs[i].SetMarkerColor(pretty[p]['color'])

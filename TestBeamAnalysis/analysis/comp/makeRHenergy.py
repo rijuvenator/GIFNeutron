@@ -170,9 +170,6 @@ class MegaStruct():
 		#
 		# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
 		#
-		# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
-		# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
-		#
 
 		# Step 1
 		CHAM = 1 if cham==1 else 2
@@ -187,7 +184,7 @@ class MegaStruct():
 		canvas.makeLegend()
 
 		# Step 4
-		canvas.addMainPlot(plot, True, False)
+		canvas.addMainPlot(plot, False)
 
 		# Step 5
 		R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
@@ -224,9 +221,6 @@ class MegaStruct():
 		#
 		# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
 		#
-		# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
-		# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
-		#
 
 		# Step 1
 		# Make histogram objects
@@ -256,7 +250,7 @@ class MegaStruct():
 		canvas.makeLegend()
 
 		# Step 4
-		canvas.addMainPlot(stackPlot, True, False)
+		canvas.addMainPlot(stackPlot, False)
 
 		# Step 5
 		R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")

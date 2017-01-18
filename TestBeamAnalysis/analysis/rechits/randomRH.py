@@ -172,30 +172,24 @@ def makeDistPlot(cham, hist, xtitle, ytitle, title):
 	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='tl', lOffset=0.04, fontsize=0.03)
 
 	# Step 4
-	canvas.addMainPlot(plot, isFirst=True, addToLegend=False)
+	canvas.addMainPlot(plot, addToLegend=False)
 
 	# Step 5
-	aplot = plot
-
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	aplot.setTitles(X=xtitle, Y=ytitle)
-	#aplot.plot.SetMinimum(0.0)
-	#aplot.plot.SetMaximum(1.1)
-	aplot.scaleTitles(0.8)
-	aplot.scaleLabels(0.8)
-	aplot.scaleTitleOffsets(1.2, 'Y')
+	canvas.firstPlot.setTitles(X=xtitle, Y=ytitle)
+	#canvas.firstPlot.plot.SetMinimum(0.0)
+	#canvas.firstPlot.plot.SetMaximum(1.1)
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
+	canvas.firstPlot.scaleTitleOffsets(1.2, 'Y')
 	canvas.makeTransparent()
 
 	plot.plot.SetLineColor(R.kRed)
 
 	att = [key for key in data.MEASDATA.keys() if int(title) in data.MEASDATA[key]][0]
-	text = R.TLatex()
-	text.SetTextAlign(11)
-	text.SetTextFont(42)
-	text.SetTextSize(0.04)
-	text.DrawLatexNDC(.75, .80, '{:.1f}'.format(att))
-	text.DrawLatexNDC(.75, .75, '#color[2]{#mu:'    + '{:.4f}'.format(plot.plot.GetMean())   + '}')
-	text.DrawLatexNDC(.75, .70, '#color[2]{#sigma:' + '{:.4f}'.format(plot.plot.GetStdDev()) + '}')
+	canvas.drawText(text='{:.1f}'.format(att)                                              , pos=(.75, .80))
+	canvas.drawText(text='#color[2]{#mu:'    + '{:.4f}'.format(plot.plot.GetMean())   + '}', pos=(.75, .75))
+	canvas.drawText(text='#color[2]{#sigma:' + '{:.4f}'.format(plot.plot.GetStdDev()) + '}', pos=(.75, .70))
 
 	lines = []
 	for i in range(5):
@@ -225,7 +219,7 @@ def makeSDPlot(cham, x, y, xtitle, ytitle, title):
 	g = R.TGraph(len(x), x, y)
 
 	# Step 1
-	plot = Plotter.Plot(g, legName='', legType='p', option='AP')
+	plot = Plotter.Plot(g, legName='', legType='p', option='P')
 
 	# Step 2
 	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
@@ -234,18 +228,17 @@ def makeSDPlot(cham, x, y, xtitle, ytitle, title):
 	canvas.makeLegend(lWidth=0.2, lHeight=0.125, pos='tl', lOffset=0.04, fontsize=0.03)
 
 	# Step 4
-	canvas.addMainPlot(plot, isFirst=True , addToLegend=False)
+	canvas.addMainPlot(plot, addToLegend=False)
 
 	# Step 5
-	aplot = plot
 
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	aplot.setTitles(X=xtitle, Y=ytitle)
-	aplot.plot.SetMinimum(0.0)
-	aplot.plot.SetMaximum(10.0)
-	aplot.scaleTitles(0.8)
-	aplot.scaleLabels(0.8)
-	aplot.scaleTitleOffsets(1.2, 'Y')
+	canvas.firstPlot.setTitles(X=xtitle, Y=ytitle)
+	canvas.firstPlot.plot.SetMinimum(0.0)
+	canvas.firstPlot.plot.SetMaximum(10.0)
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
+	canvas.firstPlot.scaleTitleOffsets(1.2, 'Y')
 	canvas.makeTransparent()
 
 	plot.plot.SetMarkerColor(R.kRed)

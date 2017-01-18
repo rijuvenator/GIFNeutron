@@ -50,9 +50,6 @@ for MEAS in MEASLIST:
 		#
 		# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
 		#
-		# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
-		# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
-		#
 
 		CHAMSTR = '2' if CHAM == 110 else '1'
 		hist = h
@@ -80,7 +77,7 @@ for MEAS in MEASLIST:
 
 		plot.scaleTitles(0.8)
 		plot.scaleLabels(0.8)
-		hist.GetYaxis().SetTitleOffset(hist.GetYaxis().GetTitleOffset() * 1.35)
+		plot.scaleTitleOffsets(1.35, 'Y')
 		canvas.makeTransparent()
 
 		# Step 6

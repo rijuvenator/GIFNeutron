@@ -40,9 +40,6 @@ def makePlot(h, cham):
 	#
 	# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
 	#
-	# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
-	# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
-	#
 
 	hist = h
 	# Step 1
@@ -60,8 +57,8 @@ def makePlot(h, cham):
 	plot.setTitles(X='keyHalfStrip', Y='keyWireGroup')
 	plot.scaleTitles(0.8, axes='XYZ')
 	plot.scaleLabels(0.8, axes='XYZ')
-	canvas.mainPad.SetLeftMargin(canvas.mainPad.GetLeftMargin() * 0.8)
-	canvas.mainPad.SetRightMargin(canvas.mainPad.GetRightMargin() * 1.4)
+	canvas.scaleMargins(0.8, 'L')
+	canvas.scaleMargins(1.4, 'R')
 	canvas.makeTransparent()
 
 

@@ -3,7 +3,7 @@ import numpy as n
 
 # setStyle function, based on TDRStyle, but more flexible
 def setStyle(width=800, height=600, font=42, tsize=0.04):
-	style = R.TStyle("style","Style")
+	style = R.TStyle('style','Style')
 
 	width = width
 	height = height
@@ -69,7 +69,7 @@ def setStyle(width=800, height=600, font=42, tsize=0.04):
 
 	# title
 	style.SetOptTitle(0)                     # off
-	style.SetTitleFont(font,"")              # helvetica normal
+	style.SetTitleFont(font,'')              # helvetica normal
 	style.SetTitleTextColor(R.kBlack)        # black
 	style.SetTitleFontSize(tsize+0.02)       # default 0
 	style.SetTitleStyle(0)                   # hollow
@@ -80,20 +80,20 @@ def setStyle(width=800, height=600, font=42, tsize=0.04):
 	style.SetTitleY(titleY)                  # center title vertically within margin
 
 	# axis titles
-	style.SetTitleFont(font, "XYZ")          # helvetica normal
-	style.SetTitleColor(R.kBlack, "XYZ")     # black
-	style.SetTitleSize(tsize+0.005,"XYZ")    # default 0.02
-	style.SetTitleOffset(1,"X")              # default 1
-	style.SetTitleOffset(1,"Y")              # default 1
+	style.SetTitleFont(font, 'XYZ')          # helvetica normal
+	style.SetTitleColor(R.kBlack, 'XYZ')     # black
+	style.SetTitleSize(tsize+0.005,'XYZ')    # default 0.02
+	style.SetTitleOffset(1,'X')              # default 1
+	style.SetTitleOffset(1,'Y')              # default 1
 
 	# axis labels
-	style.SetLabelFont(font, "XYZ")          # helvetica normal
-	style.SetLabelColor(R.kBlack, "XYZ")     # black
-	style.SetLabelSize(tsize, "XYZ")         # default 0.04
-	style.SetLabelOffset(0.005,"XYZ")        # default 0.005
+	style.SetLabelFont(font, 'XYZ')          # helvetica normal
+	style.SetLabelColor(R.kBlack, 'XYZ')     # black
+	style.SetLabelSize(tsize, 'XYZ')         # default 0.04
+	style.SetLabelOffset(0.005,'XYZ')        # default 0.005
 
 	# axis
-	style.SetAxisColor(R.kBlack, "XYZ")      # black
+	style.SetAxisColor(R.kBlack, 'XYZ')      # black
 	style.SetStripDecimals(R.kTRUE)          # strip decimals
 	style.SetPadTickX(1)                     # opposite x ticks
 	style.SetPadTickY(1)                     # opposite y ticks
@@ -103,7 +103,7 @@ def setStyle(width=800, height=600, font=42, tsize=0.04):
 # holds a plot object; expected to be a hist, graph, or hstack
 # legName is the legend display name, legType is the legend symbol draw option, option is the draw option
 class Plot:
-	def __init__(self, plot, legName="hist", legType="felp", option=""):
+	def __init__(self, plot, legName='hist', legType='felp', option=''):
 		self.plot = plot
 		self.legName = legName
 		self.legType = legType
@@ -149,7 +149,7 @@ class Canvas:
 #	TGraph *gr;
 
 	# the user calls this constructor
-	def __init__(self, lumi="30 fb^{-1} (13 TeV)", logy=0, ratioFactor=0, extra="Internal", cWidth=800, cHeight=600, font=42, tsize=0.05):
+	def __init__(self, lumi='30 fb^{-1} (13 TeV)', logy=0, ratioFactor=0, extra='Internal', cWidth=800, cHeight=600, font=42, tsize=0.05):
 		self.cWidth = cWidth
 		self.cHeight = cHeight
 		self.font = font
@@ -163,7 +163,7 @@ class Canvas:
 
 		setStyle(self.cWidth,self.cHeight,self.font,self.tsize)
 
-		self.c = R.TCanvas("c","Canvas",self.cWidth,self.cHeight)
+		self.c = R.TCanvas('c','Canvas',self.cWidth,self.cHeight)
 
 		self.prepareCanvas()
 
@@ -173,12 +173,12 @@ class Canvas:
 		lMargin = self.c.GetLeftMargin()
 		rMargin = self.c.GetRightMargin()
 
-		self.mainPad = R.TPad("main","Main",0,self.ratioFactor,1,1)
+		self.mainPad = R.TPad('main','Main',0,self.ratioFactor,1,1)
 		
 		if (self.ratioFactor != 0):
 			self.mainPad.SetBottomMargin(0.04)
 			self.mainPad.SetRightMargin(tMargin * (self.cHeight * (1 - self.ratioFactor)) / self.cWidth)
-			self.ratPad = R.TPad("ratio","Ratio",0,0,1,self.ratioFactor)
+			self.ratPad = R.TPad('ratio','Ratio',0,0,1,self.ratioFactor)
 			self.ratPad.SetTopMargin(0.04)
 			self.ratPad.SetBottomMargin(lMargin * (1 - self.ratioFactor)/self.ratioFactor)
 			self.ratPad.SetRightMargin(tMargin * (self.cHeight * (1 - self.ratioFactor)) / self.cWidth)
@@ -187,11 +187,11 @@ class Canvas:
 		self.mainPad.Draw()
 		self.mainPad.SetLogy(self.logy)
 
-	# the user calls this; it "initializes" the legend
+	# the user calls this; it 'initializes' the legend
 	# lWidth is width as fraction of pad, lHeight is height as fraction of pad, lOffset is offset from corner as fraction of pad
 	# pos can be tr, tl, br, bl for each of the four corners. if it doesn't suit, just grab it and move it
 	# fontsize defaults to 0.04
-	def makeLegend(self, lWidth=0.125, lHeight=0.2, pos="tr", lOffset=0.02, fontsize=0.04):
+	def makeLegend(self, lWidth=0.125, lHeight=0.2, pos='tr', lOffset=0.02, fontsize=0.04):
 		tMargin = float(self.mainPad.GetTopMargin())
 		lMargin = float(self.mainPad.GetLeftMargin())
 		rMargin = float(self.mainPad.GetRightMargin())
@@ -200,16 +200,16 @@ class Canvas:
 		self.c.cd()
 		self.mainPad.cd()
 
-		if (pos == "tr"):
+		if (pos == 'tr'):
 			self.leg = R.TLegend(1-rMargin-lOffset-lWidth, 1-tMargin-lOffset-lHeight, 1-rMargin-lOffset,          1-tMargin-lOffset        )
-		elif (pos == "tl"):
+		elif (pos == 'tl'):
 			self.leg = R.TLegend(  lMargin+lOffset,        1-tMargin-lOffset-lHeight,   lMargin+lOffset+lWidth,   1-tMargin-lOffset        )
-		elif (pos == "br"):
+		elif (pos == 'br'):
 			self.leg = R.TLegend(1-rMargin-lOffset-lWidth,   bMargin+lOffset,         1-rMargin-lOffset,            bMargin+lOffset+lHeight)
-		elif (pos == "bl"):
+		elif (pos == 'bl'):
 			self.leg = R.TLegend(  lMargin+lOffset,          bMargin+lOffset,           lMargin+lOffset+lWidth,     bMargin+lOffset+lHeight)
 		else:
-			print "Invalid legend position string; defaulting to top-right"
+			print 'Invalid legend position string; defaulting to top-right'
 			self.leg = R.TLegend(1-rMargin-lOffset-lWidth, 1-tMargin-lOffset-lHeight, 1-rMargin-lOffset, 1-tMargin-lOffset)
 
 		self.leg.SetTextSize(fontsize)
@@ -219,30 +219,12 @@ class Canvas:
 	def addLegendEntry(self, plot):
 		self.leg.AddEntry(plot.plot, plot.legName, plot.legType)
 	
-	# the user calls this; adds a plot Plot to the main pad
-	# isFirst is if the main pad should get its draw information from this plot (axis titles and ranges)
+	# the user calls this; added a plot Plot to the main pad
 	# addToLegend is if this plot should be added to the legend right away
-	# I added this option because perhaps the "first" plot isn't intended to also be the first legend entry
-	def addMainPlot(self, plot, isFirst=1, addToLegend=1):
-		plot.plot.UseCurrentStyle()
-		self.c.cd()
-		self.mainPad.cd()
-
-		if (isFirst):
-			plot.plot.Draw(plot.option)
-			plot.plot.GetXaxis().CenterTitle()
-			plot.plot.GetYaxis().CenterTitle()
-		else:
-			plot.plot.Draw((plot.option+" same"))
-
-		if (self.ratioFactor != 0):
-			plot.plot.GetXaxis().SetLabelSize(0)
-
-		if (addToLegend):
-			self.addLegendEntry(plot)
-	
-	# trying out a new way of drawing
-	def addMainPlotExp(self, plot, addToLegend=1):
+	# (perhaps the 'first' plot isn't intended to also be the first legend entry)
+	# isFirst no longer does anything; it's for backwards compatibility
+	# I'll remove it when I'm sure it's no longer needed.
+	def addMainPlot(self, plot, isFirst=True, addToLegend=True):
 		plot.plot.UseCurrentStyle()
 		self.c.cd()
 		self.mainPad.cd()
@@ -270,7 +252,7 @@ class Canvas:
 	# lWidth is width as fraction of pad, lHeight is height as fraction of pad, lOffset is offset from corner as fraction of pad
 	# pos can be tr, tl, br, bl for each of the four corners. if it doesn't suit, just grab it and move it
 	# fontsize defaults to 0.03
-	def setFitBoxStyle(self,owner,lWidth=0.3, lHeight=0.15, pos="tl", lOffset=0.05, fontsize=0.03):
+	def setFitBoxStyle(self,owner,lWidth=0.3, lHeight=0.15, pos='tl', lOffset=0.05, fontsize=0.03):
 		tMargin = float(self.mainPad.GetTopMargin())
 		lMargin = float(self.mainPad.GetLeftMargin())
 		rMargin = float(self.mainPad.GetRightMargin())
@@ -280,35 +262,35 @@ class Canvas:
 		self.mainPad.cd()
 		self.mainPad.Update()
 
-		sbox = owner.FindObject("stats")
+		sbox = owner.FindObject('stats')
 
 		sbox.SetFillStyle(0)
 		sbox.SetBorderSize(0)
 		sbox.SetTextFont(self.font)
 		sbox.SetTextSize(fontsize)
 
-		if (pos == "tr"):
+		if (pos == 'tr'):
 			sbox.SetX1NDC(1-rMargin-lOffset-lWidth )
 			sbox.SetY1NDC(1-tMargin-lOffset-lHeight)
 			sbox.SetX2NDC(1-rMargin-lOffset        )
 			sbox.SetY2NDC(1-tMargin-lOffset        )
-		elif (pos == "tl"):
+		elif (pos == 'tl'):
 			sbox.SetX1NDC(  lMargin+lOffset        )
 			sbox.SetY1NDC(1-tMargin-lOffset-lHeight)
 			sbox.SetX2NDC(  lMargin+lOffset+lWidth )
 			sbox.SetY2NDC(1-tMargin-lOffset        )
-		elif (pos == "br"):
+		elif (pos == 'br'):
 			sbox.SetX1NDC(1-rMargin-lOffset-lWidth )
 			sbox.SetY1NDC(  bMargin+lOffset        )
 			sbox.SetX2NDC(1-rMargin-lOffset        )
 			sbox.SetY2NDC(  bMargin+lOffset+lHeight)
-		elif (pos == "bl"):
+		elif (pos == 'bl'):
 			sbox.SetX1NDC(  lMargin+lOffset        )
 			sbox.SetY1NDC(  bMargin+lOffset        )
 			sbox.SetX2NDC(  lMargin+lOffset+lWidth )
 			sbox.SetY2NDC(  bMargin+lOffset+lHeight)
 		else:
-			print "Invalid fit box position string; defaulting to top-left"
+			print 'Invalid fit box position string; defaulting to top-left'
 			sbox.SetX1NDC(  lMargin+lOffset        )
 			sbox.SetY1NDC(1-tMargin-lOffset-lHeight)
 			sbox.SetX2NDC(  lMargin+lOffset+lWidth )
@@ -317,7 +299,7 @@ class Canvas:
 	# the user calls this; makes ratio plot given a top hist and a bottom hist
 	# plusminus is the window around 1, i.e. 0.5 means plot from 0.5 to 1.5
 	# ytit is the y axis title, xtit is the x axis title, option is the draw option
-	def makeRatioPlot(self, topHist, bottomHist, plusminus=0.5, option="", ytit="Data/MC", xtit=""):
+	def makeRatioPlot(self, topHist, bottomHist, plusminus=0.5, option='', ytit='Data/MC', xtit=''):
 		self.c.cd()
 		self.ratPad.cd()
 		self.ratPad.SetGridy(R.kTRUE)
@@ -328,7 +310,7 @@ class Canvas:
 
 		factor = (1 - self.ratioFactor)/self.ratioFactor
 
-		if (xtit != ""):
+		if (xtit != ''):
 			self.rat.GetXaxis().SetTitle(xtit)
 
 		self.rat.GetXaxis().SetTitleSize(self.rat.GetXaxis().GetTitleSize() * factor)
@@ -354,9 +336,9 @@ class Canvas:
 		self.gr.SetLineColor(R.kRed)
 		self.gr.SetLineStyle(3)
 		self.gr.SetLineWidth(2)
-		self.gr.Draw("C same")
+		self.gr.Draw('C same')
 
-		self.rat.Draw((option+" same"))
+		self.rat.Draw((option+' same'))
 		self.rat.SetMarkerColor(R.kBlack)
 		self.rat.SetLineColor(R.kBlack)
 
@@ -367,7 +349,7 @@ class Canvas:
 		self.c.SetFillStyle(4000)
 		self.mainPad.SetFillStyle(4000)
 
-	# the user calls this last; it draws the lumi text, "CMS", extra text, and legend 
+	# the user calls this last; it draws the lumi text, 'CMS', extra text, and legend 
 	def finishCanvas(self):
 		tMargin = float(self.mainPad.GetTopMargin())
 		lMargin = float(self.mainPad.GetLeftMargin())
@@ -389,7 +371,7 @@ class Canvas:
 		latex.SetTextFont(self.font+20)
 		latex.SetTextSize(fontsize*1.25)
 		latex.SetTextAlign(11)
-		latex.DrawLatexNDC(lMargin,1-tMargin+tOffset,"CMS")
+		latex.DrawLatexNDC(lMargin,1-tMargin+tOffset,'CMS')
 		latex.SetTextFont(self.font+10)
 		latex.SetTextSize(fontsize)
 		latex.DrawLatexNDC(lMargin + fontsize*self.cHeight*(1-self.ratioFactor)*2.75/self.cWidth,1-tMargin+tOffset,self.extra)
@@ -408,6 +390,9 @@ class Canvas:
 			for ext in extList:
 				self.c.SaveAs(name+ext)
 	
+	# scale pad margins
+	# factor is the scale factor
+	# edges is a string containing a subset of 'LRTB' controlling which margins
 	def scaleMargins(self, factor, edges=''):
 		if 'L' in edges:
 			self.mainPad.SetLeftMargin  (self.mainPad.GetLeftMargin  () * factor)
@@ -417,3 +402,19 @@ class Canvas:
 			self.mainPad.SetTopMargin   (self.mainPad.GetTopMargin   () * factor)
 		if 'B' in edges:
 			self.mainPad.SetBottomMargin(self.mainPad.GetBottomMargin() * factor)
+
+	# draw some text onto the canvas
+	# text is the text
+	# pos is a positional tuple in NDC
+	# align is a string containing two characters, one each of 'bct' and 'lcr' controlling alignment
+	# font is a string containing a subset (including empty) of 'bi' controlling bold, italic
+	def drawText(self, text='', pos=(0., 0.), align='bl', font=''):
+		latex = R.TLatex()
+		AlignDict = {'l' : 1, 'c' : 2, 'r' : 3, 'b' : 1, 't' : 3}
+		FontDict = {'' : 4, 'i' : 5, 'b' : 6, 'bi' : 7}
+		RAlign = 10 * AlignDict[align[1]] + AlignDict[align[0]]
+		RFont = 10 * FontDict[font] + 2
+		latex.SetTextAlign(RAlign)
+		latex.SetTextFont(RFont)
+		latex.SetTextSize(0.04)
+		latex.DrawLatexNDC(pos[0], pos[1], text)

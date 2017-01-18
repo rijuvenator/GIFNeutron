@@ -160,9 +160,6 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, normO=None, pretty=pretty):
 	#
 	# Plotter.Canvas class members c, mainPad, ratPad, leg, rat, and gr are available
 	#
-	# Note: If TYPE is a TGraph and option="P", a draw option of "AP" is required for the FIRST plot (first addMainPlot)
-	# So change plot.option, either to "P" after (if option="AP"), or change plot.option to "AP" before and "P" after (if option="P")
-	#
 
 	ntypes = len(pretty.keys())
 
@@ -185,7 +182,7 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, normO=None, pretty=pretty):
 	# Step 1
 	plots = []
 	for i,p in enumerate(pretty.keys()):
-		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'p', 'AP' if i==0 else 'P'))
+		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'p', 'P'))
 
 	# Step 2
 	canvas = Plotter.Canvas(extra, logy, 0., "Internal", 800, 700)
@@ -201,17 +198,17 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, normO=None, pretty=pretty):
 
 	# Step 4
 	for i in range(ntypes):
-		canvas.addMainPlot(plots[i], i==0, True)
+		canvas.addMainPlot(plots[i])
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
-	graphs[0].GetYaxis().SetTitleOffset(graphs[0].GetYaxis().GetTitleOffset()*1.4)
-	graphs[0].GetYaxis().SetTitle(ytit)
-	graphs[0].GetXaxis().SetTitle('Mean Current [#muA]')
-	graphs[0].SetMinimum(yrange[0]*0.8)
-	graphs[0].SetMaximum(yrange[1]*1.2)
-	plots[0].scaleTitles(0.8)
-	plots[0].scaleLabels(0.8)
+	canvas.firstPlot.plot.GetYaxis().SetTitleOffset(graphs[0].GetYaxis().GetTitleOffset()*1.4)
+	canvas.firstPlot.plot.GetYaxis().SetTitle(ytit)
+	canvas.firstPlot.plot.GetXaxis().SetTitle('Mean Current [#muA]')
+	canvas.firstPlot.plot.SetMinimum(yrange[0]*0.8)
+	canvas.firstPlot.plot.SetMaximum(yrange[1]*1.2)
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
 
 	for i,p in enumerate(pretty.keys()):
 		graphs[i].SetMarkerColor(pretty[p]['color'])
