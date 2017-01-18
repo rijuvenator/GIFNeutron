@@ -18,8 +18,8 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-F_DATAFILE = '../datafiles/data_compSegRes'
-#F_DATAFILE = None
+#F_DATAFILE = '../datafiles/data_compSegRes'
+F_DATAFILE = None
 
 # Cosmetic data dictionary, comment out for fewer ones
 pretty = {
@@ -106,11 +106,8 @@ class MegaStruct():
 						self.mean[cham][MEAS] = 0
 						self.resolution[cham][MEAS] = 0
 						self.hists[cham][MEAS] = {
-							'res' : R.TH1F('hRes_'+str(cham)+'_'+str(MEAS), 200, -15, 15)
+							'res' : R.TH1F('hRes_'+str(cham)+'_'+str(MEAS),'', 200, -10, 10)
 						}
-					CompSegDists21 = []
-					compSegHist11 = R.TH1F('compSegHist11', '', 200, -15, 15)
-					compSegHist21 = R.TH1F('compSegHist21', '', 200, -15, 15)
 					DecList = ['STRIP','WIRE','COMP','LCT','CLCT','SEGMENT']
 					for entry in t:
 						E = Primitives.ETree(t,DecList)
@@ -148,17 +145,17 @@ class MegaStruct():
 									# Fill histograms per segment
 									if minCompSegDist[lay]<999.:
 										if cham==1:
-											self.hists[1][MEAS].Fill(float(minCompSegDist[lay]))
+											self.hists[1][MEAS]['res'].Fill(float(minCompSegDist[lay]))
 										else:
-											self.hists[110][MEAS].Fill(float(minCompSegDist[lay]))
+											self.hists[110][MEAS]['res'].Fill(float(minCompSegDist[lay]))
 					# Save per chamber, measurement plots
 					# Fill per measurement dictionaries
 					for CHAM in CHAMLIST:
-						self.resolution[CHAM][MEAS]   = self.hists[CHAM][MEAS].GetMean()
-						self.mean[CHAM][MEAS]         = self.hists[CHAM][MEAS].GetStdDev()
-						self.savePlot(self.hists[CHAM][MEAS],CHAM,MEAS)
+						self.mean[CHAM][MEAS]       = self.hists[CHAM][MEAS]['res'].GetMean()
+						self.resolution[CHAM][MEAS] = self.hists[CHAM][MEAS]['res'].GetStdDev()
+						self.savePlot(self.hists[CHAM][MEAS]['res'],CHAM,MEAS,ATT)
 
-					print MEAS,ATT,
+					print MEAS,
 					print self.mean[1][MEAS], self.resolution[1][MEAS],
 					print self.mean[110][MEAS], self.resolution[110][MEAS]
 
@@ -168,10 +165,10 @@ class MegaStruct():
 			for line in f:
 				cols = line.strip('\n').split()
 				MEAS = int(cols[0])
-				self.mean[1][MEAS] = cols[2]
-				self.resolution[1][MEAS] = cols[3]
-				self.mean[110][MEAS] = cols[4]
-				self.resolution[110][MEAS] = cols[5]
+				self.mean[1][MEAS] = cols[1]
+				self.resolution[1][MEAS] = cols[2]
+				self.mean[110][MEAS] = cols[3]
+				self.resolution[110][MEAS] = cols[4]
 
 	# get a value given a chamber and measurement number
 	def meanValue(self, cham, meas):
@@ -190,7 +187,7 @@ class MegaStruct():
 		return np.array([self.res(cham, self.MEASDATA[att][ff]) for att in self.attVector()])
 
 	# Plot Saver function
-	def savePlot(self,hist,cham,MEAS):
+	def savePlot(self,hist,cham,MEAS,ATT):
 		plot = Plotter.Plot(hist,option='hist')
 
 		canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
@@ -202,19 +199,19 @@ class MegaStruct():
 		hist.SetLineWidth(2)
 		hist.SetFillColor(R.kBlue+1)
 
-        text = R.TLatex()
-        text.SetTextAlign(11)
-        text.SetTextFont(42)
-        text.SetTextSize(0.04)
-        if ATT!=float('inf'):
-            text.DrawLatexNDC(.75, .80, '{:.1f}'.format(ATT))
-        else:
-            text.DrawLatexNDC(.75, .80, 'No Source')
-        text.DrawLatexNDC(.75, .75, '#color[1]{#mu:'    + '{:.4f}'.format(hist.GetMean())   + '}')
-        text.DrawLatexNDC(.75, .70, '#color[1]{#sigma:' + '{:.4f}'.format(hist.GetStdDev()) + '}')
+		text = R.TLatex()
+		text.SetTextAlign(11)
+		text.SetTextFont(42)
+		text.SetTextSize(0.04)
+		if ATT!=float('inf'):
+			text.DrawLatexNDC(.75, .80, '{:.1f}'.format(ATT))
+		else:
+			text.DrawLatexNDC(.75, .80, 'No Source')
+		text.DrawLatexNDC(.75, .75, '#color[1]{#mu:'    + '{:.4f}'.format(hist.GetMean())   + '}')
+		text.DrawLatexNDC(.75, .70, '#color[1]{#sigma:' + '{:.4f}'.format(hist.GetStdDev()) + '}')
 
 		canvas.finishCanvas()
-		canvas.c.SaveAs('pdfs/compSegRes_m'+str(MEAS)+'.pdf')
+		canvas.c.SaveAs('segRes/compSegRes_m'+str(MEAS)+'.pdf')
 		R.SetOwnership(canvas.c, False)
 
 data = MegaStruct()
@@ -269,7 +266,7 @@ def makePlot(cham, x, y, xtitle, ytitle, title, name):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/compSeg'+name+'_ME'+str(cham)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('segRes/compSeg'+name+'_ME'+str(cham)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ##### MAKE PLOTS #####

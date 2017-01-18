@@ -65,6 +65,7 @@ class MegaStruct():
 		f.close()
 
 		# Fill dictionary connecting chamber, measurement number, and efftype to efficiency value
+		self.hists = { 1 : {} , 110 : {} }
 		for att in self.FFFMeas.keys():
 			for ff,MEAS in enumerate(self.FFFMeas[att]):
 				f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
@@ -72,8 +73,8 @@ class MegaStruct():
 				for CHAM in CHAMLIST:
 					self.hists[CHAM][MEAS] = {\
 						'rhEnergy' : R.TH1F('rh_e_'+str(CHAM)+'_'+str(MEAS),'',100,0,1500),
-						'rhEnergyMatch' : R.TH1F('rh_e_match_'+str(CHAM)+'_'+str(MEAS), 100,0,1500),
-						'rhEnergyNoMatch' : R.TH1F('rh_e_nomatch_'+str(CHAM)+'_'+str(MEAS),,'',100,0,1500)
+						'rhEnergyMatch' : R.TH1F('rh_e_match_'+str(CHAM)+'_'+str(MEAS),'', 100,0,1500),
+						'rhEnergyNoMatch' : R.TH1F('rh_e_nomatch_'+str(CHAM)+'_'+str(MEAS),'',100,0,1500)
 					}
 				for entry in t:
 					DecList = ['SEGMENT','LCT','COMP','RECHIT']#,'STRIP','WIRE']
@@ -87,17 +88,17 @@ class MegaStruct():
 
 					for CHAM in CHAMLIST:
 						for lct in lcts:
-							if lct.cham!=cham: continue
-							if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
+							if lct.cham!=CHAM: continue
+							if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,CHAM): continue
 							found, seg = Aux.bestSeg(lct,segs)
 							if not found: continue
 							rhList = seg.rhID
 							alreadyMatched = []
 							for rhID in rhList:
-								if rechits[rhID].cham!=cham: continue
+								if rechits[rhID].cham!=lct.cham: continue
 								matched = False
 								for c,comp in enumerate(comps):
-									if comp.cham!=cham: continue
+									if comp.cham!=rechits[rhID].cham: continue
 									if comp.layer!=rechits[rhID].layer: continue
 									if not self.matchRHComp(rechits[rhID],comp): continue
 									if c in alreadyMatched: continue
@@ -105,19 +106,19 @@ class MegaStruct():
 									alreadyMatched.append(c)
 									matched = True
 									break
-								if cham==1:
+								if CHAM==1:
 									self.hists[1][MEAS]['rhEnergy'].Fill(rechits[rhID].energy)
-								if cham==110:
+								if CHAM==110:
 									self.hists[110][MEAS]['rhEnergy'].Fill(rechits[rhID].energy)
 								if matched:
-									if cham==1:
+									if CHAM==1:
 										self.hists[1][MEAS]['rhEnergyMatch'].Fill(rechits[rhID].energy)
-									if cham==110:
+									if CHAM==110:
 										self.hists[110][MEAS]['rhEnergyMatch'].Fill(rechits[rhID].energy)
 								else:
-									if cham==1:
+									if CHAM==1:
 										self.hists[1][MEAS]['rhEnergyNoMatch'].Fill(rechits[rhID].energy)
-									if cham==110:
+									if CHAM==110:
 										self.hists[110][MEAS]['rhEnergyNoMatch'].Fill(rechits[rhID].energy)
 
 				for CHAM in CHAMLIST:

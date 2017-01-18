@@ -16,6 +16,7 @@ CHAMLIST = [1, 110]
 f_measgrid = '../datafiles/measgrid'
 f_attenhut = '../datafiles/attenhut'
 fromFile = '../datafiles/data_compRecHitRes'
+#fromFile = None
 
 # Whether or not to only use Yuriy's 5 attenuations
 castrated = False
@@ -70,7 +71,6 @@ class MegaStruct():
 		self.compMean = { 1 : {}, 110 : {} }
 		self.hists = { 1 : {}, 110 : {} }
 		if fromFile is None:
-			pass
 			for att in self.FFFMeas.keys():
 				for ff,MEAS in enumerate(self.FFFMeas[att]):
 					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
@@ -230,15 +230,15 @@ class MegaStruct():
 		plot.scaleLabels(0.8)
 
 		text = R.TLatex()
-        text.SetTextAlign(11)
-        text.SetTextFont(42)
-        text.SetTextSize(0.04)
-        if ATT!=float('inf'):
-            text.DrawLatexNDC(.75, .80, '{:.1f}'.format(ATT))
-        else:
-            text.DrawLatexNDC(.75, .80, 'No Source')
-        text.DrawLatexNDC(.75, .75, '#color[1]{#mu:'    + '{:.4f}'.format(hist.GetMean())   + '}')
-        text.DrawLatexNDC(.75, .70, '#color[1]{#sigma:' + '{:.4f}'.format(hist.GetStdDev()) + '}')
+		text.SetTextAlign(11)
+		text.SetTextFont(42)
+		text.SetTextSize(0.04)
+		if ATT!=float('inf'):
+			text.DrawLatexNDC(.75, .80, '{:.1f}'.format(att))
+		else:
+			text.DrawLatexNDC(.75, .80, 'No Source')
+		text.DrawLatexNDC(.75, .75, '#color[1]{#mu:'    + '{:.4f}'.format(hist.GetMean())   + '}')
+		text.DrawLatexNDC(.75, .70, '#color[1]{#sigma:' + '{:.4f}'.format(hist.GetStdDev()) + '}')
 
 		canvas.makeTransparent()
 
@@ -248,7 +248,7 @@ class MegaStruct():
 
 		# Step 8
 		canvas.finishCanvas()
-		canvas.c.SaveAs('resPlots/compRes_'+str(CHAM)+'1_'+str(meas)+'.pdf')
+		canvas.c.SaveAs('rechitRes/compRes_'+str(CHAM)+'1_'+str(meas)+'.pdf')
 		R.SetOwnership(canvas.c, False)
 
 
@@ -321,16 +321,16 @@ def makePlot(x, y,cham, xtitle, ytitle, title, RES=False,pretty=pretty):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('resPlots/comp_'+str(CHAM)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('rechitRes/comp_'+str(CHAM)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS
-for cham in chamlist:
+for CHAM in CHAMLIST:
 	# Plots with current on x-axis
 	makePlot(\
-			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.resVector(cham, ff) for ff in pretty.keys()],
-			cham,
+			[data.currentVector(CHAM, ff) for ff in pretty.keys()],
+			[data.resVector(CHAM, ff) for ff in pretty.keys()],
+			CHAM,
 			'Mean Current [#muA]',
 			'Comparator Resolution [strip]',
 			'res_curr',
@@ -338,9 +338,9 @@ for cham in chamlist:
 			)
 	# Plots with luminosity on x-axis
 	makePlot(\
-			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.resVector(cham, ff) for ff in pretty.keys()],
-			cham,
+			[data.lumiVector(CHAM, ff) for ff in pretty.keys()],
+			[data.resVector(CHAM, ff) for ff in pretty.keys()],
+			CHAM,
 			'Luminosity [Hz/cm^{2}]',
 			'Comparator Resolution [strip]',
 			'res_lumi',
@@ -349,8 +349,8 @@ for cham in chamlist:
 	# Plots with 1/A on x-axis
 	makePlot(\
 			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.resVector(cham, ff) for ff in pretty.keys()],
-			cham,
+			[data.resVector(CHAM, ff) for ff in pretty.keys()],
+			CHAM,
 			'Source Intensity 1/A',
 			'Comparator Resolution [strip]',
 			'res_att',
@@ -358,18 +358,18 @@ for cham in chamlist:
 			)
 	# Plots with current on x-axis
 	makePlot(\
-			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.meanVector(cham, ff) for ff in pretty.keys()],
-			cham,
+			[data.currentVector(CHAM, ff) for ff in pretty.keys()],
+			[data.meanVector(CHAM, ff) for ff in pretty.keys()],
+			CHAM,
 			'Mean Current [#muA]',
 			'Comparator Bias [strip]',
 			'mean_curr'
 			)
 	# Plots with luminosity on x-axis
 	makePlot(\
-			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.meanVector(cham, ff) for ff in pretty.keys()],
-			cham,
+			[data.lumiVector(CHAM, ff) for ff in pretty.keys()],
+			[data.meanVector(CHAM, ff) for ff in pretty.keys()],
+			CHAM,
 			'Luminosity [Hz/cm^{2}]',
 			'Comparator Bias [strip]',
 			'mean_lumi'
@@ -377,8 +377,8 @@ for cham in chamlist:
 	# Plots with 1/A on x-axis
 	makePlot(\
 			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.meanVector(cham, ff) for ff in pretty.keys()],
-			cham,
+			[data.meanVector(CHAM, ff) for ff in pretty.keys()],
+			CHAM,
 			'Source Intensity 1/A',
 			'Comparator Bias [strip]',
 			'mean_att'

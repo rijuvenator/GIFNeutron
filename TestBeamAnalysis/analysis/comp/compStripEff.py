@@ -156,10 +156,10 @@ class MegaStruct():
 			for line in f:
 				cols = line.strip('\n').split()
 				MEAS = int(cols[0])
-				self.numerator[1][MEAS] = float(cols[2])
-				self.denominator[1][MEAS] = float(cols[3])
-				self.numerator[110][MEAS] = float(cols[4])
-				self.denominator[110][MEAS] = float(cols[5])
+				self.numerator[1][MEAS] = float(cols[1])
+				self.denominator[1][MEAS] = float(cols[2])
+				self.numerator[110][MEAS] = float(cols[3])
+				self.denominator[110][MEAS] = float(cols[4])
 
 	def stripNearLCT(self,strip,lct):
 		# Purpose is to find out if a given strip is in/near to an LCT pattern

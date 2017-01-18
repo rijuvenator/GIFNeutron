@@ -135,6 +135,7 @@ class MegaStruct():
 								if seg.cham==1: nSegsMatch11 += 1
 								if seg.cham==110: nSegsMatch21 += 1
 								# Just need one segment to match to an LCT for multiplicity plot
+								# doesn't matter if it is the "best" one
 								break
 						# Fill Histograms
 						nSegsMatchTot11 = nSegsMatchTot11 + nSegsMatch11

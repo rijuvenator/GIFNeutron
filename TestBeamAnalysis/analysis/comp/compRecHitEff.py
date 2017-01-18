@@ -15,6 +15,7 @@ CHAMLIST = [1, 110]
 f_measgrid = '../datafiles/measgrid'
 f_attenhut = '../datafiles/attenhut'
 fromFile = '../datafiles/data_compRecHitEff'
+#fromFile = None
 
 # Whether or not to only use Yuriy's 5 attenuations
 castrated = False
@@ -287,7 +288,7 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('best/compEff_'+str(CHAM)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('rechitEff/compRecHitEff_'+str(CHAM)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS
