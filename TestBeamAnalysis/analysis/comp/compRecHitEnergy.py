@@ -8,8 +8,7 @@ import sys
 
 ### PARAMETERS
 # Which chambers to do; to compare to Yuriy only use ME1/1
-# chamlist = [1]
-chamlist = [1, 2]
+CHAMLIST = (1, 110)
 
 # Which files contain the relevant list of measurements and currents
 #f_measgrid = 'measgrid_noSource'
@@ -67,15 +66,15 @@ class MegaStruct():
 
 		# Fill dictionary connecting chamber, measurement number, and efftype to efficiency value
 		for att in self.FFFMeas.keys():
-			for ff,meas in enumerate(self.FFFMeas[att]):
-				f = R.TFile.Open('../../trees/ana_'+str(meas)+'.root')
+			for ff,MEAS in enumerate(self.FFFMeas[att]):
+				f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
 				t = f.Get('GIFTree/GIFDigiTree')
-				rh_e1 = R.TH1F('rh_e1','',100,0,1500)
-				rh_e2 = R.TH1F('rh_e2','',100,0,1500)
-				rh_e_match1 = R.TH1F('rh_e_match1','',100,0,1500)
-				rh_e_match2 = R.TH1F('rh_e_match2','',100,0,1500)
-				rh_e_nomatch1 = R.TH1F('rh_e_nomatch1','',100,0,1500)
-				rh_e_nomatch2 = R.TH1F('rh_e_nomatch2','',100,0,1500)
+				for CHAM in CHAMLIST:
+					self.hists[CHAM][MEAS] = {\
+						'rhEnergy' : R.TH1F('rh_e_'+str(CHAM)+'_'+str(MEAS),'',100,0,1500),
+						'rhEnergyMatch' : R.TH1F('rh_e_match_'+str(CHAM)+'_'+str(MEAS), 100,0,1500),
+						'rhEnergyNoMatch' : R.TH1F('rh_e_nomatch_'+str(CHAM)+'_'+str(MEAS),,'',100,0,1500)
+					}
 				for entry in t:
 					DecList = ['SEGMENT','LCT','COMP','RECHIT']#,'STRIP','WIRE']
 					E = Primitives.ETree(t, DecList)
@@ -86,51 +85,47 @@ class MegaStruct():
 					#strips  = [Primitives.Strip  (E, i) for i in range(len(E.strip_cham))]
 					#wires   = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham  ))]
 
-					for cham in [1,110]:
+					for CHAM in CHAMLIST:
 						for lct in lcts:
 							if lct.cham!=cham: continue
 							if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
-							for seg in segs:
-								if seg.cham!=cham: continue
-								if not Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], cham): continue
-								if not Aux.matchSegLCT(seg,lct): continue
-								rhList = seg.rhID
-								alreadyMatched = []
-								for rhID in rhList:
-									if rechits[rhID].cham!=cham: continue
-									matched = False
-									for c,comp in enumerate(comps):
-										if comp.cham!=cham: continue
-										if comp.layer!=rechits[rhID].layer: continue
-										if not self.matchRHComp(rechits[rhID],comp): continue
-										if c in alreadyMatched: continue
-										if not Aux.inLCTPattern(lct,comp): continue
-										alreadyMatched.append(c)
-										matched = True
-										break
+							found, seg = Aux.bestSeg(lct,segs)
+							if not found: continue
+							rhList = seg.rhID
+							alreadyMatched = []
+							for rhID in rhList:
+								if rechits[rhID].cham!=cham: continue
+								matched = False
+								for c,comp in enumerate(comps):
+									if comp.cham!=cham: continue
+									if comp.layer!=rechits[rhID].layer: continue
+									if not self.matchRHComp(rechits[rhID],comp): continue
+									if c in alreadyMatched: continue
+									if not Aux.inLCTPattern(lct,comp): continue
+									alreadyMatched.append(c)
+									matched = True
+									break
+								if cham==1:
+									self.hists[1][MEAS]['rhEnergy'].Fill(rechits[rhID].energy)
+								if cham==110:
+									self.hists[110][MEAS]['rhEnergy'].Fill(rechits[rhID].energy)
+								if matched:
 									if cham==1:
-										rh_e1.Fill(rechits[rhID].energy)
+										self.hists[1][MEAS]['rhEnergyMatch'].Fill(rechits[rhID].energy)
 									if cham==110:
-										rh_e2.Fill(rechits[rhID].energy)
-									if matched:
-										if cham==1:
-											rh_e_match1.Fill(rechits[rhID].energy)
-										if cham==110:
-											rh_e_match2.Fill(rechits[rhID].energy)
-									else:
-										if cham==1:
-											rh_e_nomatch1.Fill(rechits[rhID].energy)
-										if cham==110:
-											rh_e_nomatch2.Fill(rechits[rhID].energy)
+										self.hists[110][MEAS]['rhEnergyMatch'].Fill(rechits[rhID].energy)
+								else:
+									if cham==1:
+										self.hists[1][MEAS]['rhEnergyNoMatch'].Fill(rechits[rhID].energy)
+									if cham==110:
+										self.hists[110][MEAS]['rhEnergyNoMatch'].Fill(rechits[rhID].energy)
 
-				self.makePlot(rh_e1, meas, 1, att, self.lumi(cham,meas), ff,'all')
-				self.makePlot(rh_e2, meas, 110, att, self.lumi(cham,meas), ff,'all')
-				self.makePlot(rh_e_match1, meas,1,  att, self.lumi(cham,meas), ff,'match')
-				self.makePlot(rh_e_match2, meas, 110, att, self.lumi(cham,meas), ff,'match')
-				self.makePlot(rh_e_nomatch1, meas, 1, att, self.lumi(cham,meas), ff,'nomatch')
-				self.makePlot(rh_e_nomatch2, meas, 110, att, self.lumi(cham,meas), ff,'nomatch')
-				self.makeStack(rh_e_match1,rh_e_nomatch1, meas,1,  att, self.lumi(cham,meas), ff)
-				self.makeStack(rh_e_match2,rh_e_nomatch2, meas, 110, att, self.lumi(cham,meas), ff)
+				for CHAM in CHAMLIST:
+					self.makePlot(self.hists[CHAM][MEAS]['rhEnergy'], MEAS, CHAM, att, self.lumi(CHAM,MEAS), ff,'all')
+					self.makePlot(self.hists[CHAM][MEAS]['rhEnergyMatch'], MEAS,CHAM,  att, self.lumi(CHAM,MEAS), ff,'match')
+					self.makePlot(self.hists[CHAM][MEAS]['rhEnergyNoMatch'], MEAS, CHAM, att, self.lumi(CHAM,MEAS), ff,'nomatch')
+					self.makeStack(self.hists[CHAM][MEAS]['rhEnergyMatch'],self.hists[CHAM][MEAS]['rhEnergyNoMatch'], 
+						MEAS,CHAM,  att, self.lumi(CHAM,MEAS), ff)
 
 	# a rechit/comparator match is if the comparator halfstrip is within 2 strips of the comparator halfstrip
 	def matchRHComp(self, rh, comp):

@@ -9,7 +9,7 @@ import sys
 ### PARAMETERS
 # Which chambers to do; to compare to Yuriy only use ME1/1
 # chamlist = [1]
-chamlist = [1, 110]
+CHAMLIST = [1, 110]
 
 # Which files contain the relevant list of measurements and currents
 f_measgrid = '../datafiles/measgrid'
@@ -73,8 +73,8 @@ class MegaStruct():
 		if fromFile is None:
 			pass
 			for att in self.FFFMeas.keys():
-				for meas in self.FFFMeas[att]:
-					f = R.TFile.Open('../../trees/ana_'+str(meas)+'.root')
+				for MEAS in self.FFFMeas[att]:
+					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					numerator1 = 0
 					denominator1 = 0
@@ -96,87 +96,66 @@ class MegaStruct():
 						#strips  = [Primitives.Strip  (E, i) for i in range(len(E.strip_cham))]
 						#wires   = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham  ))]
 
-						for cham in [1,110]:
+						for CHAM in CHAMLIST:
 							alreadyMatchedSeg = []
 							for lct in lcts:
 								# Check on chamber and LCT position
-								if lct.cham!=cham: continue
-								if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
-								mostHits = -999.
-								found = False
-								bestSeg = -999
-								closeSeg = False
-								for s,seg in enumerate(segs):
-									# Check on chamber, segment position, match the segment to the lct, and if we've already matched the segment
-									if seg.cham!=lct.cham: continue
-									if not Aux.matchSegLCT(seg,lct): continue
-									if not Aux.inPad(seg.halfStrip, seg.wireGroup, cham): continue
-									#print abs(seg.halfStrip - lct.keyHalfStrip), seg.nHits, s
-									if seg.nHits > mostHits:
-										if seg in alreadyMatchedSeg: continue
-										mostHits = seg.nHits
-										bestSeg = s
-										found = True
-								if found==True:
-									if cham==1: nMatchedSegs1 +=1
-									if cham==110: nMatchedSegs2 +=1
-									alreadyMatchedSeg.append(bestSeg)
-									#print abs(segs[bestSeg].halfStrip - lct.keyHalfStrip),segs[bestSeg].nHits,  bestSeg, segs[bestSeg].cham, lct.cham
-									seg = segs[bestSeg]
-									# Make list of rechits from the segment
-									rhList = seg.rhID
-
-									matchedRHComp = 0
-									for rhID in rhList:
-										# Check on chamber
-										if rechits[rhID].cham!=lct.cham: continue
-										closestRHDist = 999
-										CloseRH = False
-										closestComp = -999
-										# Find closest comparator in same layer
-										for c,comp in enumerate(comps):
-											# Check on chamber and layer 
-											if comp.cham!=lct.cham: continue
-											if comp.layer!=rechits[rhID].layer: continue
-											# Find closest comparator in the layer
-											RHdist = abs(rechits[rhID].halfStrip-comp.halfStrip+0.5)
-											if RHdist < closestRHDist: 
-												closestRHDist = RHdist
-												closestComp = c
-												CloseRH = True
-										# Make sure that the closest comp is w/in 2 half strips, wasn't already matched
-										# and is inside the LCT pattern
-										if CloseRH:
-											comp = comps[closestComp]
-											if not Aux.inLCTPattern(lct,comp) and self.matchRHComp(rechits[rhID],comp):
-												continue
-											'''
-											if not self.matchRHComp(rechits[rhID],comp): 
-												if cham==1: B1 += 1
-												if cham==110: B2 += 1
-												continue
-											'''
-											if self.matchRHComp(rechits[rhID],comp) and Aux.inLCTPattern(lct,comp):
-												if cham==1: A1 += 1
-												if cham==110: A2 += 1
-											if not self.matchRHComp(rechits[rhID],comp) and not Aux.inLCTPattern(lct,comp):
-												if cham==1: B1 += 1
-												if cham==110: B2 += 1
-										# Add to B if no comparator in same layer as rechit
-										else:
+								if lct.cham!=CHAM: continue
+								if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,lct.cham): continue
+								found, seg = Aux.bestSeg(lct,segs)
+								if not found: continue
+								rhList = seg.rhID
+								matchedRHComp = 0
+								for rhID in rhList:
+									# Check on chamber
+									if rechits[rhID].cham!=lct.cham: continue
+									closestRHDist = 999
+									CloseRH = False
+									closestComp = -999
+									# Find closest comparator in same layer
+									for c,comp in enumerate(comps):
+										# Check on chamber and layer 
+										if comp.cham!=lct.cham: continue
+										if comp.layer!=rechits[rhID].layer: continue
+										# Find closest comparator in the layer
+										RHdist = abs(rechits[rhID].halfStrip-comp.halfStrip+0.5)
+										if RHdist < closestRHDist: 
+											closestRHDist = RHdist
+											closestComp = c
+											CloseRH = True
+									# Make sure that the closest comp is w/in 2 half strips, wasn't already matched
+									# and is inside the LCT pattern
+									if CloseRH:
+										comp = comps[closestComp]
+										if not Aux.inLCTPattern(lct,comp) and self.matchRHComp(rechits[rhID],comp):
+											continue
+										'''
+										if not self.matchRHComp(rechits[rhID],comp): 
 											if cham==1: B1 += 1
 											if cham==110: B2 += 1
+											continue
+										'''
+										if self.matchRHComp(rechits[rhID],comp) and Aux.inLCTPattern(lct,comp):
+											if CHAM==1: A1 += 1
+											if CHAM==110: A2 += 1
+										if not self.matchRHComp(rechits[rhID],comp) and not Aux.inLCTPattern(lct,comp):
+											if CHAM==1: B1 += 1
+											if CHAM==110: B2 += 1
+									# Add to B if no comparator in same layer as rechit
+									else:
+										if CHAM==1: B1 += 1
+										if CHAM==110: B2 += 1
 
 					eff1,errUp1,errDown1 = tools.clopper_pearson(A1,A1+B1)
 					eff2,errUp2,errDown2 = tools.clopper_pearson(A2,A2+B2)
-					print meas, eff1, errUp1, errDown1, eff2, errUp2, errDown2
+					print MEAS, eff1, errUp1, errDown1, eff2, errUp2, errDown2
 					# fill dictionary
-					self.Effs[1][meas] = eff1
-					self.ErrsUp[1][meas] = errUp1
-					self.ErrsDown[1][meas] = errDown1
-					self.Effs[110][meas] = eff2
-					self.ErrsUp[110][meas] = errUp2
-					self.ErrsDown[110][meas] = errDown2
+					self.Effs[1][MEAS] = eff1
+					self.ErrsUp[1][MEAS] = errUp1
+					self.ErrsDown[1][MEAS] = errDown1
+					self.Effs[110][MEAS] = eff2
+					self.ErrsUp[110][MEAS] = errUp2
+					self.ErrsDown[110][MEAS] = errDown2
 		else:
 			# this file is the output of the printout above
 			f = open(fromFile)
@@ -310,35 +289,35 @@ def makePlot(x, y,eyh,eyl, cham, xtitle, ytitle, title, pretty=pretty):
 	R.SetOwnership(canvas.c, False)
 
 ### MAKE ALL PLOTS
-for cham in chamlist:
+for CHAM in CHAMLIST:
 	# Plots with current on x-axis
 	makePlot(\
-			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.effVector(cham, ff) for ff in pretty.keys()],
-			[data.errUpVector(cham, ff) for ff in pretty.keys()],
-			[data.errDownVector(cham, ff) for ff in pretty.keys()],
-			cham,
+			[data.currentVector(CHAM, ff) for ff in pretty.keys()],
+			[data.effVector(CHAM, ff) for ff in pretty.keys()],
+			[data.errUpVector(CHAM, ff) for ff in pretty.keys()],
+			[data.errDownVector(CHAM, ff) for ff in pretty.keys()],
+			CHAM,
 			'Mean Current [#muA]',
 			'Comparator Efficiency',
 			'curr'
 			)
 	# Plots with luminosity on x-axis
 	makePlot(\
-			[data.lumiVector(cham, ff) for ff in pretty.keys()],
-			[data.effVector(cham, ff) for ff in pretty.keys()],
-			[data.errUpVector(cham, ff) for ff in pretty.keys()],
-			[data.errDownVector(cham, ff) for ff in pretty.keys()],
-			cham,
+			[data.lumiVector(CHAM, ff) for ff in pretty.keys()],
+			[data.effVector(CHAM, ff) for ff in pretty.keys()],
+			[data.errUpVector(CHAM, ff) for ff in pretty.keys()],
+			[data.errDownVector(CHAM, ff) for ff in pretty.keys()],
+			CHAM,
 			'Luminosity [Hz/cm^{2}]',
 			'Comparator Efficiency',
 			'lumi')
 	# Plots with 1/A on x-axis
 	makePlot(\
 			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.effVector(cham, ff) for ff in pretty.keys()],
-			[data.errUpVector(cham, ff) for ff in pretty.keys()],
-			[data.errDownVector(cham, ff) for ff in pretty.keys()],
-			cham,
+			[data.effVector(CHAM, ff) for ff in pretty.keys()],
+			[data.errUpVector(CHAM, ff) for ff in pretty.keys()],
+			[data.errDownVector(CHAM, ff) for ff in pretty.keys()],
+			CHAM,
 			'Source Intensity 1/A',
 			'Comparator Efficiency',
 			'att')

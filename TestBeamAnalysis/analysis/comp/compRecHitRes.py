@@ -9,7 +9,7 @@ import sys
 ### PARAMETERS
 # Which chambers to do; to compare to Yuriy only use ME1/1
 # chamlist = [1]
-chamlist = [1, 110]
+CHAMLIST = [1, 110]
 
 # Which files contain the relevant list of measurements and currents
 #f_measgrid = 'measgrid_slim'
@@ -68,16 +68,17 @@ class MegaStruct():
 		# Fill dictionary connecting chamber, measurement number, and efftype to efficiency value
 		self.compRes  = { 1 : {}, 110 : {} }
 		self.compMean = { 1 : {}, 110 : {} }
+		self.hists = { 1 : {}, 110 : {} }
 		if fromFile is None:
 			pass
 			for att in self.FFFMeas.keys():
-				for ff,meas in enumerate(self.FFFMeas[att]):
-					f = R.TFile.Open('../../trees/ana_'+str(meas)+'.root')
+				for ff,MEAS in enumerate(self.FFFMeas[att]):
+					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
-					compDiff11 = []
-					compDiff21 = []
-					compRes11 = R.TH1F('compRes11','',100,-1,1)
-					compRes21 = R.TH1F('compRes21','',100,-1,1)
+					for CHAM in CHAMLIST:
+						self.hists[CHAM][MEAS] = {
+							'compRes' : R.TH1F('compRes_'+str(CHAM)+'_'+str(MEAS),'',100,-1,1)
+						}
 					for entry in t:
 						DecList = ['SEGMENT','LCT','COMP','RECHIT']#,'STRIP','WIRE']
 						E = Primitives.ETree(t, DecList)
@@ -88,66 +89,57 @@ class MegaStruct():
 						#strips  = [Primitives.Strip  (E, i) for i in range(len(E.strip_cham))]
 						#wires   = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham  ))]
 
-						for cham in [1,110]:
+						for CHAM in CHAMLIST:
 							alreadyMatchedComp = []
 							alreadyMatchedSeg = []
 							for lct in lcts:
 								# Check on chamber and LCT position
-								if lct.cham!=cham: continue
-								if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,cham): continue
-								for s,seg in enumerate(segs):
-									# Check on chamber, segment position, match the segment to the lct, and if we've already matched the segment
-									if seg.cham!=cham: continue
-									if not Aux.inPad(seg.halfStrip[3], seg.wireGroup[3], cham): continue
-									if not Aux.matchSegLCT(seg,lct): continue
-									if s in alreadyMatchedSeg: continue
-									alreadyMatchedSeg.append(s)
-									# Make list of rechits from the segment
-									rhList = seg.rhID
-									for rhID in rhList:
-										# Check on chamber
-										if rechits[rhID].cham!=cham: continue
-										for c,comp in enumerate(comps):
-											# Check on chamber, layer, matching comp to rechit, and if we've already matched the comparator
-											if comp.cham!=cham: continue
-											if comp.layer!=rechits[rhID].layer: continue
-											if not self.matchRHComp(rechits[rhID],comp): continue
-											if c in alreadyMatchedComp: continue
-											alreadyMatchedComp.append(c)
-											# Add 1/2 to comparator half strip to align it with rec hit
-											# Divide by 2 to get it in strip units
-											DIFF = float((rechits[rhID].halfStrip - comp.halfStrip+0.5)*0.5)
-											if cham==1: 
-												compDiff11.append(DIFF)
-												compRes11.Fill(-1.*DIFF)
-											if cham==110:
-												compDiff21.append(DIFF)
-												compRes21.Fill(-1.*DIFF)
-											# Break out of the comparator loop since we've already found the matching comparator to the rechit
-											break
-									# Break out of segment loop since we've already found the matching segment to the lct
-									break
-					# Make histogram
-					self.makeHist(compRes11,meas,cham,att,self.lumi(cham,meas),ff)
-					self.makeHist(compRes21,meas,cham,att,self.lumi(cham,meas),ff)
-					# fill dictionary
-					self.compRes[1][meas] = np.array(compDiff11).std(ddof=1)
-					self.compRes[110][meas] = np.array(compDiff21).std(ddof=1)
-					self.compMean[1][meas] = np.array(compDiff11).mean()
-					self.compMean[110][meas] = np.array(compDiff21).mean()
-					print meas,
-					print self.compMean[1][meas], self.compRes[1][meas],
-					print self.compMean[110][meas], self.compRes[110][meas]
+								if lct.cham!=CHAM: continue
+								if not Aux.inPad(lct.keyHalfStrip,lct.keyWireGroup,lct.cham): continue
+								found, seg = Aux.bestSeg(lct,segs)
+								if not found: continue
+								rhList = seg.rhID
+								for rhID in rhList:
+									# Check on chamber
+									if rechits[rhID].cham!=lct.cham: continue
+									for c,comp in enumerate(comps):
+										# Check on chamber, layer, matching comp to rechit, and if we've already matched the comparator
+										if comp.cham!=rechits[rhID].cham: continue
+										if comp.layer!=rechits[rhID].layer: continue
+										if not self.matchRHComp(rechits[rhID],comp): continue
+										if c in alreadyMatchedComp: continue
+										alreadyMatchedComp.append(c)
+										# Add 1/2 to comparator half strip to align it with rec hit
+										# Divide by 2 to get it in strip units
+										DIFF = float((rechits[rhID].halfStrip - comp.halfStrip+0.5)*0.5)
+										# multiply by -1 because all of Cam's plots are comp-RH
+										if CHAM==1: 
+											self.hists[1][MEAS]['compRes'].Fill(-1.*DIFF)
+										if CHAM==110:
+											self.hists[110][MEAS]['compRes'].Fill(-1.*DIFF)
+										# Break out of the comparator loop since we've already found the matching comparator to the rechit
+										break
+
+					for CHAM in CHAMLIST:
+						# Make histogram
+						self.makeHist(self.hists[CHAM][MEAS]['compRes'],MEAS,CHAM,att,self.lumi(CHAM,MEAS),ff)
+						# fill dictionary
+						self.compMean[CHAM][MEAS] = self.hists[CHAM][MEAS]['compRes'].GetMean()
+						self.compRes[CHAM][MEAS] = self.hists[CHAM][MEAS]['compRes'].GetStdDev()
+
+					print MEAS,
+					print self.compMean[1][MEAS], self.compRes[1][MEAS],
+					print self.compMean[110][MEAS], self.compRes[110][MEAS]
 		else:
 			# this file is the output of the printout above
 			f = open(fromFile)
 			for line in f:
 				cols = line.strip('\n').split()
-				meas = int(cols[0])
-				self.compMean[1][meas] = float(cols[1])
-				self.compRes[1][meas] = float(cols[2])
-				self.compMean[110][meas] = float(cols[3])
-				self.compRes[110][meas] = float(cols[4])
+				MEAS = int(cols[0])
+				self.compMean[1][MEAS] = float(cols[1])
+				self.compRes[1][MEAS] = float(cols[2])
+				self.compMean[110][MEAS] = float(cols[3])
+				self.compRes[110][MEAS] = float(cols[4])
 
 	# a rechit/comparator match is if the comparator halfstrip is within 2 strips of the comparator halfstrip
 	def matchRHComp(self, rh, comp):
@@ -233,6 +225,18 @@ class MegaStruct():
 		hist.SetFillColor(R.kBlue)
 		plot.scaleTitles(0.8)
 		plot.scaleLabels(0.8)
+
+		text = R.TLatex()
+        text.SetTextAlign(11)
+        text.SetTextFont(42)
+        text.SetTextSize(0.04)
+        if ATT!=float('inf'):
+            text.DrawLatexNDC(.75, .80, '{:.1f}'.format(ATT))
+        else:
+            text.DrawLatexNDC(.75, .80, 'No Source')
+        text.DrawLatexNDC(.75, .75, '#color[1]{#mu:'    + '{:.4f}'.format(hist.GetMean())   + '}')
+        text.DrawLatexNDC(.75, .70, '#color[1]{#sigma:' + '{:.4f}'.format(hist.GetStdDev()) + '}')
+
 		canvas.makeTransparent()
 
 		# Step 6

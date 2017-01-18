@@ -23,13 +23,13 @@ F_DATAFILE = '../datafiles/data_compStripEff'
 # Cosmetic data dictionary, comment out for fewer ones
 pretty = {
 	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
-	#1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
-	#2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-	#3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
-	#4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
-	#5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
-	#6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
-	#7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
+	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
+	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
 ##### BEGIN CODE #####
@@ -97,10 +97,10 @@ class MegaStruct():
 		self.denominator = { 1 : {}, 110: {} }
 		if F_DATAFILE is None:
 			for ATT in self.MEASDATA.keys():
-				for MEAS in self.MEASDATA[ATT][0:1]:
-					for cham in CHAMLIST:
-						self.numerator[cham][MEAS] = 0
-						self.denominator[cham][MEAS] = 0
+				for MEAS in self.MEASDATA[ATT]:
+					for CHAM in CHAMLIST:
+						self.numerator[CHAM][MEAS] = 0
+						self.denominator[CHAM][MEAS] = 0
 					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					DecList = ['STRIP','WIRE','COMP','LCT','CLCT']
@@ -110,42 +110,43 @@ class MegaStruct():
 						wires  = [Primitives.Wire(E,i)  for i in range(len(E.wire_cham))]
 						comps  = [Primitives.Comp(E,i)  for i in range(len(E.comp_cham))]
 						lcts   = [Primitives.LCT(E,i)   for i in range(len(E.lct_cham))]
-						for cham in CHAMLIST:
+						for CHAM in CHAMLIST:
 							# Require the presence of wire group and strip data and an LCT
-							if cham not in [lct.cham for lct in lcts]: continue
-							if cham not in [wire.cham for wire in wires]: continue
-							if cham not in [strip.cham for strip in strips]: continue
+							if CHAM not in [lct.cham for lct in lcts]: continue
+							if CHAM not in [wire.cham for wire in wires]: continue
+							if CHAM not in [strip.cham for strip in strips]: continue
 							# Begin looping on LCTs to find the muon
 							for lct in lcts:
-								if lct.cham is not cham: continue
+								if lct.cham is not CHAM: continue
 								stripsNearLCT = {1:[],2:[],3:[],4:[],5:[],6:[]}
 								compsInLCT    = {1:[],2:[],3:[],4:[],5:[],6:[]}
+								# Loop on strips to find ones close to a LCT
 								for strip in strips:
-									if strip.cham is not cham: continue
+									if strip.cham is not CHAM: continue
+									# Need maximum pedestal corrected adc count to be above threshold
 									ped = float(strip.ADC[0]+strip.ADC[1])/2
 									if max([adc-ped for adc in strip.ADC[2:]]) > 13.3: 
-										# Build dictionary of strips that are near to a LCT pattern
 										if self.stripNearLCT(strip,lct): 
+											# append strip number info per layer
 											stripsNearLCT[strip.layer].append(strip.number)
+								# Loop on comparators to find ones close to a LCT
 								for comp in comps:
-									if comp.cham is not cham: continue
-									# Check if comp is near strip data
-									# Build a dictionary of comps that are near to strips near to a LCT pattern
+									if comp.cham is not CHAM: continue
 									if Aux.inLCTPattern(lct,comp):
+										# append strip number info per layer
 										compsInLCT[comp.layer].append(int(comp.strip))
+								# Determine if a strip and comparator are near each other on a per layer basis
 								for lay in stripsNearLCT.keys():
-									#print lay, stripsNearLCT[lay], compsInLCT[lay]
-									# Add to denominator for each layer that has strip data
-									# Need at least two strips to make a comparator
+									# Need at least one strip to make a comparator
 									if len(stripsNearLCT[lay])>0:
-										self.denominator[cham][MEAS] += 1
-										# Add to numerator for each layer that has a comp near strip data
-										#if len(compsInLCT[lay])>0:
+										# Add to denominator since there's a layer with strip data
+										self.denominator[CHAM][MEAS] += 1
 										for compStripInLCT in compsInLCT[lay]:
 											if compStripInLCT in stripsNearLCT[lay]:
-												self.numerator[cham][MEAS] += 1
+												# Add to numerator for each layer that has a comp near strip data
+												self.numerator[CHAM][MEAS] += 1
 
-					print MEAS,ATT,
+					print MEAS,
 					print self.numerator[1][MEAS], self.denominator[1][MEAS],
 					print self.numerator[110][MEAS], self.denominator[110][MEAS]
 
@@ -254,16 +255,16 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 
 	# Step 8
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/compStripEff_ME'+str(cham)+'1_'+title+'.pdf')
+	canvas.c.SaveAs('test/compStripEff_ME'+str(cham)+'1_'+title+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 ##### MAKE PLOTS #####
-for cham in CHAMLIST:
+for CHAM in CHAMLIST:
 	makePlot(\
-		cham if cham == 1 else 2,
-		[data.lumiVector(cham, ff) for ff in pretty.keys()],
-		[data.effVector (cham, ff) for ff in pretty.keys()],
+		CHAM if CHAM == 1 else 2,
+		[data.lumiVector(CHAM, ff) for ff in pretty.keys()],
+		[data.effVector (CHAM, ff) for ff in pretty.keys()],
 		'Luminosity [Hz/cm^{2}]',
-		'Comparator/Strip Efficiency',
+		'Comparator-Strip Efficiency',
 		'lumi'
 	)
