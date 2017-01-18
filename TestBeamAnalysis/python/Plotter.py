@@ -1,21 +1,11 @@
 import ROOT as R
 import numpy as n
 
-# setStyle function, based on TDRStyle, but more flexible
-def setStyle(width=800, height=600, font=42, tsize=0.04):
+# globalSetStyle function, based on TDRStyle, but more flexible
+# This function is called ONCE, changing all of the fixed parameters
+# Then setStyle is called, changing all of the variable parameters, once per plot
+def globalSetStyle():
 	style = R.TStyle('style','Style')
-
-	width = width
-	height = height
-	font = font
-	tMargin = 0.1
-	lMargin = 0.125
-	tsize = float(tsize)
-
-	rMargin = tMargin * float(height) / float(width)
-	bMargin = lMargin
-	titleX = lMargin + (1-lMargin-rMargin)/2
-	titleY = 1 - (tMargin/2)
 
 	# generic line thicknesses
 	style.SetLineWidth(2)
@@ -23,8 +13,6 @@ def setStyle(width=800, height=600, font=42, tsize=0.04):
 	# canvas
 	style.SetCanvasBorderMode(0)             # off
 	style.SetCanvasColor(R.kWhite)           # white
-	style.SetCanvasDefW(width)               # width
-	style.SetCanvasDefH(height)              # height
 
 	# pad
 	style.SetPadBorderMode(0)                # off
@@ -34,12 +22,6 @@ def setStyle(width=800, height=600, font=42, tsize=0.04):
 	style.SetGridColor(R.kGray)              # gray
 	style.SetGridStyle(3)                    # dotted
 	style.SetGridWidth(1)                    # pixels
-
-	# pad margins
-	style.SetPadTopMargin(tMargin)           # default 0.1
-	style.SetPadBottomMargin(bMargin)        # default 0.1
-	style.SetPadLeftMargin(lMargin)          # default 0.1
-	style.SetPadRightMargin(rMargin)         # default 0.1
 
 	# frame
 	style.SetFrameBorderMode(0)              # off
@@ -51,7 +33,6 @@ def setStyle(width=800, height=600, font=42, tsize=0.04):
 
 	# legend
 	style.SetLegendBorderSize(0)             # off
-	style.SetLegendFont(font)                # helvetica normal
 
 	# hist
 	style.SetHistLineColor(R.kBlack)         # black
@@ -69,27 +50,19 @@ def setStyle(width=800, height=600, font=42, tsize=0.04):
 
 	# title
 	style.SetOptTitle(0)                     # off
-	style.SetTitleFont(font,'')              # helvetica normal
 	style.SetTitleTextColor(R.kBlack)        # black
-	style.SetTitleFontSize(tsize+0.02)       # default 0
 	style.SetTitleStyle(0)                   # hollow
 	style.SetTitleFillColor(R.kWhite)        # white
 	style.SetTitleBorderSize(0)              # default 2
 	style.SetTitleAlign(22)                  # center top
-	style.SetTitleX(titleX)                  # center title horizontally with respect to frame
-	style.SetTitleY(titleY)                  # center title vertically within margin
 
 	# axis titles
-	style.SetTitleFont(font, 'XYZ')          # helvetica normal
 	style.SetTitleColor(R.kBlack, 'XYZ')     # black
-	style.SetTitleSize(tsize+0.005,'XYZ')    # default 0.02
 	style.SetTitleOffset(1,'X')              # default 1
 	style.SetTitleOffset(1,'Y')              # default 1
 
 	# axis labels
-	style.SetLabelFont(font, 'XYZ')          # helvetica normal
 	style.SetLabelColor(R.kBlack, 'XYZ')     # black
-	style.SetLabelSize(tsize, 'XYZ')         # default 0.04
 	style.SetLabelOffset(0.005,'XYZ')        # default 0.005
 
 	# axis
@@ -97,6 +70,52 @@ def setStyle(width=800, height=600, font=42, tsize=0.04):
 	style.SetStripDecimals(R.kTRUE)          # strip decimals
 	style.SetPadTickX(1)                     # opposite x ticks
 	style.SetPadTickY(1)                     # opposite y ticks
+
+	style.cd()
+globalSetStyle()
+
+# setStyle function, based on TDRStyle, but more flexible
+def setStyle(width=800, height=600, font=42, tsize=0.04):
+	style = R.gStyle
+
+	width = width
+	height = height
+	font = font
+	tMargin = 0.1
+	lMargin = 0.125
+	tsize = float(tsize)
+
+	rMargin = tMargin * float(height) / float(width)
+	bMargin = lMargin
+	titleX = lMargin + (1-lMargin-rMargin)/2
+	titleY = 1 - (tMargin/2)
+
+	# canvas
+	style.SetCanvasDefW(width)               # width
+	style.SetCanvasDefH(height)              # height
+
+	# pad margins
+	style.SetPadTopMargin(tMargin)           # default 0.1
+	style.SetPadBottomMargin(bMargin)        # default 0.1
+	style.SetPadLeftMargin(lMargin)          # default 0.1
+	style.SetPadRightMargin(rMargin)         # default 0.1
+
+	# legend
+	style.SetLegendFont(font)                # helvetica normal
+
+	# title
+	style.SetTitleFont(font,'')              # helvetica normal
+	style.SetTitleFontSize(tsize+0.02)       # default 0
+	style.SetTitleX(titleX)                  # center title horizontally with respect to frame
+	style.SetTitleY(titleY)                  # center title vertically within margin
+
+	# axis titles
+	style.SetTitleFont(font, 'XYZ')          # helvetica normal
+	style.SetTitleSize(tsize+0.005,'XYZ')    # default 0.02
+
+	# axis labels
+	style.SetLabelFont(font, 'XYZ')          # helvetica normal
+	style.SetLabelSize(tsize, 'XYZ')         # default 0.04
 
 	style.cd()
 
@@ -376,7 +395,8 @@ class Canvas:
 		latex.SetTextSize(fontsize)
 		latex.DrawLatexNDC(lMargin + fontsize*self.cHeight*(1-self.ratioFactor)*2.75/self.cWidth,1-tMargin+tOffset,self.extra)
 
-		self.leg.Draw()
+		if self.leg is not None:
+			self.leg.Draw()
 		self.mainPad.RedrawAxis()
 	
 	# save canvas as file
