@@ -37,6 +37,7 @@ class MakeSimpleGIFTree : public edm::EDAnalyzer {
         edm::EDGetTokenT<CSCSegmentCollection> seg_token;
         edm::EDGetTokenT<CSCCLCTDigiCollection> cd_token;
         edm::EDGetTokenT<CSCALCTDigiCollection> ad_token;
+		edm::EDGetTokenT<reco::MuonCollection> mu_token;
 
 
         GifTreeContainer tree;
@@ -74,6 +75,7 @@ MakeSimpleGIFTree::MakeSimpleGIFTree(const edm::ParameterSet& iConfig) :
       seg_token  = consumes<CSCSegmentCollection>(iConfig.getParameter<edm::InputTag>("segmentTag")) ;
       cd_token = consumes<CSCCLCTDigiCollection>( iConfig.getParameter<edm::InputTag>("clctDigiTag") );
       ad_token = consumes<CSCALCTDigiCollection>( iConfig.getParameter<edm::InputTag>("alctDigiTag") );
+	  mu_token = consumes<reco::MuonCollection>( iConfig.getParameter<edm::InputTag>("muonCollection") );
       //edm::Service<TFileService> fs;
 }
 
@@ -84,48 +86,64 @@ MakeSimpleGIFTree::~MakeSimpleGIFTree() {tree.write();}
 void
 MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  eventInfo.fill(iEvent);
+	//
+	// Get Muon Stuff
+	edm::Handle<reco::MuonCollection> muons;
+	iEvent.getByToken(mu_token, muons);
+	// Find Good Muons
+	for (auto &muon : *muons) {
+		std::cout << "Muon pT " << muon.pt() << std::endl;
+	}
+	// Make Z candidate
+	// Cut on cuts
+	//
+	// Loop on selected muons
+	// get matched chamber lists
 
-  edm::Handle<CSCRecHit2DCollection> recHits;
-  iEvent.getByToken( rh_token, recHits );
-  recHitInfo.fill(*recHits);
+	/*
+	eventInfo.fill(iEvent);
 
-  edm::Handle<CSCStripDigiCollection> cscStripDigi;
-  iEvent.getByToken(sd_token,cscStripDigi);
-  recStripInfo.fill(*cscStripDigi);
+	edm::Handle<CSCRecHit2DCollection> recHits;
+	iEvent.getByToken( rh_token, recHits );
+	recHitInfo.fill(*recHits);
 
-//  if(cscStripDigi->begin() == cscStripDigi->end())
-//    cout << "Error!"<<endl;
+	edm::Handle<CSCStripDigiCollection> cscStripDigi;
+	iEvent.getByToken(sd_token,cscStripDigi);
+	recStripInfo.fill(*cscStripDigi);
 
-  edm::Handle<CSCComparatorDigiCollection> compDigi;
-  iEvent.getByToken(cod_token, compDigi);
-  compInfo.fill(*compDigi);
+	//if(cscStripDigi->begin() == cscStripDigi->end())
+	//cout << "Error!"<<endl;
 
-  edm::Handle<CSCWireDigiCollection> cscWireDigi;
-  iEvent.getByToken(wd_token,cscWireDigi);
-  wireInfo.fill(*cscWireDigi);
+	edm::Handle<CSCComparatorDigiCollection> compDigi;
+	iEvent.getByToken(cod_token, compDigi);
+	compInfo.fill(*compDigi);
 
-  edm::Handle<CSCCorrelatedLCTDigiCollection> cscLCTDigi;
-  iEvent.getByToken(ld_token, cscLCTDigi);
-  lctInfo.fill(*cscLCTDigi);
+	edm::Handle<CSCWireDigiCollection> cscWireDigi;
+	iEvent.getByToken(wd_token,cscWireDigi);
+	wireInfo.fill(*cscWireDigi);
 
-  edm::ESHandle<CSCGeometry> cscGeom;
-  iSetup.get<MuonGeometryRecord>().get(cscGeom);
-  theCSC = cscGeom.product();
-  edm::Handle<CSCSegmentCollection> cscSegments;
-  iEvent.getByToken(seg_token, cscSegments);
-  segmentInfo.fill(theCSC,*cscSegments,&(*recHits));
+	edm::Handle<CSCCorrelatedLCTDigiCollection> cscLCTDigi;
+	iEvent.getByToken(ld_token, cscLCTDigi);
+	lctInfo.fill(*cscLCTDigi);
 
-  edm::Handle<CSCCLCTDigiCollection> cscCLCTDigi;
-  iEvent.getByToken(cd_token, cscCLCTDigi);
-  clctInfo.fill(*cscCLCTDigi);
+	edm::ESHandle<CSCGeometry> cscGeom;
+	iSetup.get<MuonGeometryRecord>().get(cscGeom);
+	theCSC = cscGeom.product();
+	edm::Handle<CSCSegmentCollection> cscSegments;
+	iEvent.getByToken(seg_token, cscSegments);
+	segmentInfo.fill(theCSC,*cscSegments,&(*recHits));
 
-  edm::Handle<CSCALCTDigiCollection> cscALCTDigi;
-  iEvent.getByToken(ad_token, cscALCTDigi);
-  alctInfo.fill(*cscALCTDigi);
+	edm::Handle<CSCCLCTDigiCollection> cscCLCTDigi;
+	iEvent.getByToken(cd_token, cscCLCTDigi);
+	clctInfo.fill(*cscCLCTDigi);
+
+	edm::Handle<CSCALCTDigiCollection> cscALCTDigi;
+	iEvent.getByToken(ad_token, cscALCTDigi);
+	alctInfo.fill(*cscALCTDigi);
 
 
-  tree.fill();
+	tree.fill();
+	*/
 }
 
 

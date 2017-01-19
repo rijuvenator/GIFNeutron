@@ -288,6 +288,7 @@ void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollect
 	segment_quality.push_back(segmentQuality(dSiter));
 	segment_time.push_back((*dSiter).time());
 
+	AlgebraicSymMatrix covMatrix = (*dSiter).parametersError();
 	segment_cov_dxdz       .push_back(float(covMatrix[0][0]));
     segment_cov_dxdz_dydz  .push_back(float(covMatrix[0][1]));
     segment_cov_dxdz_x     .push_back(float(covMatrix[0][2]));

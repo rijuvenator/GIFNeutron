@@ -14,6 +14,12 @@
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
 #include "Gif/TestBeamAnalysis/include/GIFHelper.h"
+#include "DataFormats/MuonReco/interface/Muon.h"
+#include "DataFormats/RecoCandidate/interface/RecoCandidate.h"
+#include "DataFormats/MuonReco/interface/MuonFwd.h"
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "TFile.h"
 #include "TTree.h"

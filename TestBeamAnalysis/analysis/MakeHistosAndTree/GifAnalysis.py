@@ -9,7 +9,7 @@ process.source = cms.Source('PoolSource',
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 
 process.options = cms.untracked.PSet(
-    SkipEvent = cms.untracked.vstring('LogicError','ProductNotFound')
+    SkipEvent = cms.untracked.vstring('LogicError','ProductNotFound','PluginNotFound')
 )
 process.maxEvents.input = -1
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
@@ -22,6 +22,7 @@ process.idealForDigiCSCGeometry.useGangedStripsInME1a = False
 
 def doTree(process):
     process.GIFTree = cms.EDAnalyzer('MakeSimpleGIFTree',
+							muonCollection = cms.InputTag('muons'),
                             wireDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCWireDigi'),
                             stripDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCStripDigi'),
                             alctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCALCTDigi'),
