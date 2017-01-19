@@ -18,8 +18,8 @@ CHAMLIST = (1, 110)
 # Filenames
 F_MEASGRID = '../datafiles/measgrid'
 F_ATTENHUT = '../datafiles/attenhut'
-#F_DATAFILE = '../datafiles/data_compSegRes'
-F_DATAFILE = None
+F_DATAFILE = '../datafiles/data_compSegRes'
+#F_DATAFILE = None
 
 # Cosmetic data dictionary, comment out for fewer ones
 pretty = {
@@ -106,7 +106,7 @@ class MegaStruct():
 						self.mean[cham][MEAS] = 0
 						self.resolution[cham][MEAS] = 0
 						self.hists[cham][MEAS] = {
-							'res' : R.TH1F('hRes_'+str(cham)+'_'+str(MEAS),'', 200, -10, 10)
+							'res' : R.TH1F('hRes_'+str(cham)+'_'+str(MEAS),'', 200, -5, 5)
 						}
 					DecList = ['STRIP','WIRE','COMP','LCT','CLCT','SEGMENT']
 					for entry in t:
@@ -188,16 +188,21 @@ class MegaStruct():
 
 	# Plot Saver function
 	def savePlot(self,hist,cham,MEAS,ATT):
+		CHAM = 1 if cham==1 else 2
 		plot = Plotter.Plot(hist,option='hist')
 
-		canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
+		canvas = Plotter.Canvas(lumi='ME'+str(CHAM)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
 		canvas.makeLegend()
-		canvas.addMainPlot(plot,False)
+		canvas.addMainPlot(plot,addToLegend=False)
 
 		plot.setTitles('Comparator position - Segment position [strip]','Counts')
+		plot.scaleTitles(0.8)
+		plot.scaleLabels(0.8)
+		plot.scaleTitleOffsets(1.2, 'Y')
+
 		canvas.makeTransparent()
-		hist.SetLineWidth(2)
 		hist.SetFillColor(R.kBlue+1)
+		hist.SetLineColor(R.kBlue+1)
 
 		text = R.TLatex()
 		text.SetTextAlign(11)
@@ -211,7 +216,7 @@ class MegaStruct():
 		text.DrawLatexNDC(.75, .70, '#color[1]{#sigma:' + '{:.4f}'.format(hist.GetStdDev()) + '}')
 
 		canvas.finishCanvas()
-		canvas.c.SaveAs('segRes/compSegRes_m'+str(MEAS)+'.pdf')
+		canvas.save('segRes/compSegRes_ME'+str(CHAM)+'1_m'+str(MEAS)+'.pdf')
 		R.SetOwnership(canvas.c, False)
 
 data = MegaStruct()
@@ -246,10 +251,10 @@ def makePlot(cham, x, y, xtitle, ytitle, title, name):
 	plots[0].setTitles(X=xtitle, Y=ytitle)
 	if name=='Res':
 		graphs[0].SetMinimum(0.0)
-		graphs[0].SetMaximum(20.0)
+		graphs[0].SetMaximum(2.0)
 	else:
-		graphs[0].SetMinimum(-5.0)
-		graphs[0].SetMaximum(5.0)
+		graphs[0].SetMinimum(-1.0)
+		graphs[0].SetMaximum(1.0)
 	plots[0].scaleTitles(0.8)
 	plots[0].scaleLabels(0.8)
 	plots[0].scaleTitleOffsets(1.2, 'Y')
