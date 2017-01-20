@@ -15,13 +15,13 @@ class FillP5Info
 	protected:
 		virtual void reset() {};
 		template<class T>
-		void book(const char *name, T &var, const char *type)
+		void book(const char *name, T &var, const char *type) // Book variable
 		{
 			fTree->tree->Branch(name, &var, TString(name).Append("/").Append(type).Data());
 		}
 
 		template <class T>
-		void book(const char *name, std::vector<T> &varv)
+		void book(const char *name, std::vector<T> &varv) // Book vector
 		{
 			fTree->tree->Branch(name, &varv);
 		}
@@ -61,12 +61,12 @@ class FillP5MuonInfo : public FillP5Info
 		virtual ~FillP5MuonInfo() {};
 		void fill(const std::vector<reco::Muon> &muons);
 	private:
-		std::vector<int>              muon_charge;
-		std::vector<double>            muon_pT;
-		std::vector<double>            muon_eta;
-		std::vector<double>            muon_phi;
-		std::vector<double>            muon_pZ;
-		std::vector<std::vector<int>> muon_chamlist;
+		std::vector<int>                             muon_charge;
+		std::vector<double>                          muon_pT;
+		std::vector<double>                          muon_eta;
+		std::vector<double>                          muon_phi;
+		std::vector<double>                          muon_pZ;
+		std::vector<std::vector<unsigned short int>> muon_chamlist;
 
 		virtual void reset()
 		{

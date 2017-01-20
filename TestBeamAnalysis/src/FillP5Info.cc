@@ -14,7 +14,20 @@ void FillP5MuonInfo::fill(const std::vector<reco::Muon> &muons)
 	muon_eta      = { muons[0].eta()   , muons[1].eta()    };
 	muon_phi      = { muons[0].phi()   , muons[1].phi()    };
 	muon_pZ       = { muons[0].pz()    , muons[1].pz()     };
-	//muon_chamlist = { chamlists[0]     , chamlists[1]      };
+
+	for (auto &muon : muons)
+	{
+		std::vector<unsigned short int> chambers;
+		for (auto &match : muon.matches())
+		{
+			if (match.detector() != MuonSubdetId::CSC) continue;
+			CSCDetId cscId(match.id);
+			unsigned short int id = GIFHelper::chamberSerial(cscId);
+			chambers.push_back(id);
+		}
+		muon_chamlist.push_back(chambers);
+		chambers.clear();
+	}
 }
 
 void FillP5ZInfo::fill(const std::vector<reco::Muon> &muons)

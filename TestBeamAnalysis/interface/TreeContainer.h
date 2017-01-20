@@ -1,6 +1,8 @@
 #ifndef TREECONTAINER_H
 #define TREECONTAINER_H
 
+#include <algorithm>
+
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
