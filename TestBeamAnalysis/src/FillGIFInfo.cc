@@ -1,5 +1,4 @@
-#include "Gif/TestBeamAnalysis/include/FillGIFInfo.h"
-#include "Gif/TestBeamAnalysis/include/GIFHelper.h"
+#include "Gif/TestBeamAnalysis/interface/FillGIFInfo.h"
 
 void FillGIFEventInfo::fill(const edm::Event& iEvent){
   reset();

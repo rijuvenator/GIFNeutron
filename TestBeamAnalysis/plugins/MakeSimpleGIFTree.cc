@@ -7,11 +7,8 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 
-
-
-#include "Gif/TestBeamAnalysis/include/FillGIFInfo.h"
-
-
+#include "Gif/TestBeamAnalysis/interface/FillGIFInfo.h"
+#include "Gif/TestBeamAnalysis/interface/FillP5Info.h"
 
 using namespace std;
 
@@ -21,12 +18,10 @@ class MakeSimpleGIFTree : public edm::EDAnalyzer {
         explicit MakeSimpleGIFTree(const edm::ParameterSet&);
         ~MakeSimpleGIFTree();
 
-
     private:
         virtual void beginJob() {};
         virtual void analyze(const edm::Event&, const edm::EventSetup&);
         virtual void endJob() {};
-
 
     private:
         edm::EDGetTokenT<CSCRecHit2DCollection> rh_token;
@@ -39,8 +34,7 @@ class MakeSimpleGIFTree : public edm::EDAnalyzer {
         edm::EDGetTokenT<CSCALCTDigiCollection> ad_token;
 		edm::EDGetTokenT<reco::MuonCollection> mu_token;
 
-
-        GifTreeContainer tree;
+        TreeContainer tree;
         FillGIFEventInfo eventInfo;
         FillGIFRecHitInfo recHitInfo;
         FillGIFStripInfo recStripInfo;
@@ -50,13 +44,14 @@ class MakeSimpleGIFTree : public edm::EDAnalyzer {
         FillGIFSegmentInfo segmentInfo;
         FillGIFCLCTInfo clctInfo;
         FillGIFALCTInfo alctInfo;
+		FillP5Info p5Info;
+		FillP5MuonInfo muonInfo;
+		FillP5ZInfo zInfo;
 
 };
 
-
 MakeSimpleGIFTree::MakeSimpleGIFTree(const edm::ParameterSet& iConfig) :
-    tree(/*iConfig.getUntrackedParameter<std::string>("NtupleFileName"),*/"GIFDigiTree","Tree holding CSCDigis")
-//Turn on branch filling
+    tree("GIFDigiTree","Tree holding CSCDigis")
   , eventInfo(tree)
   , recHitInfo(tree)
   , recStripInfo(tree)
@@ -66,6 +61,9 @@ MakeSimpleGIFTree::MakeSimpleGIFTree(const edm::ParameterSet& iConfig) :
   , segmentInfo(tree)
   , clctInfo(tree)
   , alctInfo(tree)
+  , p5Info(tree)
+  , muonInfo(tree)
+  , zInfo(tree)
 {
       rh_token = consumes<CSCRecHit2DCollection>( iConfig.getParameter<edm::InputTag>("recHitTag") );
       sd_token = consumes<CSCStripDigiCollection>( iConfig.getParameter<edm::InputTag>("stripDigiTag") );
