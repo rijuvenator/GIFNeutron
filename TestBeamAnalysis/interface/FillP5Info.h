@@ -34,15 +34,18 @@ class FillP5EventInfo : public FillP5Info
 		FillP5EventInfo(TreeContainer &tree) : FillP5Info(tree)
 		{
 			book("sT", sT, "F");
+			book("nJets", nJets, "I");
 		}
 		virtual ~FillP5EventInfo() {};
-		void fill(float sT_);
+		void fill(float sT_, int nJets_);
 	private:
 		float sT;
+		int nJets;
 
 		virtual void reset()
 		{
 			sT = -999.;
+			nJets = -999.;
 		}
 };
 
@@ -60,13 +63,15 @@ class FillP5MuonInfo : public FillP5Info
 		}
 		virtual ~FillP5MuonInfo() {};
 		void fill(const std::vector<reco::Muon> &muons);
+		// Important to be public!!!!
+		std::vector<std::vector<unsigned short int>> muon_chamlist;
+
 	private:
 		std::vector<int>                             muon_charge;
 		std::vector<double>                          muon_pT;
 		std::vector<double>                          muon_eta;
 		std::vector<double>                          muon_phi;
 		std::vector<double>                          muon_pZ;
-		std::vector<std::vector<unsigned short int>> muon_chamlist;
 
 		virtual void reset()
 		{

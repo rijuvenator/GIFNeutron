@@ -1,9 +1,10 @@
 #include "Gif/TestBeamAnalysis/interface/FillP5Info.h"
 
-void FillP5EventInfo::fill(float sT_)
+void FillP5EventInfo::fill(float sT_, int nJets_)
 {
 	reset();
 	sT = sT_;
+	nJets = nJets_;
 }
 
 void FillP5MuonInfo::fill(const std::vector<reco::Muon> &muons)

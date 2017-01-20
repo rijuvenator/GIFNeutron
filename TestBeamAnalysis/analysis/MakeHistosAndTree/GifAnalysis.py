@@ -22,7 +22,14 @@ process.idealForDigiCSCGeometry.useGangedStripsInME1a = False
 
 def doTree(process):
     process.GIFTree = cms.EDAnalyzer('MakeSimpleGIFTree',
+							# Physics
+							vertexCollection = cms.InputTag('offlinePrimaryVertices'),
 							muonCollection = cms.InputTag('muons'),
+							electronCollection = cms.InputTag('gedGsfElectrons'),
+							photonCollection = cms.InputTag('gedPhotons'),
+							metCollection = cms.InputTag('pfMet'),
+							jetCollection = cms.InputTag('ak4PFJets'),
+							# CSC
                             wireDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCWireDigi'),
                             stripDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCStripDigi'),
                             alctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCALCTDigi'),

@@ -27,10 +27,10 @@ class MakeSimpleGIFTree : public edm::EDAnalyzer {
 		// Physics
 		edm::EDGetTokenT<reco::VertexCollection> vtx_token;
 		edm::EDGetTokenT<reco::MuonCollection> mu_token;
-		edm::EDGetTokenT<reco::GsfElectron> el_token;
-		edm::EDGetTokenT<reco::Photon> ph_token;
-		edm::EDGetTokenT<reco::PFMET> met_token;
-		edm::EDGetTokenT<reco::PFJet> jet_token;
+		edm::EDGetTokenT<reco::GsfElectronCollection> el_token;
+		edm::EDGetTokenT<reco::PhotonCollection> ph_token;
+		edm::EDGetTokenT<reco::METCollection> met_token;
+		edm::EDGetTokenT<reco::PFJetCollection> jet_token;
 		// CSC
         edm::EDGetTokenT<CSCRecHit2DCollection> rh_token;
         edm::EDGetTokenT<CSCStripDigiCollection> sd_token;
@@ -51,7 +51,7 @@ class MakeSimpleGIFTree : public edm::EDAnalyzer {
         FillGIFSegmentInfo segmentInfo;
         FillGIFCLCTInfo clctInfo;
         FillGIFALCTInfo alctInfo;
-		FillP5Info p5Info;
+		FillP5EventInfo p5Info;
 		FillP5MuonInfo muonInfo;
 		FillP5ZInfo zInfo;
 
@@ -75,10 +75,10 @@ MakeSimpleGIFTree::MakeSimpleGIFTree(const edm::ParameterSet& iConfig) :
 	// Physics
 	vtx_token = consumes<reco::VertexCollection>( iConfig.getParameter<edm::InputTag>("vertices") );
 	mu_token = consumes<reco::MuonCollection>( iConfig.getParameter<edm::InputTag>("muonCollection") );
-	el_token = consumes<reco::GsfElectron>( iConfig.getParameter<edm::InputTag>("electronCollection") );
-	ph_token = consumes<reco::Photon>( iConfig.getParameter<edm::InputTag>("photonCollection") );
-	met_token = consumes<reco::PFMET>( iConfig.getParameter<edm::InputTag>("metCollection") );
-	jet_token = consumes<reco::PFJet>( iConfig.getParajeter<edm::InputTag>("jetCollection") );
+	el_token = consumes<reco::GsfElectronCollection>( iConfig.getParameter<edm::InputTag>("electronCollection") );
+	ph_token = consumes<reco::PhotonCollection>( iConfig.getParameter<edm::InputTag>("photonCollection") );
+	met_token = consumes<reco::METCollection>( iConfig.getParameter<edm::InputTag>("metCollection") );
+	jet_token = consumes<reco::PFJetCollection>( iConfig.getParameter<edm::InputTag>("jetCollection") );
 	// CSC
     rh_token = consumes<CSCRecHit2DCollection>( iConfig.getParameter<edm::InputTag>("recHitTag") );
     sd_token = consumes<CSCStripDigiCollection>( iConfig.getParameter<edm::InputTag>("stripDigiTag") );
@@ -105,25 +105,25 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	const reco::Vertex &PV = vertices->front();
 	
 	// Get Met
-	edm::Handle<reco::PFMET> mets;
+	edm::Handle<reco::METCollection> mets;
 	iEvent.getByToken(met_token, mets);
-	const reco::MET &met = mets->front();
+	//const reco::MET &met = mets->front();
 	
 	// Get Electrons
-	edm::Handle<reco::GsfElectron> electrons;
+	edm::Handle<reco::GsfElectronCollection> electrons;
 	iEvent.getByToken(el_token, electrons);
 
 	// Get Photons
-	edm::Handle<reco::Photon> photons;
+	edm::Handle<reco::PhotonCollection> photons;
 	iEvent.getByToken(ph_token, photons);
 
 	// Get Jets
-	edm::Handle<reco::PFJets> jets;
+	edm::Handle<reco::PFJetCollection> jets;
 	iEvent.getByToken(jet_token, jets);
 
 	int nJets = 0;
 	for (auto &jet : *jets) {
-		if (j.pt() < 30) continue;
+		if (jet.pt() < 30) continue;
 		nJets++;
 	}
 	
@@ -134,8 +134,8 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	// Find Good Muons
 	int itmu1 = 0;
 	int itmu2 = 0;
-	const reco::Muon cMuon1;
-	const reco::Muon cMuon2;
+	reco::Muon cMuon1;
+	reco::Muon cMuon2;
 	bool found = false;
 	
 	// Hopefully it's safe to assume that the muons in the MuonCollection are sorted by pT...
@@ -143,18 +143,20 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	for (auto &muon1 : *muons) {
 		itmu1++;
 		// Muon1 cuts
-		if ( !(muon1.pt > 30) ) continue;
+		if ( !(muon1.pt() > 30) ) continue;
 		if ( !muon::isHighPtMuon(muon1, PV) ) continue;
-		if ( !(muon1.isolationR03().sumPt()/muon1.innerTrack().pt() < 0.1) ) continue;
+		if ( !(muon1.isolationR03().sumPt/muon1.pt() < 0.1) ) continue;
+		//if ( !(muon1.isolationR03().sumPt/muon1.innerTrack().pt() < 0.1) ) continue;
 
 		for (auto &muon2 : *muons) {
 			itmu2++;
 			// Avoid double counting?
 			if (!(itmu1>itmu2)) continue;
 			// Muon2 cuts
-			if ( !(muon1.pt > 30) ) continue;
+			if ( !(muon1.pt() > 30) ) continue;
 			if ( !muon::isHighPtMuon(muon2, PV) ) continue;
-			if ( !(muon2.isolationR03().sumPt()/muon2.innerTrack().pt() < 0.1) ) continue;
+			if ( !(muon2.isolationR03().sumPt/muon2.pt() < 0.1) ) continue;
+			//if ( !(muon2.isolationR03().sumPt/muon2.innerTrack().pt() < 0.1) ) continue;
 
 			// Dimuon cuts; opposite sign, mass window
 			if ( !(muon1.charge()*muon2.charge()<0) )  continue;
@@ -174,49 +176,51 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	// Skip event if no dimuon is found with selection criteria
 	if (!found) return;
 
-	std::vector<reco::Muon> chosenMuons = {cMuon1,cMuon2};
-	muonInfo.fill(chosenMuons);
-	ZInfo.fill(chosenMuons);
-
 	eventInfo.fill(iEvent);
+	p5Info.fill(0., nJets);
+
+	std::vector<reco::Muon> chosenMuons = {cMuon1,cMuon2};
+	// do muonInfo first
+	muonInfo.fill(chosenMuons);
+	zInfo.fill(chosenMuons);
 
 	edm::Handle<CSCRecHit2DCollection> recHits;
 	iEvent.getByToken( rh_token, recHits );
-	recHitInfo.fill(*recHits);
+	recHitInfo.fill(*recHits,muonInfo.muon_chamlist);
 
 	edm::Handle<CSCStripDigiCollection> cscStripDigi;
 	iEvent.getByToken(sd_token,cscStripDigi);
-	recStripInfo.fill(*cscStripDigi);
+	recStripInfo.fill(*cscStripDigi,muonInfo.muon_chamlist);
 
 	//if(cscStripDigi->begin() == cscStripDigi->end())
 	//cout << "Error!"<<endl;
 
 	edm::Handle<CSCComparatorDigiCollection> compDigi;
 	iEvent.getByToken(cod_token, compDigi);
-	compInfo.fill(*compDigi);
+	compInfo.fill(*compDigi,muonInfo.muon_chamlist);
 
 	edm::Handle<CSCWireDigiCollection> cscWireDigi;
 	iEvent.getByToken(wd_token,cscWireDigi);
-	wireInfo.fill(*cscWireDigi);
+	wireInfo.fill(*cscWireDigi,muonInfo.muon_chamlist);
 
 	edm::Handle<CSCCorrelatedLCTDigiCollection> cscLCTDigi;
 	iEvent.getByToken(ld_token, cscLCTDigi);
-	lctInfo.fill(*cscLCTDigi);
+	lctInfo.fill(*cscLCTDigi,muonInfo.muon_chamlist);
 
 	edm::ESHandle<CSCGeometry> cscGeom;
 	iSetup.get<MuonGeometryRecord>().get(cscGeom);
 	theCSC = cscGeom.product();
 	edm::Handle<CSCSegmentCollection> cscSegments;
 	iEvent.getByToken(seg_token, cscSegments);
-	segmentInfo.fill(theCSC,*cscSegments,&(*recHits));
+	segmentInfo.fill(theCSC,*cscSegments,&(*recHits),muonInfo.muon_chamlist);
 
 	edm::Handle<CSCCLCTDigiCollection> cscCLCTDigi;
 	iEvent.getByToken(cd_token, cscCLCTDigi);
-	clctInfo.fill(*cscCLCTDigi);
+	clctInfo.fill(*cscCLCTDigi,muonInfo.muon_chamlist);
 
 	edm::Handle<CSCALCTDigiCollection> cscALCTDigi;
 	iEvent.getByToken(ad_token, cscALCTDigi);
-	alctInfo.fill(*cscALCTDigi);
+	alctInfo.fill(*cscALCTDigi,muonInfo.muon_chamlist);
 
 
 	tree.fill();
