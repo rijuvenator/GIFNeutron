@@ -29,6 +29,14 @@ class MakeSimpleGIFTree : public edm::EDAnalyzer {
 
 
     private:
+		// Physics
+		edm::EDGetTokenT<reco::VertexCollection> vtx_token;
+		edm::EDGetTokenT<reco::MuonCollection> mu_token;
+		edm::EDGetTokenT<reco::GsfElectron> el_token;
+		edm::EDGetTokenT<reco::Photon> ph_token;
+		edm::EDGetTokenT<reco::PFMET> met_token;
+		edm::EDGetTokenT<reco::PFJet> jet_token;
+		// CSC
         edm::EDGetTokenT<CSCRecHit2DCollection> rh_token;
         edm::EDGetTokenT<CSCStripDigiCollection> sd_token;
         edm::EDGetTokenT<CSCComparatorDigiCollection> cod_token;
@@ -37,7 +45,6 @@ class MakeSimpleGIFTree : public edm::EDAnalyzer {
         edm::EDGetTokenT<CSCSegmentCollection> seg_token;
         edm::EDGetTokenT<CSCCLCTDigiCollection> cd_token;
         edm::EDGetTokenT<CSCALCTDigiCollection> ad_token;
-		edm::EDGetTokenT<reco::MuonCollection> mu_token;
 
 
         GifTreeContainer tree;
@@ -67,17 +74,23 @@ MakeSimpleGIFTree::MakeSimpleGIFTree(const edm::ParameterSet& iConfig) :
   , clctInfo(tree)
   , alctInfo(tree)
 {
-      rh_token = consumes<CSCRecHit2DCollection>( iConfig.getParameter<edm::InputTag>("recHitTag") );
-      sd_token = consumes<CSCStripDigiCollection>( iConfig.getParameter<edm::InputTag>("stripDigiTag") );
-      cod_token = consumes<CSCComparatorDigiCollection>( iConfig.getParameter<edm::InputTag>("compDigiTag") );
-      wd_token = consumes<CSCWireDigiCollection>( iConfig.getParameter<edm::InputTag>("wireDigiTag") );
-      ld_token = consumes<CSCCorrelatedLCTDigiCollection>( iConfig.getParameter<edm::InputTag>("lctDigiTag") );
-      seg_token  = consumes<CSCSegmentCollection>(iConfig.getParameter<edm::InputTag>("segmentTag")) ;
-      cd_token = consumes<CSCCLCTDigiCollection>( iConfig.getParameter<edm::InputTag>("clctDigiTag") );
-      ad_token = consumes<CSCALCTDigiCollection>( iConfig.getParameter<edm::InputTag>("alctDigiTag") );
-	  mu_token = consumes<reco::MuonCollection>( iConfig.getParameter<edm::InputTag>("muonCollection") );
-	  vtx_token = consumes<reco::VertexCollection>( iConfig.getParameter<edm::InputTag>("vertices") );
-      //edm::Service<TFileService> fs;
+	// Physics
+	vtx_token = consumes<reco::VertexCollection>( iConfig.getParameter<edm::InputTag>("vertices") );
+	mu_token = consumes<reco::MuonCollection>( iConfig.getParameter<edm::InputTag>("muonCollection") );
+	el_token = consumes<reco::GsfElectron>( iConfig.getParameter<edm::InputTag>("electronCollection") );
+	ph_token = consumes<reco::Photon>( iConfig.getParameter<edm::InputTag>("photonCollection") );
+	met_token = consumes<reco::PFMET>( iConfig.getParameter<edm::InputTag>("metCollection") );
+	jet_token = consumes<reco::PFJet>( iConfig.getParajeter<edm::InputTag>("jetCollection") );
+	// CSC
+    rh_token = consumes<CSCRecHit2DCollection>( iConfig.getParameter<edm::InputTag>("recHitTag") );
+    sd_token = consumes<CSCStripDigiCollection>( iConfig.getParameter<edm::InputTag>("stripDigiTag") );
+    cod_token = consumes<CSCComparatorDigiCollection>( iConfig.getParameter<edm::InputTag>("compDigiTag") );
+    wd_token = consumes<CSCWireDigiCollection>( iConfig.getParameter<edm::InputTag>("wireDigiTag") );
+    ld_token = consumes<CSCCorrelatedLCTDigiCollection>( iConfig.getParameter<edm::InputTag>("lctDigiTag") );
+    seg_token  = consumes<CSCSegmentCollection>(iConfig.getParameter<edm::InputTag>("segmentTag")) ;
+    cd_token = consumes<CSCCLCTDigiCollection>( iConfig.getParameter<edm::InputTag>("clctDigiTag") );
+    ad_token = consumes<CSCALCTDigiCollection>( iConfig.getParameter<edm::InputTag>("alctDigiTag") );
+    //edm::Service<TFileService> fs;
 }
 
 
@@ -93,11 +106,30 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	if (vertices->empty()) return;
 	const reco::Vertex &PV = vertices->front();
 	
-	// MET cut?
+	// Get Met
+	edm::Handle<reco::PFMET> mets;
+	iEvent.getByToken(met_token, mets);
+	const reco::MET &met = mets->front();
 	
-	// N(jets) cut?
+	// Get Electrons
+	edm::Handle<reco::GsfElectron> electrons;
+	iEvent.getByToken(el_token, electrons);
+
+	// Get Photons
+	edm::Handle<reco::Photon> photons;
+	iEvent.getByToken(ph_token, photons);
+
+	// Get Jets
+	edm::Handle<reco::PFJets> jets;
+	iEvent.getByToken(jet_token, jets);
+
+	int nJets = 0;
+	for (auto &jet : *jets) {
+		if (j.pt() < 30) continue;
+		nJets++;
+	}
 	
-	// Get Muon Stuff
+	// Get Muons
 	edm::Handle<reco::MuonCollection> muons;
 	iEvent.getByToken(mu_token, muons);
 
@@ -148,7 +180,6 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	muonInfo.fill(chosenMuons);
 	ZInfo.fill(chosenMuons);
 
-	/*
 	eventInfo.fill(iEvent);
 
 	edm::Handle<CSCRecHit2DCollection> recHits;
@@ -191,7 +222,6 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
 
 	tree.fill();
-	*/
 }
 
 
