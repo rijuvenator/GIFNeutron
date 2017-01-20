@@ -3,35 +3,10 @@
 
 #include "Gif/TestBeamAnalysis/interface/TreeContainer.h"
 
-class FillP5Info
+class FillP5EventInfo : public FillInfo
 {
 	public:
-		FillP5Info(TreeContainer &tree) :
-			fTree(&tree)
-		{
-			reset();
-		}
-		virtual ~FillP5Info() {};
-	protected:
-		virtual void reset() {};
-		template<class T>
-		void book(const char *name, T &var, const char *type) // Book variable
-		{
-			fTree->tree->Branch(name, &var, TString(name).Append("/").Append(type).Data());
-		}
-
-		template <class T>
-		void book(const char *name, std::vector<T> &varv) // Book vector
-		{
-			fTree->tree->Branch(name, &varv);
-		}
-		TreeContainer *fTree;
-};
-
-class FillP5EventInfo : public FillP5Info
-{
-	public:
-		FillP5EventInfo(TreeContainer &tree) : FillP5Info(tree)
+		FillP5EventInfo(TreeContainer &tree) : FillInfo(tree)
 		{
 			book("sT", sT, "F");
 			book("nJets", nJets, "I");
@@ -49,10 +24,10 @@ class FillP5EventInfo : public FillP5Info
 		}
 };
 
-class FillP5MuonInfo : public FillP5Info
+class FillP5MuonInfo : public FillInfo
 {
 	public:
-		FillP5MuonInfo(TreeContainer &tree) : FillP5Info(tree)
+		FillP5MuonInfo(TreeContainer &tree) : FillInfo(tree)
 		{
 			book("muon_charge"  , muon_charge  );
 			book("muon_pT"      , muon_pT      );
@@ -84,10 +59,10 @@ class FillP5MuonInfo : public FillP5Info
 		}
 };
 
-class FillP5ZInfo : public FillP5Info
+class FillP5ZInfo : public FillInfo
 {
 	public:
-		FillP5ZInfo(TreeContainer &tree) : FillP5Info(tree)
+		FillP5ZInfo(TreeContainer &tree) : FillInfo(tree)
 		{
 			book("Z_pT"      , Z_pT      , "F");
 			book("Z_rapidity", Z_rapidity, "F");

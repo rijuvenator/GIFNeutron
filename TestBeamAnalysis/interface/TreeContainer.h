@@ -57,15 +57,46 @@ typedef	unsigned int		 size  ; //32 bit 0->4294967296
 class TreeContainer
 {
 	public:
-		TreeContainer(TString treeName, TString treeTitle){
+		TreeContainer(TString treeName, TString treeTitle, TString fileName){
 			edm::Service<TFileService> fs;
+			file = fs->make<TFile>(fileName, "RECREATE");
 			tree = fs->make<TTree>(treeName,treeTitle);
 		}
 		void write() {
+			file->cd();
 			tree->Write();
+			file->Close();
+			delete file;
 		}
 		void fill() {tree->Fill();}
+		TFile * file;
 		TTree * tree;
+};
+
+class FillInfo
+{
+	public:
+		FillInfo(TreeContainer &tree) :
+			fTree(&tree)
+		{
+			reset();
+		}
+		virtual ~FillInfo() {};
+		bool isInChamlist(unsigned short int id, std::vector<std::vector<unsigned short int>> &chamlist);
+	protected:
+		virtual void reset() {};
+		template<class T>
+		void book(const char *name, T &var, const char *type) // Book variable
+		{
+			fTree->tree->Branch(name, &var, TString(name).Append("/").Append(type).Data());
+		}
+
+		template <class T>
+		void book(const char *name, std::vector<T> &varv) // Book vector
+		{
+			fTree->tree->Branch(name, &varv);
+		}
+		TreeContainer * fTree;
 };
 
 #endif

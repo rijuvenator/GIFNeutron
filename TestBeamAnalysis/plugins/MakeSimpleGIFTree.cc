@@ -58,7 +58,7 @@ class MakeSimpleGIFTree : public edm::EDAnalyzer {
 };
 
 MakeSimpleGIFTree::MakeSimpleGIFTree(const edm::ParameterSet& iConfig) :
-    tree("GIFDigiTree","Tree holding CSCDigis")
+    tree("GIFDigiTree","Tree holding CSCDigis","test.root")
   , eventInfo(tree)
   , recHitInfo(tree)
   , recStripInfo(tree)
@@ -73,7 +73,7 @@ MakeSimpleGIFTree::MakeSimpleGIFTree(const edm::ParameterSet& iConfig) :
   , zInfo(tree)
 {
 	// Physics
-	vtx_token = consumes<reco::VertexCollection>( iConfig.getParameter<edm::InputTag>("vertices") );
+	vtx_token = consumes<reco::VertexCollection>( iConfig.getParameter<edm::InputTag>("vertexCollection") );
 	mu_token = consumes<reco::MuonCollection>( iConfig.getParameter<edm::InputTag>("muonCollection") );
 	el_token = consumes<reco::GsfElectronCollection>( iConfig.getParameter<edm::InputTag>("electronCollection") );
 	ph_token = consumes<reco::PhotonCollection>( iConfig.getParameter<edm::InputTag>("photonCollection") );
@@ -98,10 +98,12 @@ MakeSimpleGIFTree::~MakeSimpleGIFTree() {tree.write();}
 void
 MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+	std::cout << "Inside an event!" << std::endl;
 	// Check if a primary vertex exists
 	edm::Handle<reco::VertexCollection> vertices;
 	iEvent.getByToken(vtx_token, vertices);
 	if (vertices->empty()) return;
+	std::cout << "Found a PV" << std::endl;
 	const reco::Vertex &PV = vertices->front();
 	
 	// Get Met
@@ -174,7 +176,9 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	}
 
 	// Skip event if no dimuon is found with selection criteria
+	std::cout << "Before the found return" << std::endl;
 	if (!found) return;
+	std::cout << cMuon1.pt() << " " << cMuon2.pt() << std::endl;
 
 	eventInfo.fill(iEvent);
 	p5Info.fill(0., nJets);

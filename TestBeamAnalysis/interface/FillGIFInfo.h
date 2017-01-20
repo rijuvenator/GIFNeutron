@@ -3,37 +3,10 @@
 
 #include "Gif/TestBeamAnalysis/interface/TreeContainer.h"
 
-class FillGIFInfo
+class FillGIFEventInfo : public FillInfo
 {
 	public:
-		FillGIFInfo(TreeContainer& tree) :
-			fTree(&tree)
-		{
-			reset();
-		}
-		virtual ~FillGIFInfo() {};
-		bool isInChamlist(unsigned short int id, std::vector<std::vector<unsigned short int>> &chamlist);
-	protected:
-		virtual void reset() {};
-		template<class T>
-		void book(const char *name, T& var, const char *type) // Book variable
-		{
-			fTree->tree->Branch(name, &var, TString(name).Append("/").Append(type).Data());
-		}
-
-		template<class T>
-		void book(const char *name, std::vector<T>& varv) // Book vector
-		{
-			fTree->tree->Branch(name, &varv);
-		}
-		TreeContainer * fTree;
-};
-
-
-class FillGIFEventInfo : public FillGIFInfo
-{
-	public:
-		FillGIFEventInfo(TreeContainer& tree) :FillGIFInfo(tree)
+		FillGIFEventInfo(TreeContainer& tree) :FillInfo(tree)
 		{
 			book("Event_EventNumber",Event_EventNumber,"I");
 			book("Event_RunNumber"  ,Event_RunNumber  ,"I");
@@ -61,11 +34,11 @@ class FillGIFEventInfo : public FillGIFInfo
 };
 
 
-class FillGIFRecHitInfo : public FillGIFInfo
+class FillGIFRecHitInfo : public FillInfo
 {
 	public:
 
-		FillGIFRecHitInfo(TreeContainer& tree) :FillGIFInfo(tree)
+		FillGIFRecHitInfo(TreeContainer& tree) :FillInfo(tree)
 		{
 			book("rh_id"           ,rh_id           );
 			book("rh_lay"          ,rh_lay          );
@@ -146,11 +119,11 @@ class FillGIFRecHitInfo : public FillGIFInfo
 		void fill(const CSCRecHit2DCollection& recHits, std::vector<std::vector<unsigned short int>> &chamlist);
 };
 
-class FillGIFStripInfo : public FillGIFInfo
+class FillGIFStripInfo : public FillInfo
 {
 	public:
 
-		FillGIFStripInfo(TreeContainer& tree) :FillGIFInfo(tree)
+		FillGIFStripInfo(TreeContainer& tree) :FillInfo(tree)
 		{
 			book("strip_id"    ,strip_id    );
 			book("strip_lay"   ,strip_lay   );
@@ -177,11 +150,11 @@ class FillGIFStripInfo : public FillGIFInfo
 		void fill(const CSCStripDigiCollection& strips, std::vector<std::vector<unsigned short int>> &chamlist);
 };
 
-class FillGIFCompInfo : public FillGIFInfo
+class FillGIFCompInfo : public FillInfo
 {
 	public:
 
-		FillGIFCompInfo(TreeContainer& tree) :FillGIFInfo(tree)
+		FillGIFCompInfo(TreeContainer& tree) :FillInfo(tree)
 		{
 			book("comp_id"    ,comp_id    );
 			book("comp_lay"   ,comp_lay   );
@@ -216,10 +189,10 @@ class FillGIFCompInfo : public FillGIFInfo
 };
 
 
-class FillGIFWireInfo : public FillGIFInfo
+class FillGIFWireInfo : public FillInfo
 {
 	public:
-		FillGIFWireInfo(TreeContainer& tree) :FillGIFInfo(tree)
+		FillGIFWireInfo(TreeContainer& tree) :FillInfo(tree)
 		{
 			book("wire_id"  ,wire_id      );
 			book("wire_lay" ,wire_lay     );
@@ -253,11 +226,11 @@ class FillGIFWireInfo : public FillGIFInfo
 };
 
 
-class FillGIFLCTInfo : public FillGIFInfo
+class FillGIFLCTInfo : public FillInfo
 {
 	public:
 
-		FillGIFLCTInfo(TreeContainer& tree) :FillGIFInfo(tree)
+		FillGIFLCTInfo(TreeContainer& tree) :FillInfo(tree)
 		{
 			book("lct_id"          ,lct_id          );
 			book("lct_quality"     ,lct_quality     );
@@ -291,11 +264,11 @@ class FillGIFLCTInfo : public FillGIFInfo
 };
 
 
-class FillGIFSegmentInfo : public FillGIFInfo
+class FillGIFSegmentInfo : public FillInfo
 {
 	public:
 
-		FillGIFSegmentInfo(TreeContainer& tree) :FillGIFInfo(tree)
+		FillGIFSegmentInfo(TreeContainer& tree) :FillInfo(tree)
 		{
 
 			book("segment_id"           ,segment_id           );
@@ -389,10 +362,10 @@ class FillGIFSegmentInfo : public FillGIFInfo
 		int segmentQuality(edm::OwnVector<CSCSegment>::const_iterator segment);
 };
 
-class FillGIFCLCTInfo : public FillGIFInfo
+class FillGIFCLCTInfo : public FillInfo
 {
 	public:
-		FillGIFCLCTInfo(TreeContainer& tree) :FillGIFInfo(tree)
+		FillGIFCLCTInfo(TreeContainer& tree) :FillInfo(tree)
 		{
 			book("clct_id"       ,clct_id       );
 			book("clct_isvalid"  ,clct_isvalid  );
@@ -440,10 +413,10 @@ class FillGIFCLCTInfo : public FillGIFInfo
 		void fill(const CSCCLCTDigiCollection& clcts, std::vector<std::vector<unsigned short int>> &chamlist);
 };
 
-class FillGIFALCTInfo : public FillGIFInfo
+class FillGIFALCTInfo : public FillInfo
 {
 	public:
-		FillGIFALCTInfo(TreeContainer& tree) :FillGIFInfo(tree)
+		FillGIFALCTInfo(TreeContainer& tree) :FillInfo(tree)
 		{
 
 			book("alct_id"       ,alct_id       );

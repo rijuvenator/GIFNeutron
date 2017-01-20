@@ -1,6 +1,6 @@
 #include "Gif/TestBeamAnalysis/interface/FillGIFInfo.h"
 
-bool FillGIFInfo::isInChamlist(unsigned short int id, std::vector<std::vector<unsigned short int>> &chamlist)
+bool FillInfo::isInChamlist(unsigned short int id, std::vector<std::vector<unsigned short int>> &chamlist)
 {
 	bool isInFirst  = std::any_of(chamlist[0].begin(), chamlist[0].end(), [id](unsigned short int i){return i == id;});
 	bool isInSecond = std::any_of(chamlist[1].begin(), chamlist[1].end(), [id](unsigned short int i){return i == id;});

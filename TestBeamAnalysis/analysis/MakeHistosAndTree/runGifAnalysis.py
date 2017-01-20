@@ -11,7 +11,7 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 	#plotsDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/test/'
 	cmssw_base = commands.getoutput('echo $CMSSW_BASE')
 	plotsDir = cmssw_base+'/src/Gif/TestBeamAnalysis/analysis/MakeHistosAndTree/'
-	outPath = 'test.root'
+	outPath = plotsDir+'test.root'
 	dryrun = 'dryrun' in sys.argv
 
 	gif_py = open('GifAnalysis.py').read()
