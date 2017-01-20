@@ -76,6 +76,7 @@ MakeSimpleGIFTree::MakeSimpleGIFTree(const edm::ParameterSet& iConfig) :
       cd_token = consumes<CSCCLCTDigiCollection>( iConfig.getParameter<edm::InputTag>("clctDigiTag") );
       ad_token = consumes<CSCALCTDigiCollection>( iConfig.getParameter<edm::InputTag>("alctDigiTag") );
 	  mu_token = consumes<reco::MuonCollection>( iConfig.getParameter<edm::InputTag>("muonCollection") );
+	  vtx_token = consumes<reco::VertexCollection>( iConfig.getParameter<edm::InputTag>("vertices") );
       //edm::Service<TFileService> fs;
 }
 
@@ -86,19 +87,66 @@ MakeSimpleGIFTree::~MakeSimpleGIFTree() {tree.write();}
 void
 MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-	//
+	// Check if a primary vertex exists
+	edm::Handle<reco::VertexCollection> vertices;
+	iEvent.getByToken(vtx_token, vertices);
+	if (vertices->empty()) return;
+	const reco::Vertex &PV = vertices->front();
+	
+	// MET cut?
+	
+	// N(jets) cut?
+	
 	// Get Muon Stuff
 	edm::Handle<reco::MuonCollection> muons;
 	iEvent.getByToken(mu_token, muons);
+
 	// Find Good Muons
-	for (auto &muon : *muons) {
-		std::cout << "Muon pT " << muon.pt() << std::endl;
+	int itmu1 = 0;
+	int itmu2 = 0;
+	const reco::Muon cMuon1;
+	const reco::Muon cMuon2;
+	bool found = false;
+	
+	// Hopefully it's safe to assume that the muons in the MuonCollection are sorted by pT...
+	// otherwise this algo doesn't choose the two highest pT opposite sign dimuons passing the selection
+	for (auto &muon1 : *muons) {
+		itmu1++;
+		// Muon1 cuts
+		if ( !(muon1.pt > 30) ) continue;
+		if ( !muon::isHighPtMuon(muon1, PV) ) continue;
+		if ( !(muon1.isolationR03().sumPt()/muon1.innerTrack().pt() < 0.1) ) continue;
+
+		for (auto &muon2 : *muons) {
+			itmu2++;
+			// Avoid double counting?
+			if (!(itmu1>itmu2)) continue;
+			// Muon2 cuts
+			if ( !(muon1.pt > 30) ) continue;
+			if ( !muon::isHighPtMuon(muon2, PV) ) continue;
+			if ( !(muon2.isolationR03().sumPt()/muon2.innerTrack().pt() < 0.1) ) continue;
+
+			// Dimuon cuts; opposite sign, mass window
+			if ( !(muon1.charge()*muon2.charge()<0) )  continue;
+			if ( !( (muon1.p4()+muon2.p4()).mass() > 60 && (muon1.p4()+muon2.p4()).mass() < 120 ) ) continue;
+			// Need at least one muon in a CSC
+			if ( !(fabs(muon1.eta()) > 0.9||fabs(muon2.eta()) > 0.9) ) continue;
+
+			// Choose these muons
+			cMuon1 = muon1;
+			cMuon2 = muon2;
+			found = true;
+			break;
+		}
+		if (found) break;
 	}
-	// Make Z candidate
-	// Cut on cuts
-	//
-	// Loop on selected muons
-	// get matched chamber lists
+
+	// Skip event if no dimuon is found with selection criteria
+	if (!found) return;
+
+	std::vector<reco::Muon> chosenMuons = {cMuon1,cMuon2};
+	muonInfo.fill(chosenMuons);
+	ZInfo.fill(chosenMuons);
 
 	/*
 	eventInfo.fill(iEvent);
