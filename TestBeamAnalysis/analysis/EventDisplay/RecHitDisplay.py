@@ -5,6 +5,7 @@ import Gif.TestBeamAnalysis.Auxiliary as Aux
 import DisplayHelper as ED # "Event Display"
 import Patterns
 import argparse
+import Gif.TestBeamAnalysis.ChamberHandler as CH
 
 ##########
 # This file gets the data, makes the histograms, makes the objects, and makes the plots
@@ -17,17 +18,17 @@ ED.setStyle('rechits') # holy crap! setStyle was taking up 99% of the computatio
 
 ##### COMMAND LINE PARAMETERS
 parser = argparse.ArgumentParser(description='Makes event displays for given event list file and chamber')
-parser.add_argument('--cham'  ,dest='CHAM'  ,help='1 for ME1/1, 2 for ME2/1')
-parser.add_argument('--list'  ,dest='FILE'  ,help='Event list text file')
-parser.add_argument('--meas'  ,dest='MEAS'  ,help='Measurement number')
+parser.add_argument('--cham'  ,dest='CHAM'  ,help='Chamber serial number')
+parser.add_argument('--list'  ,dest='LIST'  ,help='Event list text file')
+parser.add_argument('--file'  ,dest='FILE'  ,help='Data file name')
 parser.add_argument('--outDir',dest='OUTDIR',help='Plot saving directory',default='pdfs')
 args = parser.parse_args()
 
 ##### PARAMETERS #####
 # Measurement List, Chamber IDs (1, 110), Event List (1 indexed)
-MEASLIST  = [int(args.MEAS)]
-CHAMS     = [1 if int(args.CHAM)==1 else 110]
-EVENTFILE = open(args.FILE)
+FILES     = [args.FILE]
+CHAMS     = [int(args.CHAM)]
+EVENTFILE = open(args.LIST)
 ENTRIES   = []
 for event in EVENTFILE:
 	# Make display plots 1 indexed, tree is 0 indexed
@@ -36,17 +37,15 @@ OUTDIR = args.OUTDIR
 
 # Which displays to plot
 DOSEGMENTS = True
-DOSCINT    = True
 DRAWZTITLE = False
 TITLESON   = True
 ORIGFORMAT = False
 
 ##### BEGIN CODE #####
-SCINT = {1:{'HS':(25., 72.), 'WG':(37., 43.)}, 110:{'HS':(8., 38.), 'WG':(55., 65.)}}
 
-for MEAS in MEASLIST:
+for FILE in FILES:
 	# Get file and tree
-	f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
+	f = R.TFile.Open(FILE)
 	t = f.Get('GIFTree/GIFDigiTree')
 
 	for ENTRY in ENTRIES:
@@ -64,11 +63,12 @@ for MEAS in MEASLIST:
 			lcts    = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham  ))]
 
 		for CHAM in CHAMS:
+			CHAMBER = CH.Chamber(CHAM)
 			# Upper limits for wire group numbers and half strip numbers
-			WIRE_MAX = 48   if CHAM == 1 else 112
-			HS_MAX   = 224  if CHAM == 1 else 160
 
 			##### RECHITS DISPLAY #####
+			WIRE_MAX = CHAMBER.nwires
+			HS_MAX   = CHAMBER.nstrips*2
 
 			# Instantiate canvas
 			canvas = ED.Canvas('rechits' if not ORIGFORMAT else 'origrechits')
@@ -152,31 +152,22 @@ for MEAS in MEASLIST:
 						gr[key]['fill'].Draw('L same')
 						gr[key]['empt'].Draw('L same')
 
-			# Scintillator region
-			if DOSCINT:
-				SL = (\
-						R.TLine(SCINT[CHAM]['HS'][0]/2, 1, SCINT[CHAM]['HS'][0]/2, 7),
-						R.TLine(SCINT[CHAM]['HS'][1]/2, 1, SCINT[CHAM]['HS'][1]/2, 7),
-						R.TLine(SCINT[CHAM]['WG'][0]  , 1, SCINT[CHAM]['WG'][0]  , 7),
-						R.TLine(SCINT[CHAM]['WG'][1]  , 1, SCINT[CHAM]['WG'][1]  , 7)
-					)
-				for line in SL:
-					line.SetLineColor(R.kRed)
-					line.SetLineWidth(2)
-				canvas.pads[0                         ].cd(); SL[0].Draw(); SL[1].Draw()
-				canvas.pads[2 if not ORIGFORMAT else 1].cd(); SL[2].Draw(); SL[3].Draw()
-
 			##### CLEAN UP #####
 			for pad in canvas.pads:
 				pad.cd()
 				pad.RedrawAxis()
 
 			# lumi text: m#MEAS, MEX/1, Event # EVENT
-			canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
+			RUN = t.Event_RunNumber
+			LS  = t.Event_LumiSection
+			#canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
+			canvas.drawLumiText(CHAMBER.display() + ', RES =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
 
 			# save as: RH_MEAS_MEX1_EVENT.pdf
-			canvas.canvas.SaveAs(OUTDIR+'/RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
+			#canvas.canvas.SaveAs(OUTDIR+'/RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
+			canvas.canvas.SaveAs(OUTDIR+'/RH_'+CHAMBER.display('ME{S}{R}_')+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
-			print '\033[1mFILE \033[32m'+'RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
+			#print '\033[1mFILE \033[32m'+'RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
+			print '\033[1mFILE \033[32m'+'RH_'+CHAMBER.display('ME{S}{R}_')+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
 
 	f.Close()

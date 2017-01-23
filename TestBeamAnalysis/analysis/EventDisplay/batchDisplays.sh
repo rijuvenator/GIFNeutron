@@ -1,23 +1,14 @@
 #!/bin/bash
 
 # first few events
-python EventDisplay.py  --list elist --meas 3284 --cham 1
-python EventDisplay.py  --list elist --meas 3284 --cham 2
-python EventDisplay.py  --list elist --meas 3384 --cham 1
-python EventDisplay.py  --list elist --meas 3384 --cham 2
-python RecHitDisplay.py --list elist --meas 3284 --cham 1
-python RecHitDisplay.py --list elist --meas 3284 --cham 2
-python RecHitDisplay.py --list elist --meas 3384 --cham 1
-python RecHitDisplay.py --list elist --meas 3384 --cham 2
+python EventDisplay.py  --list <(echo "3595") --file ../MakeHistosAndTree/test.root --cham 172
+python EventDisplay.py  --list <(echo "3595") --file ../MakeHistosAndTree/test.root --cham 358
+python EventDisplay.py  --list <(echo "3595") --file ../MakeHistosAndTree/test.root --cham 448
+python EventDisplay.py  --list <(echo "3595") --file ../MakeHistosAndTree/test.root --cham 502
+python EventDisplay.py  --list <(echo "3595") --file ../MakeHistosAndTree/test.root --cham 556
 
-# cfeb not read out
-python EventDisplay.py  --meas 3241 --list cfeb_elist_1 --cham 1
-python EventDisplay.py  --meas 3241 --list cfeb_elist_2 --cham 2
-python RecHitDisplay.py --meas 3241 --list cfeb_elist_1 --cham 1
-python RecHitDisplay.py --meas 3241 --list cfeb_elist_2 --cham 2
-
-# rechits close in x
-python EventDisplay.py  --meas 3241 --list disp_elist_1 --cham 1
-python EventDisplay.py  --meas 3241 --list disp_elist_2 --cham 2
-python RecHitDisplay.py --meas 3241 --list disp_elist_1 --cham 1
-python RecHitDisplay.py --meas 3241 --list disp_elist_2 --cham 2
+python RecHitDisplay.py --list <(echo "3595") --file ../MakeHistosAndTree/test.root --cham 172
+python RecHitDisplay.py --list <(echo "3595") --file ../MakeHistosAndTree/test.root --cham 358
+python RecHitDisplay.py --list <(echo "3595") --file ../MakeHistosAndTree/test.root --cham 448
+python RecHitDisplay.py --list <(echo "3595") --file ../MakeHistosAndTree/test.root --cham 502
+python RecHitDisplay.py --list <(echo "3595") --file ../MakeHistosAndTree/test.root --cham 556
