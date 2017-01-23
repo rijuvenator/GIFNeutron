@@ -57,19 +57,19 @@ typedef	unsigned int		 size  ; //32 bit 0->4294967296
 class TreeContainer
 {
 	public:
-		TreeContainer(TString treeName, TString treeTitle, TString fileName){
+		TreeContainer(TString treeName, TString treeTitle/*, TString fileName*/){
 			edm::Service<TFileService> fs;
-			file = fs->make<TFile>(fileName, "RECREATE");
+			//file = fs->make<TFile>(fileName, "RECREATE");
 			tree = fs->make<TTree>(treeName,treeTitle);
 		}
 		void write() {
-			file->cd();
+			//file->cd();
 			tree->Write();
-			file->Close();
-			delete file;
+			//file->Close();
+			//delete file;
 		}
 		void fill() {tree->Fill();}
-		TFile * file;
+		//TFile * file;
 		TTree * tree;
 };
 

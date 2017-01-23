@@ -10,14 +10,15 @@ void FillP5EventInfo::fill(float sT_, int nJets_)
 void FillP5MuonInfo::fill(const std::vector<reco::Muon> &muons)
 {
 	reset();
-	muon_charge   = { muons[0].charge(), muons[1].charge() };
-	muon_pT       = { muons[0].pt()    , muons[1].pt()     };
-	muon_eta      = { muons[0].eta()   , muons[1].eta()    };
-	muon_phi      = { muons[0].phi()   , muons[1].phi()    };
-	muon_pZ       = { muons[0].pz()    , muons[1].pz()     };
 
 	for (auto &muon : muons)
 	{
+		muon_charge.push_back(muon.charge());
+		muon_pT    .push_back(muon.pt());
+		muon_eta   .push_back(muon.eta());
+		muon_phi   .push_back(muon.phi());
+		muon_pZ    .push_back(muon.pz() );
+
 		std::vector<unsigned short int> chambers;
 		for (auto &match : muon.matches())
 		{
