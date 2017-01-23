@@ -5,6 +5,7 @@ import Gif.TestBeamAnalysis.Auxiliary as Aux
 import DisplayHelper as ED # "Event Display"
 import Patterns
 import argparse
+import Gif.TestBeamAnalysis.ChamberHandler as CH
 
 ##########
 # This file gets the data, makes the histograms, makes the objects, and makes the plots
@@ -17,17 +18,17 @@ ED.setStyle('primitives') # holy crap! setStyle was taking up 99% of the computa
 
 ##### COMMAND LINE PARAMETERS
 parser = argparse.ArgumentParser(description='Makes event displays for given event list file and chamber')
-parser.add_argument('--cham'  ,dest='CHAM'  ,help='1 for ME1/1, 2 for ME2/1')
-parser.add_argument('--list'  ,dest='FILE'  ,help='Event list text file')
-parser.add_argument('--meas'  ,dest='MEAS'  ,help='Measurement number')
+parser.add_argument('--cham'  ,dest='CHAM'  ,help='Chamber serial number')
+parser.add_argument('--list'  ,dest='LIST'  ,help='Event list text file')
+parser.add_argument('--file'  ,dest='FILE'  ,help='Data file name')
 parser.add_argument('--outDir',dest='OUTDIR',help='Plot saving directory',default='pdfs')
 args = parser.parse_args()
 
 ##### PARAMETERS #####
 # Measurement List, Chamber IDs (1, 110), Event List (1 indexed)
-MEASLIST  = [int(args.MEAS)]
-CHAMS     = [1 if int(args.CHAM)==1 else 110]
-EVENTFILE = open(args.FILE)
+FILES     = [args.FILE]
+CHAMS     = [int(args.CHAM)]
+EVENTFILE = open(args.LIST)
 ENTRIES   = []
 for event in EVENTFILE:
 	# Make display plots 1 indexed, tree is 0 indexed
@@ -37,16 +38,14 @@ OUTDIR = args.OUTDIR
 # Which displays to plot
 DOPATTERN  = True
 DOSEGMENTS = False
-DOSCINT    = True
 DRAWZTITLE = True
 
 ##### BEGIN CODE #####
 THRESHOLD = 13.3
-SCINT = {1:{'HS':(25., 72.), 'WG':(37., 43.)}, 110:{'HS':(8., 38.), 'WG':(55., 65.)}}
 
-for MEAS in MEASLIST:
+for FILE in FILES:
 	# Get file and tree
-	f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
+	f = R.TFile.Open(FILE)
 	t = f.Get('GIFTree/GIFDigiTree')
 
 	for ENTRY in ENTRIES:
@@ -69,9 +68,10 @@ for MEAS in MEASLIST:
 			segs    = [Primitives.Segment(E, i) for i in range(len(E.seg_cham  ))]
 
 		for CHAM in CHAMS:
+			CHAMBER = CH.Chamber(CHAM)
 			# Upper limits for wire group numbers and half strip numbers
-			WIRE_MAX = 48   if CHAM == 1 else 112
-			HS_MAX   = 224  if CHAM == 1 else 160
+			WIRE_MAX = CHAMBER.nwires
+			HS_MAX   = CHAMBER.nstrips*2
 
 			##### PRIMITIVES DISPLAY #####
 
@@ -79,18 +79,14 @@ for MEAS in MEASLIST:
 			canvas = ED.Canvas('primitives')
 
 			# Dark CFEBs
-			hMissingH = R.TH1F('missingH', '', HS_MAX, 1, HS_MAX  +1); hMissingH.SetFillColor(15)
-			hMissingS = R.TH1F('missingS', '', HS_MAX, 1, HS_MAX/2+1); hMissingS.SetFillColor(15)
 			#hNotReadH = R.TH1F('notReadH', '', HS_MAX, 1, HS_MAX  +1); hNotReadH.SetFillColor(18)
 			hNotReadS = R.TH1F('notReadS', '', HS_MAX, 1, HS_MAX/2+1); hNotReadS.SetFillColor(18)
 			# Set everything to 1 to start with (bin content 1 is bottom of frame)
 			for bin_ in range(1,HS_MAX+3): # it's okay to go over bin contents in histograms
-				hMissingH.SetBinContent(bin_, 1)
-				hMissingS.SetBinContent(bin_, 1)
 				#hNotReadH.SetBinContent(bin_, 1)
 				hNotReadS.SetBinContent(bin_, 1)
 			# Loop through the strips to determine which CFEBs were read out
-			ActiveCFEBs = [0] * (7 if CHAM == 1 else 5)
+			ActiveCFEBs = [0] * (CHAMBER.nstrips/16)
 			for strip in strips:
 				if strip.cham != CHAM: continue
 				ActiveCFEBs[int(strip.number - 1) / 16] = 1 # Lol I'm cool
@@ -112,10 +108,6 @@ for MEAS in MEASLIST:
 			#		#hNotReadH.SetBinContent(bin_, 7)
 			#		hNotReadS.SetBinContent(bin_, 7)
 			# Shade out the missing CFEB; bin content 7 is top of frame
-			MISSING = (97, 127) if CHAM == 1 else (129, 162)
-			for bin_ in range(MISSING[0], MISSING[1]+1):
-				hMissingH.SetBinContent(bin_, 7)
-				hMissingS.SetBinContent(bin_, 7)
 
 			# Wires histogram: 2D, wire group vs. layer, weighted by time bin
 			hWires = R.TH2F('wires', 'ANODE HIT TIMING;Wire Group Number;Layer'+('' if not DRAWZTITLE else ';Timing'), WIRE_MAX, 1, WIRE_MAX+1, 6, 1, 7)
@@ -208,36 +200,23 @@ for MEAS in MEASLIST:
 						gr[key]['fill'].Draw('P same')
 						gr[key]['empt'].Draw('P same')
 
-			# Scintillator region
-			if DOSCINT:
-				SL = (\
-						R.TLine(SCINT[CHAM]['HS'][0]/2, 1, SCINT[CHAM]['HS'][0]/2, 7),
-						R.TLine(SCINT[CHAM]['HS'][1]/2, 1, SCINT[CHAM]['HS'][1]/2, 7),
-						R.TLine(SCINT[CHAM]['HS'][0]  , 1, SCINT[CHAM]['HS'][0]  , 7),
-						R.TLine(SCINT[CHAM]['HS'][1]  , 1, SCINT[CHAM]['HS'][1]  , 7),
-						R.TLine(SCINT[CHAM]['WG'][0]  , 1, SCINT[CHAM]['WG'][0]  , 7),
-						R.TLine(SCINT[CHAM]['WG'][1]  , 1, SCINT[CHAM]['WG'][1]  , 7)
-					)
-				for line in SL:
-					line.SetLineColor(R.kRed)
-					line.SetLineWidth(2)
-				canvas.pads[0].cd(); SL[0].Draw(); SL[1].Draw()
-				canvas.pads[1].cd(); SL[2].Draw(); SL[3].Draw()
-				canvas.pads[2].cd(); SL[4].Draw(); SL[5].Draw()
-
 			##### CLEAN UP #####
 			for pad in canvas.pads:
 				pad.cd()
 				pad.RedrawAxis('')
 
 			# lumi text: m#MEAS, MEX/1, Event # EVENT
-			canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
+			#canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
+			canvas.drawLumiTest(CHAMBER.display() + ', Event #'+str(EVENT)
 
 			# save as: ED_MEAS_MEX1_EVENT.pdf
-			canvas.canvas.SaveAs(OUTDIR+'/ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
+			#canvas.canvas.SaveAs(OUTDIR+'/ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
+			canvas.canvas.SaveAs(OUTDIR+'/ED_'+CHAMBER.display('ME{S}{R}_')+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
-			print '\033[1mFILE \033[32m'+'ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
+			#print '\033[1mFILE \033[32m'+'ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
+			print '\033[1mFILE \033[32m'+'ED_'+CHAMBER.display('ME{S}{R}_')+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
 
-			del hWires, hComps, hADC, hMissingH, hMissingS, hNotReadS
+			#del hWires, hComps, hADC, hMissingH, hMissingS, hNotReadS
+			del hWires, hComps, hADC, hNotReadS
 
 	f.Close()
