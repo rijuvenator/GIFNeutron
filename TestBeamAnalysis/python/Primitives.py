@@ -1,3 +1,5 @@
+import Gif.TestBeamAnalysis.ChamberHandler as CH
+
 ##########
 # This file defines the Primitives classes for ease of access and idiomatic analysis code.
 # Seriously, life is much better once you have a list of objects that are actual objects.
@@ -39,7 +41,7 @@ class ETree():
 			self.rh_nStrips   = [ord(x) for x in list(t.rh_n_strips)]
 			self.rh_wireGroup = [ord(x) for x in list(t.rh_wireGrp)]
 			self.rh_energy    = list(t.rh_energy)
-			self.rh_time      = list(t.rh_time)
+			self.rh_time      = list(t.rh_tpeak)
 
 		if 'LCT' in DecList:
 			self.lct_cham         = list(t.lct_id)
@@ -79,8 +81,11 @@ class Comp():
 		self.comp    = t.comp_comp[i]
 		self.timeBin = t.comp_timeBin[i]
 
+		c = CH.Chamber(self.cham)
+		self.isStaggered = (not (c.station == 1 and c.ring == 1)) * (self.layer % 2 == 0)
+
 		self.halfStrip = 2*self.strip + self.comp
-		self.staggeredHalfStrip = self.halfStrip - (self.cham == 110) * (1.0 * (self.layer % 2 == 0))
+		self.staggeredHalfStrip = self.halfStrip - self.isStaggered * 1.0
 
 class Strip():
 	def __init__(self, t, i):
@@ -89,7 +94,10 @@ class Strip():
 		self.number = t.strip_number[i]
 		self.ADC    = t.strip_ADC[i]
 
-		self.staggeredNumber = self.number - (self.cham == 110) * (0.5 * (self.layer % 2 == 0))
+		c = CH.Chamber(self.cham)
+		self.isStaggered = (not (c.station == 1 and c.ring == 1)) * (self.layer % 2 == 0)
+
+		self.staggeredNumber = self.number - self.isStaggered * 0.5
 
 class Wire():
 	def __init__(self, t, i):
@@ -132,9 +140,12 @@ class Segment():
 		self.strip              = {layer + 1 : pos[3]                                      for layer, pos in enumerate(t.seg_pos[i])       }
 		self.wireGroup          = {layer + 1 : pos[4]                                      for layer, pos in enumerate(t.seg_pos[i])       }
 
-		self.halfStrip          = {layer : 2 * self.strip[layer]                                               for layer in self.strip.keys()}
-		self.staggeredStrip     = {layer : self.strip[layer]     - 0.5 * (self.cham == 110) * (layer % 2 == 0) for layer in self.strip.keys()}
-		self.staggeredHalfStrip = {layer : self.halfStrip[layer] - 1.0 * (self.cham == 110) * (layer % 2 == 0) for layer in self.strip.keys()}
+		c = CH.Chamber(self.cham)
+		self.isStaggered = (not (c.station == 1 and c.ring == 1))
+
+		self.halfStrip          = {layer : 2 * self.strip[layer]                                             for layer in self.strip.keys()}
+		self.staggeredStrip     = {layer : self.strip[layer]     - 0.5 * self.isStaggered * (layer % 2 == 0) for layer in self.strip.keys()}
+		self.staggeredHalfStrip = {layer : self.halfStrip[layer] - 1.0 * self.isStaggered * (layer % 2 == 0) for layer in self.strip.keys()}
 
 		self.slope = {'x' : t.seg_slope[i][0], 'y' : t.seg_slope[i][1], 'z' : t.seg_slope[i][2]}
 

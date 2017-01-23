@@ -26,7 +26,7 @@ args = parser.parse_args()
 
 ##### PARAMETERS #####
 # Measurement List, Chamber IDs (1, 110), Event List (1 indexed)
-MEASLIST  = [args.FILE]
+FILES     = [args.FILE]
 CHAMS     = [int(args.CHAM)]
 EVENTFILE = open(args.LIST)
 ENTRIES   = []
@@ -158,8 +158,10 @@ for FILE in FILES:
 				pad.RedrawAxis()
 
 			# lumi text: m#MEAS, MEX/1, Event # EVENT
+			RUN = t.Event_RunNumber
+			LS  = t.Event_LumiSection
 			#canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
-			canvas.drawLumiText(CHAMBER.display() + ', Event #'+str(EVENT)
+			canvas.drawLumiText(CHAMBER.display() + ', RES =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
 
 			# save as: RH_MEAS_MEX1_EVENT.pdf
 			#canvas.canvas.SaveAs(OUTDIR+'/RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')

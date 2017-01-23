@@ -131,7 +131,7 @@ for FILE in FILES:
 			canvas.pads[1].cd()
 			hComps.Draw('colz') # to get the axes and titles
 			#hNotReadH.Draw('B same')
-			hMissingH.Draw('B same')
+			#hMissingH.Draw('B same')
 			hComps.Draw('colz same')
 
 			# CLCT Pattern Boxes: staggered half strip vs. layer
@@ -163,7 +163,7 @@ for FILE in FILES:
 			canvas.pads[0].cd()
 			hADC.Draw('colz') # to get the axes and titles
 			hNotReadS.Draw('B same')
-			hMissingS.Draw('B same')
+			#hMissingS.Draw('B same')
 			hADC.Draw('colz same')
 
 			# Segments
@@ -206,15 +206,17 @@ for FILE in FILES:
 				pad.RedrawAxis('')
 
 			# lumi text: m#MEAS, MEX/1, Event # EVENT
+			RUN = t.Event_RunNumber
+			LS  = t.Event_LumiSection
 			#canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
-			canvas.drawLumiTest(CHAMBER.display() + ', Event #'+str(EVENT)
+			canvas.drawLumiText(CHAMBER.display('ME{E}{S}/{R}') + ', RES =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
 
 			# save as: ED_MEAS_MEX1_EVENT.pdf
 			#canvas.canvas.SaveAs(OUTDIR+'/ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
-			canvas.canvas.SaveAs(OUTDIR+'/ED_'+CHAMBER.display('ME{S}{R}_')+str(EVENT)+'.pdf')
+			canvas.canvas.SaveAs(OUTDIR+'/ED_'+CHAMBER.display('ME{E}{S}{R}_')+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
 			#print '\033[1mFILE \033[32m'+'ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
-			print '\033[1mFILE \033[32m'+'ED_'+CHAMBER.display('ME{S}{R}_')+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
+			print '\033[1mFILE \033[32m'+'ED_'+CHAMBER.display('ME{E}{S}{R}_')+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
 
 			#del hWires, hComps, hADC, hMissingH, hMissingS, hNotReadS
 			del hWires, hComps, hADC, hNotReadS
