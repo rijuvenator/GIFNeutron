@@ -102,7 +102,7 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	edm::Handle<reco::VertexCollection> vertices;
 	iEvent.getByToken(vtx_token, vertices);
 	if (vertices->empty()) return;
-	//const reco::Vertex &PV = vertices->front();
+	const reco::Vertex &PV = vertices->front();
 	
 	// Get Met
 	edm::Handle<reco::METCollection> mets;
