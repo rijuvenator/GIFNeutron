@@ -58,7 +58,7 @@ class MakeSimpleGIFTree : public edm::EDAnalyzer {
 };
 
 MakeSimpleGIFTree::MakeSimpleGIFTree(const edm::ParameterSet& iConfig) :
-    tree("GIFDigiTree","Tree holding CSCDigis","test.root")
+    tree("GIFDigiTree","Tree holding CSCDigis"/*,"test.root"*/)
   , eventInfo(tree)
   , recHitInfo(tree)
   , recStripInfo(tree)
@@ -98,13 +98,11 @@ MakeSimpleGIFTree::~MakeSimpleGIFTree() {tree.write();}
 void
 MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-	std::cout << "Inside an event!" << std::endl;
 	// Check if a primary vertex exists
 	edm::Handle<reco::VertexCollection> vertices;
 	iEvent.getByToken(vtx_token, vertices);
 	if (vertices->empty()) return;
-	std::cout << "Found a PV" << std::endl;
-	const reco::Vertex &PV = vertices->front();
+	//const reco::Vertex &PV = vertices->front();
 	
 	// Get Met
 	edm::Handle<reco::METCollection> mets;
@@ -175,10 +173,18 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 		if (found) break;
 	}
 
+	/*
+	std::vector<reco::Muon> chosenMuons;
+	int itermu = 0;
+	for (auto &muon : *muons) {
+		if (itermu>1) break;
+		chosenMuons.push_back(muon);
+		itermu++;
+	}
+	*/
+
 	// Skip event if no dimuon is found with selection criteria
-	std::cout << "Before the found return" << std::endl;
 	if (!found) return;
-	std::cout << cMuon1.pt() << " " << cMuon2.pt() << std::endl;
 
 	eventInfo.fill(iEvent);
 	p5Info.fill(0., nJets);
@@ -196,6 +202,7 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	iEvent.getByToken(sd_token,cscStripDigi);
 	recStripInfo.fill(*cscStripDigi,muonInfo.muon_chamlist);
 
+	// Printout if strip digi container is empty
 	//if(cscStripDigi->begin() == cscStripDigi->end())
 	//cout << "Error!"<<endl;
 
