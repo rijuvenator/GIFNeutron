@@ -70,6 +70,12 @@ for FILE in FILES:
 			WIRE_MAX = CHAMBER.nwires
 			HS_MAX   = CHAMBER.nstrips*2
 
+			# Ndivisions codes
+			ND = {\
+				'st' : { 64 : 520,  80 : 520, 112 : 1020            },
+				'wg' : { 48 : 520,  64 : 520,  96 :  520, 112 : 1020}
+			}
+
 			# Instantiate canvas
 			canvas = ED.Canvas('rechits' if not ORIGFORMAT else 'origrechits')
 
@@ -86,7 +92,7 @@ for FILE in FILES:
 			canvas.pads[0].cd()
 			gRHS.Draw('AP')
 			gRHS.SetMarkerColor(R.kBlack)
-			gRHS.GetXaxis().SetNdivisions(520 if CHAM==1 else 1020)
+			gRHS.GetXaxis().SetNdivisions(ND['st'][HS_MAX/2])
 			gRHS.SetTitle(('' if not TITLESON else 'RECHIT STRIPS')+';Strip Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'))
 			gRHS.SetMinimum(1.)
 			gRHS.SetMaximum(7.)
@@ -98,7 +104,7 @@ for FILE in FILES:
 			canvas.pads[2 if not ORIGFORMAT else 1].cd()
 			gRHW.Draw('AP')
 			gRHW.SetMarkerColor(R.kBlack)
-			gRHW.GetXaxis().SetNdivisions(520 if CHAM==1 else 1020)
+			gRHW.GetXaxis().SetNdivisions(NS['wg'][WIRE_MAX])
 			gRHW.SetTitle(('' if not TITLESON else 'RECHIT WIRE GROUPS')+';Wire Group Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'))
 			gRHW.SetMinimum(1.)
 			gRHW.SetMaximum(7.)
@@ -157,17 +163,14 @@ for FILE in FILES:
 				pad.cd()
 				pad.RedrawAxis()
 
-			# lumi text: m#MEAS, MEX/1, Event # EVENT
+			# lumi text
 			RUN = t.Event_RunNumber
 			LS  = t.Event_LumiSection
-			#canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
-			canvas.drawLumiText(CHAMBER.display() + ', RES =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
+			canvas.drawLumiText(CHAMBER.display('ME{E}{S}/{R}/{C}') + ', RES =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
 
-			# save as: RH_MEAS_MEX1_EVENT.pdf
-			#canvas.canvas.SaveAs(OUTDIR+'/RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
-			canvas.canvas.SaveAs(OUTDIR+'/RH_'+CHAMBER.display('ME{S}{R}_')+str(EVENT)+'.pdf')
+			# save as
+			canvas.canvas.SaveAs(OUTDIR+'/RH_'+CHAMBER.display('ME{E}{S}{R}{C}_')+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
-			#print '\033[1mFILE \033[32m'+'RH_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
-			print '\033[1mFILE \033[32m'+'RH_'+CHAMBER.display('ME{S}{R}_')+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
+			print '\033[1mFILE \033[32m'+'RH_'+CHAMBER.display('ME{E}{S}{R}{C}_')+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
 
 	f.Close()

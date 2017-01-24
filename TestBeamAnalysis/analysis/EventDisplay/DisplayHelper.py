@@ -83,6 +83,7 @@ def setStyle(mode):
 	style.SetPadTickX(1)                     # opposite x ticks
 	style.SetPadTickY(1)                     # opposite y ticks
 	style.SetNdivisions(10, "Y")             # nDivisions (primary + 100*secondary + 10000*tertiary)
+	style.SetTickLength(0, "Y")              # no Layer ticks
 
 	# palette
 	style.SetPalette(55)

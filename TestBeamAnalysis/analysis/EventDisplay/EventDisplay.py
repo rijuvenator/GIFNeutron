@@ -73,6 +73,13 @@ for FILE in FILES:
 			WIRE_MAX = CHAMBER.nwires
 			HS_MAX   = CHAMBER.nstrips*2
 
+			# Ndivisions codes
+			ND = {\
+				'st' : { 64 : 520,  80 : 520, 112 : 1020            },
+				'hs' : {128 : 520, 160 : 520, 224 : 1020            },
+				'wg' : { 48 : 510,  64 : 520,  96 :  520, 112 : 1020}
+			}
+
 			##### PRIMITIVES DISPLAY #####
 
 			# Instantiate canvas
@@ -90,29 +97,17 @@ for FILE in FILES:
 			for strip in strips:
 				if strip.cham != CHAM: continue
 				ActiveCFEBs[int(strip.number - 1) / 16] = 1 # Lol I'm cool
-				#if strip.number >=  1 and strip.number <=  16: ActiveCFEBs[0] = 1
-				#if strip.number >= 17 and strip.number <=  32: ActiveCFEBs[1] = 1
-				#if strip.number >= 33 and strip.number <=  48: ActiveCFEBs[2] = 1
-				#if strip.number >= 49 and strip.number <=  64: ActiveCFEBs[3] = 1
-				#if strip.number >= 65 and strip.number <=  80: ActiveCFEBs[4] = 1
-				#if strip.number >= 81 and strip.number <=  96: ActiveCFEBs[5] = 1
-				#if strip.number >= 97 and strip.number <= 112: ActiveCFEBs[6] = 1
 			# Shade out the CFEBs that weren't read out, and also the last two bins; bin content 7 is top of frame
 			for cfeb, readOut in enumerate(ActiveCFEBs):
 				if not readOut:
 					for bin_ in range(cfeb * 32 + 1, (cfeb + 1) * 32 + 1):
 						#hNotReadH.SetBinContent(bin_, 7)
 						hNotReadS.SetBinContent(bin_, 7)
-			#if CHAM == 1 and ActiveCFEBs[6] == 0:
-			#	for bin_ in range(HS_MAX+1, HS_MAX+3):
-			#		#hNotReadH.SetBinContent(bin_, 7)
-			#		hNotReadS.SetBinContent(bin_, 7)
-			# Shade out the missing CFEB; bin content 7 is top of frame
 
 			# Wires histogram: 2D, wire group vs. layer, weighted by time bin
 			hWires = R.TH2F('wires', 'ANODE HIT TIMING;Wire Group Number;Layer'+('' if not DRAWZTITLE else ';Timing'), WIRE_MAX, 1, WIRE_MAX+1, 6, 1, 7)
 			hWires.GetZaxis().SetRangeUser(0,16)
-			hWires.GetXaxis().SetNdivisions(520 if CHAM==1 else 1020)
+			hWires.GetXaxis().SetNdivisions(ND['wg'][WIRE_MAX])
 			for wire in wires:
 				if wire.cham != CHAM: continue
 				# Don't fill a histogram with 0 weight!
@@ -123,7 +118,7 @@ for FILE in FILES:
 			# Comparators histogram: 2D, staggered half strip vs. layer, weighted by time bin
 			hComps = R.TH2F('comps', 'COMPARATOR HIT TIMING;Half Strip Number;Layer'+('' if not DRAWZTITLE else ';Timing'), HS_MAX, 1, HS_MAX+1, 6, 1, 7)
 			hComps.GetZaxis().SetRangeUser(0,16)
-			hComps.GetXaxis().SetNdivisions(2020 if CHAM==1 else 1020)
+			hComps.GetXaxis().SetNdivisions(ND['hs'][HS_MAX])
 			for comp in comps:
 				if comp.cham != CHAM: continue
 				# Don't fill a histogram with 0 weight!
@@ -152,7 +147,7 @@ for FILE in FILES:
 			# ADC Count histogram: 2D, staggered strip vs. layer, weighted by ADC count (max ADC[2:] minus pedestal: average ADC[0:2])
 			hADC = R.TH2F('adc', 'CATHODE STRIP ADC COUNT;Strip Number;Layer'+('' if not DRAWZTITLE else ';ADC Count'), HS_MAX, 1, HS_MAX/2+1, 6, 1, 7)
 			hADC.GetZaxis().SetRangeUser(0,500)
-			hADC.GetXaxis().SetNdivisions(1020 if CHAM==1 else 520)
+			hADC.GetXaxis().SetNdivisions(ND['st'][HS_MAX/2])
 			for strip in strips:
 				if strip.cham != CHAM: continue
 				PEDESTAL = 0.5 * (strip.ADC[0] + strip.ADC[1])
@@ -205,20 +200,16 @@ for FILE in FILES:
 				pad.cd()
 				pad.RedrawAxis('')
 
-			# lumi text: m#MEAS, MEX/1, Event # EVENT
+			# lumi text
 			RUN = t.Event_RunNumber
 			LS  = t.Event_LumiSection
-			#canvas.drawLumiText('m#'+str(MEAS)+', ME'+('1' if CHAM == 1 else '2')+'/1, Event #'+str(EVENT))
-			canvas.drawLumiText(CHAMBER.display('ME{E}{S}/{R}') + ', RES =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
+			canvas.drawLumiText(CHAMBER.display('ME{E}{S}/{R}/{C}') + ', RES =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
 
-			# save as: ED_MEAS_MEX1_EVENT.pdf
-			#canvas.canvas.SaveAs(OUTDIR+'/ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf')
-			canvas.canvas.SaveAs(OUTDIR+'/ED_'+CHAMBER.display('ME{E}{S}{R}_')+str(EVENT)+'.pdf')
+			# save as
+			canvas.canvas.SaveAs(OUTDIR+'/ED_'+CHAMBER.display('ME{E}{S}{R}{C}_')+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
-			#print '\033[1mFILE \033[32m'+'ED_'+str(MEAS)+'_ME'+('1' if CHAM == 1 else '2')+'1_'+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
-			print '\033[1mFILE \033[32m'+'ED_'+CHAMBER.display('ME{E}{S}{R}_')+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
+			print '\033[1mFILE \033[32m'+'ED_'+CHAMBER.display('ME{E}{S}{R}{C}_')+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
 
-			#del hWires, hComps, hADC, hMissingH, hMissingS, hNotReadS
 			del hWires, hComps, hADC, hNotReadS
 
 	f.Close()

@@ -40,12 +40,12 @@ class Chamber():
 				self.ring    = chambers[limits][1]
 				self.nwires  = chambers[limits][2]
 				self.nstrips = chambers[limits][3]
-				self.chamber = serial - (chambers[limits][0] - 1)
+				self.chamber = serial - (limits[0] - 1)
 				break
 
 	def display(self, fstring='ME{S}/{R}'):
-		fstring = fstring.replace('{E}','{endcap:1s}' )
-		fstring = fstring.replace('{S}','{station:1d}')
-		fstring = fstring.replace('{R}','{ring:1d}'   )
-		fstring = fstring.replace('{C}','{chamber}'   )
+		fstring = fstring.replace('{E}','{endcap:1s}'  )
+		fstring = fstring.replace('{S}','{station:1d}' )
+		fstring = fstring.replace('{R}','{ring:1d}'    )
+		fstring = fstring.replace('{C}','{chamber:02d}')
 		return fstring.format(endcap=('+' if self.endcap == 1 else '-'), station=self.station, ring=self.ring, chamber=self.chamber)
