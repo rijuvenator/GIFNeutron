@@ -1,11 +1,13 @@
 import FWCore.ParameterSet.Config as cms
 from Gif.TestBeamAnalysis.GIFTestBeamAnalysis_cfg import process
+import FWCore.PythonUtilities.LumiList as LumiList
 
 process.source = cms.Source('PoolSource', 
     fileNames = cms.untracked.vstring( 
         'file:doesnotexist.root',  
     ) 
 )
+
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 
 process.options = cms.untracked.PSet(

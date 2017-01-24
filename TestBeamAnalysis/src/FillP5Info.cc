@@ -32,15 +32,16 @@ void FillP5MuonInfo::fill(const std::vector<reco::Muon> &muons)
 	}
 }
 
-void FillP5ZInfo::fill(const std::vector<reco::Muon> &muons)
+//void FillP5ZInfo::fill(const std::vector<reco::Muon> &muons)
+void FillP5ZInfo::fill(const TLorentzVector &Z)
 {
 	reset();
-	ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double>> Z = muons[0].p4() + muons[1].p4();
-	Z_pT       = Z.pt()  ;
-	Z_rapidity = Z.y()   ;
-	Z_eta      = Z.eta() ;
-	Z_phi      = Z.phi() ;
-	Z_pZ       = Z.pz()  ;
-	Z_mass     = Z.mass();
+	//ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double>> Z = muons[0].p4() + muons[1].p4();
+	Z_pT       = Z.Pt()  ;
+	Z_rapidity = Z.Rapidity()   ;
+	Z_eta      = Z.Eta() ;
+	Z_phi      = Z.Phi() ;
+	Z_pZ       = Z.Pz()  ;
+	Z_mass     = Z.M();
 }
 

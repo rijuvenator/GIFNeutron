@@ -64,15 +64,16 @@ class FillP5ZInfo : public FillInfo
 	public:
 		FillP5ZInfo(TreeContainer &tree) : FillInfo(tree)
 		{
-			book("Z_pT"      , Z_pT      , "F");
-			book("Z_rapidity", Z_rapidity, "F");
-			book("Z_eta"     , Z_eta     , "F");
-			book("Z_phi"     , Z_phi     , "F");
-			book("Z_pZ"      , Z_pZ      , "F");
-			book("Z_mass"    , Z_mass    , "F");
+			book("Z_pT"      , Z_pT      , "D");
+			book("Z_rapidity", Z_rapidity, "D");
+			book("Z_eta"     , Z_eta     , "D");
+			book("Z_phi"     , Z_phi     , "D");
+			book("Z_pZ"      , Z_pZ      , "D");
+			book("Z_mass"    , Z_mass    , "D");
 		}
 		virtual ~FillP5ZInfo() {};
-		void fill(const std::vector<reco::Muon> &muons);
+		void fill(const TLorentzVector &Z);
+		//void fill(const std::vector<reco::Muon> &muons);
 	private:
 		double Z_pT;
 		double Z_rapidity;

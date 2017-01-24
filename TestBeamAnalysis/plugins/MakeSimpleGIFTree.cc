@@ -190,9 +190,13 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	p5Info.fill(0., nJets);
 
 	std::vector<reco::Muon> chosenMuons = {cMuon1,cMuon2};
+	TLorentzVector mu1(cMuon1.p4().Px(), cMuon1.p4().Py(), cMuon1.p4().Pz(), cMuon1.p4().E());
+	TLorentzVector mu2(cMuon2.p4().Px(), cMuon2.p4().Py(), cMuon2.p4().Pz(), cMuon2.p4().E());
+	TLorentzVector Z = mu1 + mu2;
+	std::cout << Z.M() << std::endl;
 	// do muonInfo first
 	muonInfo.fill(chosenMuons);
-	zInfo.fill(chosenMuons);
+	zInfo.fill(Z);
 
 	edm::Handle<CSCRecHit2DCollection> recHits;
 	iEvent.getByToken( rh_token, recHits );
