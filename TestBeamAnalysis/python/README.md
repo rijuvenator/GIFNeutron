@@ -10,7 +10,7 @@ The files are well documented, but I'll summarize here.
   * The basic usage consists of:
     * instantiating `Plot` objects with plots and their metadata
     * instantiating a `Canvas` object with its metadata
-    * instantiating the legend (even if no legend will be drawn)
+    * instantiating the legend
     * adding the plots to the `Canvas` object
     * finishing the `Canvas`
     * drawing it or saving the `Canvas.c` to a file
