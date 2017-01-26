@@ -1,3 +1,4 @@
+import os
 import numpy as n
 import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
@@ -6,12 +7,30 @@ import Gif.TestBeamAnalysis.Auxiliary as Aux
 import Gif.TestBeamAnalysis.ChamberHandler as CH
 import Gif.TestBeamAnalysis.MegaStruct as MS
 
-R.gROOT.SetBatch(True)
+GFN = 'output_gif.root'
+PFN = 'output_p5.root'
+
 FG = None
 FP = None
-FG = 'output_gif.root'
-FP = 'output_p5.root' 
+#FG = GFN
+#FP = PFN
 
+# make sure you're not accidentally overwriting anything
+if (os.path.isfile(GFN) and FG is None) or (os.path.isfile(PFN) and FP is None):
+	answer = raw_input('OK to overwrite existing files? [y/n] ')
+	if answer == 'y':
+		print 'Overwriting files...'
+	else:
+		print 'Using existing files...'
+		FG = GFN
+		FP = PFN
+
+# make sure the file exists
+if (not os.path.isfile(GFN) and FG is not None) or (not os.path.isfile(PFN) and FP is not None):
+	print 'Input files do not exist; exiting now...'
+	exit()
+
+# Pattern class
 class Pattern():
 	def __init__(self, k):
 		self.khs = k
@@ -27,30 +46,44 @@ class Pattern():
 			10 : {6:[k-1, k  , k+1], 5:[k-1, k  , k+1], 4:[k          ], 3:[k            ], 2:[k            ], 1:[k-1, k  , k+1]}
 		}
 
+# runs before file loop; open a file, delcare a hist dictionary
+def setup(self, PARAMS):
+	FN = PARAMS[0]
+	self.F_OUT = R.TFile(FN,'RECREATE')
+	self.HISTS = {}
+
 ringlist = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 
+# once per file
 def analyze(self, t, PARAMS):
-	self.HISTS = {}
-	for ring in ringlist:
-		self.HISTS[ring] = R.TH1F('h'+ring, '', 11, 0., 11.)
-		self.HISTS[ring].SetDirectory(0)
+	isGIF = PARAMS[1]
 
-	F_OUT = R.TFile(PARAMS,'RECREATE')
-	F_OUT.cd()
+	if isGIF:
+		index = self.MEAS
+	else:
+		index = self.RUN
+	
+	self.HISTS[index] = {}
+	self.F_OUT.cd()
+	for ring in ringlist:
+		self.HISTS[index][ring] = R.TH1F('h'+str(index)+ring, '', 11, 0., 11.)
+		self.HISTS[index][ring].SetDirectory(0)
 
 	for idx, entry in enumerate(t):
 		if list(t.lct_id) == [] or list(t.comp_id) == []: continue
-		E = Primitives.ETree(t, DecList=['LCT','COMP','SEGMENT'])
+		E = Primitives.ETree(t, DecList=['LCT','COMP','WIRE'])
 		lcts  = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham ))]
 		comps = [Primitives.Comp   (E, i) for i in range(len(E.comp_cham))]
-		segs  = [Primitives.Segment(E, i) for i in range(len(E.seg_cham ))]
+		wires = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham))]
 
 	#	for comp in comps:
 	#		if comp.timeBin == 0 or comp.timeBin >= 5: continue
 	#		cham = CH.Chamber(comp.cham)
-	#		self.HISTS[cham.display('{S}{R}')].Fill(comp.timeBin)
-
+	#		self.HISTS[index][cham.display('{S}{R}')].Fill(comp.timeBin)
+		
+		twolcts = list(set([i for i in E.lct_cham if E.lct_cham.count(i)>1]))
 		for lct in lcts:
+			if lct.cham in twolcts: continue
 			cham = CH.Chamber(lct.cham)
 			nHS = cham.nstrips*2
 			nWG = cham.nwires
@@ -61,7 +94,7 @@ def analyze(self, t, PARAMS):
 				2 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
 				3 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : 0.          , 'hs1' : nHS*0.25},
 			}
-			CompAreas = \
+			OppAreas = \
 			{
 				0 : {'wg0' : (1-0.50)*nWG, 'wg1' : nWG     , 'hs0' : (1-0.50)*nHS, 'hs1' : nHS     },
 				1 : {'wg0' : (1-0.50)*nWG, 'wg1' : nWG     , 'hs0' : 0.          , 'hs1' : nHS*0.50},
@@ -74,46 +107,76 @@ def analyze(self, t, PARAMS):
 					for comp in comps:
 						if comp.cham != lct.cham: continue
 						#if comp.timeBin == 0 or comp.timeBin >= 5: continue
-						if comp.staggeredHalfStrip >= LCTAreas[key]['hs0'] and comp.staggeredHalfStrip <= LCTAreas[key]['hs1']:
-							#print '{:4d} {:s} {} {:2d}'.format(idx, cham.display('ME{E}{S}{R}{C}'), t.Event_EventNumber, comp.timeBin)
-							self.HISTS[cham.display('{S}{R}')].Fill(comp.timeBin)
+						if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
+							#self.HISTS[index][cham.display('{S}{R}')].Fill(comp.timeBin)
+							for wire in wires:
+								if wire.cham != comp.cham: continue
+								if wire.layer != comp.layer: continue
+								if abs(wire.timeBin - comp.timeBin) > 1: continue
+								#if wire.number >= OppAreas[key]['wg0'] and wire.number <= OppAreas[key]['wg1']:
+								if True:
+									#if not isGIF: print '{:4d} {:s} {} {:2d}'.format(idx, cham.display('ME{E}{S}{R}{C}'), t.Event_EventNumber, comp.timeBin)
+									if not isGIF: print '{:4d} {:s} {:3d} {} {:2d}'.format(idx, cham.display('ME{E}{S}{R}{C}'), cham.id, t.Event_EventNumber, comp.timeBin)
+									self.HISTS[index][cham.display('{S}{R}')].Fill(comp.timeBin)
+									break
 
-	for key in self.HISTS:
-		self.HISTS[key].Write()
+	self.F_OUT.cd()
+	for key in self.HISTS[index]:
+		self.HISTS[index][key].Write()
+	print index, 'Done'
 
+# if file is already made
 def load(self, PARAMS):
+	isGIF = PARAMS[1]
 	f = R.TFile.Open(self.F_DATAFILE)
 	self.HISTS = {}
-	for ring in ringlist:
-		self.HISTS[ring] = f.Get('h'+ring)
-		self.HISTS[ring].SetDirectory(0)
+	if isGIF:
+		for ATT in self.ATTLIST:
+			for MEAS in self.getMeaslist(ATT):
+				self.HISTS[MEAS] = {}
+				for ring in ringlist:
+					self.HISTS[MEAS][ring] = f.Get('h'+str(MEAS)+ring)
+					self.HISTS[MEAS][ring].SetDirectory(0)
+	else:
+		for RUN in self.RUNLIST:
+			self.HISTS[RUN] = {}
+			for ring in ringlist:
+				self.HISTS[RUN][ring] = f.Get('h'+str(RUN)+ring)
+				self.HISTS[RUN][ring].SetDirectory(0)
 
+# override class methods
+R.gROOT.SetBatch(True)
 MS.GIFAnalyzer.analyze = analyze
 MS. P5Analyzer.analyze = analyze
 MS.GIFAnalyzer.load = load
 MS. P5Analyzer.load = load
+MS.GIFAnalyzer.setup = setup
+MS. P5Analyzer.setup = setup
 
-gdata = MS.GIFAnalyzer(ATTLIST=[100.], PARAMS='output_gif.root', F_DATAFILE=FG)
-pdata = MS.P5Analyzer (                PARAMS='output_p5.root' , F_DATAFILE=FP)
+# run analysis!
+pdata = MS.P5Analyzer (PARAMS=[PFN, False], F_DATAFILE=FP, RUNLIST=[282663])
+gdata = MS.GIFAnalyzer(PARAMS=[GFN, True ], F_DATAFILE=FG                  )
 
-def makePlot(h, key, m):
-	h.Scale(1./h.Integral() if h.Integral() != 0 else 1.)
+##### MAKEPLOT FUNCTIONS #####
+def makePlot(h, id_, ring, extra):
+	if h.Integral() == 0: return
+	#h.Scale(1./h.Integral())
 	plot = Plotter.Plot(h, option='hist')
-	canvas = Plotter.Canvas(lumi='ME'+key, logy=True)
+	canvas = Plotter.Canvas(lumi='ME'+key+'_'+extra, logy=False)
 	canvas.makeLegend()
 	canvas.addMainPlot(plot, addToLegend=False)
 	canvas.makeTransparent()
-	canvas.firstPlot.plot.SetMaximum(1.05)
+	#canvas.firstPlot.plot.SetMaximum(1.05)
 	#canvas.firstPlot.plot.SetMinimum(0)
-	canvas.firstPlot.plot.SetMinimum(0.00001)
+	#canvas.firstPlot.plot.SetMinimum(0.00001)
 	canvas.finishCanvas()
-	canvas.c.SaveAs('h'+key+'.pdf')
+	canvas.c.SaveAs('pdfs/BGCompTime'+'_'+ring+'_'+extra+'_'+id_+'.pdf')
 
-m = 0.
-for key in ringlist:
-	m = max(m, pdata.HISTS[key].GetMaximum())
-	m = max(m, gdata.HISTS[key].GetMaximum())
+for RUN in [282663]: #pdata.RUNLIST:
+	for key in ringlist:
+		makePlot(pdata.HISTS[RUN][key], str(RUN), key, 'P5')
 
-for key in ringlist:
-	makePlot(pdata.HISTS[key], key+'_P5' , m)
-	makePlot(gdata.HISTS[key], key+'_GIF', m)
+for ATT in gdata.ATTLIST:
+	for MEAS in gdata.getMeaslist(ATT):
+		for key in ringlist:
+			makePlot(gdata.HISTS[MEAS][key], str(MEAS), key, 'GIF')

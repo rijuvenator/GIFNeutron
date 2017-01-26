@@ -70,20 +70,31 @@ class GIFAnalyzer(GIFMegaStruct):
 		GIFMegaStruct.__init__(self)
 		self.F_DATAFILE = F_DATAFILE
 		self.PARAMS = PARAMS
-		self.fillData(ATTLIST=ATTLIST, FFLIST=FFLIST)
+		if ATTLIST is None:
+			self.ATTLIST = list(reversed(sorted(self.MEASDATA.keys())))
+		else:
+			self.ATTLIST = ATTLIST
+		self.FFLIST = FFLIST
+		self.fillData()
+
+	# get measlist from ATT and FFLIST
+	def getMeaslist(self, ATT):
+		return [meas for i, meas in enumerate(self.MEASDATA[ATT]) if i in self.FFLIST]
 
 	# the skeleton around the analyze function which fills a data dictionary
-	def fillData(self, ATTLIST, FFLIST):
-		if ATTLIST is None:
-			ATTLIST = sorted(self.MEASDATA.keys())
+	def fillData(self):
 		# fill a data dictionary as desired
 		self.VALDATA = { 1 : {}, 110: {} }
 		if self.F_DATAFILE is None:
-			for ATT in ATTLIST:
-				for MEAS in [meas for i, meas in enumerate(self.MEASDATA[ATT]) if i in FFLIST]:
+			self.setup(self.PARAMS)
+			for ATT in self.ATTLIST:
+				self.ATT = ATT
+				for MEAS in self.getMeaslist(ATT):
+					self.MEAS = MEAS
 					f = R.TFile.Open(GITLAB_PATH+'trees/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					self.analyze(t, self.PARAMS)
+			self.cleanup(self.PARAMS)
 		# for obtaining data dictionary from a file
 		else:
 			self.load(self.PARAMS)
@@ -98,18 +109,27 @@ class GIFAnalyzer(GIFMegaStruct):
 
 	# analysis function -- gets called when F_DATAFILE is None
 	def analyze(self, t, PARAMS):
-		for entry in t:
-			E = Primitives.ETree(t)
+		pass
+		#for entry in t:
+		#	E = Primitives.ETree(t)
 	
 	# load data from file -- gets called when F_DATAFILE is not None
 	def load(self, PARAMS):
+		pass
+
+	# setup before opening any files
+	def setup(self, PARAMS):
+		pass
+
+	# cleanup after analysis is done
+	def cleanup(self, PARAMS):
 		pass
 
 ##### P5 MEGASTRUCT BASE CLASS #####
 class P5MegaStruct():
 	def __init__(self):
 		self.fillRunLumi()
-		self.lumiFunc = lambda start, end: 0.5 * (start + end)
+		self.lumiFunc = lambda start, end: max(start, end)
 	
 	# general fill run and lumi data function
 	def fillRunLumi(self):
@@ -117,7 +137,7 @@ class P5MegaStruct():
 		self.RUNLUMIDATA = {}
 		for line in f:
 			cols = line.strip('\n').split()
-			self.RUNLUMIDATA[int(cols[0])] = (float(cols[1]), float(cols[2]))
+			self.RUNLUMIDATA[int(cols[1])] = (float(cols[2]), float(cols[3]))
 		f.close()
 
 	# get a list of runs, sorted by starting luminosity
@@ -140,19 +160,24 @@ class P5Analyzer(P5MegaStruct):
 		P5MegaStruct.__init__(self)
 		self.F_DATAFILE = F_DATAFILE
 		self.PARAMS = PARAMS
-		self.fillData(RUNLIST=RUNLIST)
+		if RUNLIST is None:
+			self.RUNLIST = self.RUNLUMIDATA.keys()
+		else:
+			self.RUNLIST = RUNLIST
+		self.fillData()
 	
 	# the skeleton around the analyze function which fills a data dictionary
-	def fillData(self, RUNLIST):
-		if RUNLIST is None:
-			RUNLIST = self.RUNLUMIDATA.keys()
+	def fillData(self):
 		self.VALDATA = {}
 		if self.F_DATAFILE is None:
-			for RUN in RUNLIST:
+			self.setup(self.PARAMS)
+			for RUN in self.RUNLIST:
+				self.RUN = RUN
 				#f = R.TFile.Open(GITLAB_PATH+'trees/ana_'+str(RUN)+'.root')
-				f = R.TFile.Open(GITLAB_PATH+'analysis/test.root')
+				f = R.TFile.Open('/afs/cern.ch/user/c/cschnaib/public/ForRiju/test_282663_0.root')
 				t = f.Get('GIFTree/GIFDigiTree')
 				self.analyze(t, self.PARAMS)
+			self.cleanup(self.PARAMS)
 		# for obtaining data dictionary from a file
 		else:
 			self.load(self.PARAMS)
@@ -167,10 +192,19 @@ class P5Analyzer(P5MegaStruct):
 
 	# analysis function
 	def analyze(self, t, PARAMS):
-		for entry in t:
-			E = Primitives.ETree(t)
+		pass
+		#for entry in t:
+		#	E = Primitives.ETree(t)
 	
 	# load data from file
 	def load(self, PARAMS):
+		pass
+
+	# setup before opening any files
+	def setup(self, PARAMS):
+		pass
+
+	# cleanup after analysis is done
+	def cleanup(self, PARAMS):
 		pass
 
