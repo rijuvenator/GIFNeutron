@@ -9,18 +9,41 @@ class FillP5EventInfo : public FillInfo
 		FillP5EventInfo(TreeContainer &tree) : FillInfo(tree)
 		{
 			book("sT", sT, "F");
-			book("nJets", nJets, "I");
+			book("nJets0", nJets0, "I");
+			book("nJets10", nJets10, "I");
+			book("nJets20", nJets20, "I");
+			book("Ht0", Ht0, "F");
+			book("Ht10", Ht10, "F");
+			book("Ht20", Ht20, "F");
+			//book("met_pT", met_pT, "F");
+			//book("met_phi", met_phi, "F");
 		}
 		virtual ~FillP5EventInfo() {};
-		void fill(float sT_, int nJets_);
+		void fill(float sT_, int nJets0_, int nJets10_, int nJets20_, float Ht0_, float Ht10_, float Ht20_);
+		//void fill(float sT_, int nJets0_, int nJets10_, int nJets20_, int Ht0_, int Ht10_, int Ht20_, const reco::PFMET met);
 	private:
 		float sT;
-		int nJets;
+		int nJets0;
+		int nJets10;
+		int nJets20;
+		float Ht0;
+		float Ht10;
+		float Ht20;
+		//float met_pT;
+		//float met_phi;
+
 
 		virtual void reset()
 		{
 			sT = -999.;
-			nJets = -999.;
+			nJets0 = -999.;
+			nJets10 = -999.;
+			nJets20 = -999.;
+			Ht0 = -999.;
+			Ht10 = -999.;
+			Ht20 = -999.;
+			//met_pT = -999.;
+			//met_phi = -999.;
 		}
 };
 

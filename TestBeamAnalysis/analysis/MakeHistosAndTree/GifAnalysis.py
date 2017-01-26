@@ -22,6 +22,18 @@ process.p = cms.Path(process.muonCSCDigis * process.csc2DRecHits * process.cscSe
 process.CSCGeometryESModule.useGangedStripsInME1a = False
 process.idealForDigiCSCGeometry.useGangedStripsInME1a = False
 
+process.load('JetMETCorrections.Configuration.JetCorrectors_cff')
+#process.load('RecoMET.METFilters.metFilters_cff')
+#process.p*=process.metFilters
+
+#process.load("JetMETCorrections.Type1MET.correctedMet_cff")
+#process.load("JetMETCorrections.Type1MET.correctionTermsPfMetType1Type2_cff")
+
+process.p*=process.ak4PFCHSL1FastjetCorrector * process.ak4PFCHSL2RelativeCorrector * process.ak4PFCHSL3AbsoluteCorrector * process.ak4PFCHSResidualCorrector * process.ak4PFCHSL1FastL2L3ResidualCorrector
+#process.p*=process.corrPfMetType1
+#process.p*=process.pfMetT1
+
+
 def doTree(process):
     process.GIFTree = cms.EDAnalyzer('MakeSimpleGIFTree',
 							# Physics
@@ -29,8 +41,9 @@ def doTree(process):
 							muonCollection = cms.InputTag('muons'),
 							electronCollection = cms.InputTag('gedGsfElectrons'),
 							photonCollection = cms.InputTag('gedPhotons'),
-							metCollection = cms.InputTag('pfMet'),
-							jetCollection = cms.InputTag('ak4PFJets'),
+							#metCollection = cms.InputTag('pfMetT1'),
+							jetCollection = cms.InputTag('ak4PFJetsCHS'),
+							jetCorrection = cms.InputTag('ak4PFCHSL1FastL2L3ResidualCorrector'),
 							# CSC
                             wireDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCWireDigi'),
                             stripDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCStripDigi'),
