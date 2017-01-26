@@ -11,6 +11,8 @@
 <use   name="DataFormats/Common"/>
 <use   name="DataFormats/MuonDetId"/>
 <use   name="DataFormats/MuonReco"/>
+<use   name="DataFormats/JetReco"/>
+<use   name="DataFormats/METReco"/>
 <use   name="CondFormats/CSCObjects"/>
 <use   name="root"/>
 <use   name="rootrflx"/>

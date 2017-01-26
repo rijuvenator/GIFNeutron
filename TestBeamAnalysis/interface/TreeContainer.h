@@ -25,9 +25,11 @@
 #include "DataFormats/JetReco/interface/Jet.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "DataFormats/JetReco/interface/PFJetCollection.h"
+#include "JetMETCorrections/JetCorrector/interface/JetCorrector.h"
 #include "DataFormats/METReco/interface/MET.h"
 #include "DataFormats/METReco/interface/PFMET.h"
 #include "DataFormats/METReco/interface/METCollection.h"
+#include "DataFormats/METReco/interface/PFMETCollection.h"
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
 #include "DataFormats/EgammaCandidates/interface/Electron.h"
@@ -47,6 +49,7 @@
 #include "TLorentzVector.h"
 
 #include "DataFormats/Math/interface/deltaPhi.h"
+#include "DataFormats/Math/interface/deltaR.h"
 
 #include "Gif/TestBeamAnalysis/interface/GIFHelper.h"
 
