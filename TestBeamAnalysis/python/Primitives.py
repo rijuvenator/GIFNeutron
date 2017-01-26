@@ -41,7 +41,11 @@ class ETree():
 			self.rh_nStrips   = [ord(x) for x in list(t.rh_n_strips)]
 			self.rh_wireGroup = [ord(x) for x in list(t.rh_wireGrp)]
 			self.rh_energy    = list(t.rh_energy)
-			self.rh_time      = list(t.rh_tpeak)
+			# Temporarily not backwards compatible!
+			if 'rh_time' in [br.GetName() for br in list(t.GetListOfBranches())]:
+				self.rh_time      = list(t.rh_time)
+			else:
+				self.rh_time      = list(t.rh_tpeak)
 
 		if 'LCT' in DecList:
 			self.lct_cham         = list(t.lct_id)

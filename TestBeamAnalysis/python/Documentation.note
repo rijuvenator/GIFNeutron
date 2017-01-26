@@ -1,0 +1,142 @@
+# Documention for Python modules.
+# 
+# Should be self-explanatory for the most part
+# The first method listed is always the constructor
+# Any arguments with an = are optional (defaults usually given); any without are mandatory
+
+! === Plotter ===
+# Plotter module contains the Plot class and the Canvas class
+# Intended to be a general purpose plot and canvas handling module
+# incorporating a flexible TDRStyle, convenient wrappers and automation
+
+== Plot
+_Class Members_
+	* (TObject) plot
+	* (string)  legName
+	* (string)  legType
+	* (string)  option
+
+_Class Methods_
+# axes is a string containing a possibly empty subset of 'XYZ'. All axes must exist.
+	* Plot                   (plot, legName='hist', legType='felp', option='')
+	* Plot.scaleTitles       (factor, axes='XY')
+	* Plot.scaleLabels       (factor, axes='XY')
+	* Plot.scaleTitleOffsets (factor, axes='XY')
+	* Plot.setTitles         (X=None, Y=None, Z=None)
+
+== Canvas
+_Class Members_
+	* (int)     cWidth
+	* (int)     cHeight
+	* (int)     font
+	* (float)   tsize
+	* (string)  lumi
+	* (string)  extra
+	* (bool)    logy
+	* (float)   ratioFactor
+	* (bool)    axesDrawn
+	* (TLegend) leg
+	* (TCanvas) c
+	* (TPad)    mainPad
+	* (TPad)    ratPad
+	* (TGraph)  gr
+	* (TObject) firstPlot
+
+_Class Methods_
+# I've omitted some uninteresting defaults from the constructor doc
+# prepareCanvas is internal only
+# pos   is a 2 character string: 'tb'  + 'rl'
+# align is a 2 character string: 'bct' + 'lcr'
+# font  is a string containing a possibly empty subset of 'bi'
+# edges is a string containing a possibly empty subset of 'LRTB'
+	* Canvas                 (lumi=, extra=, logy=False, ratioFactor=0, cWidth=800, cHeight=600, font=, tsize=)
+  * Canvas.prepareCanvas   ()
+	* Canvas.makeLegend      (lWidth=0.125, lHeight=0.2, pos='tr', lOffset=0.02, fontsize=0.04)
+	* Canvas.addLegendEntry  (Plot)
+	* Canvas.addMainPlot     (Plot, addToLegend=True)
+	* Canvas.setFitBoxStyle  (owner, lWidth=0.3, lHeight=0.15, pos='tl', lOffset=0.05, fontsize=0.04)
+	* Canvas.makeRatioPlot   (topHist, bottomHist, plusminus=0.5, option='', yiy='Data/MC', xtit='')
+	* Canvas.makeTransparent ()
+	* Canvas.finishCanvas    ()
+	* Canvas.save            (name, extList='')
+	* Canvas.scaleMargins    (factor, edges='')
+	* Canvas.drawText        (text='', pos=(0., 0.), align='bl', font='')
+
+! === MegaStruct ===
+# MegaStruct classes for handling, filling, and organizing GIF and P5 data
+# 
+# The *MegaStruct classes handle the meta-structure common to data of type *
+# 
+# For GIF data one can obtain any current/attenuation factor/luminosity
+# in a systematic way with currentVector(), attVector(), and lumiVector()
+# For P5 Data one can similarly obtain a luminosity (or function of)
+# 
+# The *Analyzer classes derive from the *MegaStruct classes, and provide
+# a skeleton class for filling and retrieving specific data, per script
+# 
+# VALDATA, val, and valVector are provided by default for this purpose
+# analyze() takes in a tree and executes once per "external data set"
+# load() executes if F_DATAFILE is not None and allows retrieval, e.g. histograms
+# 
+# analyze(), load(), val(), and valVector() should almost certainly be overridden
+# Overriding fillData() is permissible but should probably be avoided
+# 
+# ATTLIST and FFLIST allow control over which GIF data to analyze
+# 
+# PARAMS allows passing ANY kind of additional parameters to analyze() and load()
+# It can be any type; since analyze() and load() are fully implemented externally,
+# do as you will with PARAMS. It can be a flag, a file name, a whole class, whatever
+# 
+# lumiFunc is a lambda function of the start and end luminosities. By default
+# it averages the two; pass in, for example, lambda start, end: start to just get
+# the initial luminosity
+
+== GIFMegaStruct
+_Class Members_
+	* (dict) MEASDATA
+	* (dict) CURRDATA
+
+_Class Methods_
+	* GIFMegaStruct               ()
+	* GIFMegaStruct.fillMeas      ()
+	* GIFMegaStruct.fillCurr      ()
+	* GIFMegaStruct.current       (cham, meas)
+	* GIFMegaStruct.attVector     (castrated=False)
+	* GIFMegaStruct.currentVector (cham, ff, castrated=False)
+	* GIFMegaStruct.lumiVector    (cham, ff, castrated=False)
+
+== GIFAnalyzer(GIFMegaStruct)
+_Class Members_
+	* (dict) VALDATA
+
+_Class Methods_
+	* GIFAnalyzer           (F_DATAFILE=None, ATTLIST=None, FFLIST=0, PARAMS=None)
+	* GIFAnalyzer.fillData  (ATTLIST, FFLIST)
+	* GIFAnalyzer.val       (cham, meas)
+	* GIFAnalyzer.valVector (cham, ff)
+	* GIFAnalyzer.analyze   (t, PARAMS)
+	* GIFAnalyzer.load      (PARAMS)
+
+== P5MegaStruct
+_Class Members_
+	* (dict) RUNLUMIDATA
+	* (func) lumiFunc = lambda start, end: 0.5 * (start + end)
+
+_Class Methods_
+	* P5MegaStruct               ()
+	* P5MegaStruct.fillRunLumi   ()
+	* P5MegaStruct.sortedRunList ()
+	* P5MegaStruct.lumi          (run, index)
+	* P5MegaStruct.lumiVector    (lumiFunc=self.lumiFunc)
+
+== P5Analyzer(P5MegaStruct)
+_Class Members_
+	* (dict) VALDATA
+
+_Class Methods_
+	* P5Analyzer           (F_DATAFILE=None, RUNLIST=None, PARAMS=None)
+	* P5Analyzer.fillData  (RUNLIST)
+	* P5Analyzer.val       (run, cham)
+	* P5Analyzer.valVector (cham)
+	* P5Analyzer.analyze   (t, PARAMS)
+	* P5Analyzer.load      (PARAMS)

@@ -177,6 +177,7 @@ class Canvas:
 		self.extra = extra
 		self.logy = logy
 		self.ratioFactor = float(ratioFactor)
+		self.leg = None
 
 		self.axesDrawn = False
 
