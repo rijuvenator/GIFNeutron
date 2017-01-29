@@ -369,6 +369,26 @@ class Canvas:
 		self.c.SetFillStyle(4000)
 		self.mainPad.SetFillStyle(4000)
 
+	# the user calls this; makes an extra axis
+	def makeExtraAxis(self, xmin, xmax, Xmin=None, Xmax=None, Ymin=None, Ymax=None, Yoffset=None):
+		self.scaleMargins(2., 'B')
+		xaxis = self.firstPlot.plot.GetXaxis()
+		if Xmin    is None: Xmin    = xaxis.GetXmin()
+		if Xmax    is None: Xmax    = xaxis.GetXmax()
+		if Ymin    is None: Ymin    = self.firstPlot.plot.GetMinimum()
+		if Ymax    is None: Ymax    = self.firstPlot.plot.GetMaximum()
+		if Yoffset is None: Yoffset = (Ymax-Ymin)/1.05 * 0.24
+		axis = R.TGaxis(Xmin, Ymin-Yoffset, Xmax, Ymin-Yoffset, xmin, xmax, 510)
+		axis.SetLabelFont  (xaxis.GetLabelFont  ())
+		axis.SetLabelOffset(xaxis.GetLabelOffset())
+		axis.SetLabelSize  (xaxis.GetLabelSize  ())
+		axis.SetTitleFont  (xaxis.GetTitleFont  ())
+		axis.SetTitleOffset(xaxis.GetTitleOffset())
+		axis.SetTitleSize  (xaxis.GetTitleSize  ())
+		axis.CenterTitle()
+		axis.Draw()
+		return axis
+
 	# the user calls this last; it draws the lumi text, 'CMS', extra text, and legend 
 	def finishCanvas(self):
 		tMargin = float(self.mainPad.GetTopMargin())

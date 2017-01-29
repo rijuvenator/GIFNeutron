@@ -32,7 +32,7 @@ pretty = {
 	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
 #	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
 #	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-#	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
 #	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
 #	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
 #	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
@@ -153,9 +153,12 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 
 	# Step 2
 	canvas = Plotter.Canvas('ME'+str(cham)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
+	#canvas = Plotter.Canvas('ME'+str(cham)+'/1 External Trigger', False, 0., 'Internal', 800, 800)
 
 	# Step 3
 	canvas.makeLegend(.2,0.25,'bl',0.04, 0.03)
+	canvas.leg.SetY1(canvas.leg.GetY1() + 0.1)
+	canvas.leg.SetY2(canvas.leg.GetY2() + 0.1)
 
 	# Step 4
 	for i in range(ntypes):
@@ -177,6 +180,9 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 		graphs[i].SetMarkerSize(2.2)
 
 	# Step 6
+	xmax = canvas.firstPlot.plot.GetXaxis().GetXmax()
+	axis = canvas.makeExtraAxis(0., xmax/(3.e33 if cham == 1 else 5.e33))
+	axis.SetTitle('Current [#muA]')
 
 	# Step 7
 

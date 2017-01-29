@@ -10,7 +10,7 @@ CMSSW_PATH = bash.check_output('echo $CMSSW_BASE',shell=True).strip('\n') + '/sr
 GITLAB_PATH = CMSSW_PATH + 'Gif/TestBeamAnalysis/'
 F_MEASGRID = GITLAB_PATH + 'analysis/datafiles/measgrid'
 F_ATTENHUT = GITLAB_PATH + 'analysis/datafiles/attenhut'
-F_RUNGRID  = GITLAB_PATH + 'analysis/datafiles/rungrid'
+F_RUNGRID  = GITLAB_PATH + 'analysis/datafiles/runlumigrid'
 
 ##### GIF MEGASTRUCT BASE CLASS #####
 class GIFMegaStruct():
@@ -46,7 +46,8 @@ class GIFMegaStruct():
 		if cham == 1:
 			return sum(self.CURRDATA[cham][meas])/6.0
 		elif cham == 110:
-			return sum(self.CURRDATA[cham][meas][6:12])/6.0
+			#return sum(self.CURRDATA[cham][meas][6:12])/6.0
+			return sum(self.CURRDATA[cham][meas][0:6])/6.0
 	
 	# get a vector of attenuations
 	def attVector(self, castrated=False):
@@ -129,7 +130,6 @@ class GIFAnalyzer(GIFMegaStruct):
 class P5MegaStruct():
 	def __init__(self):
 		self.fillRunLumi()
-		self.lumiFunc = lambda start, end: max(start, end)
 	
 	# general fill run and lumi data function
 	def fillRunLumi(self):
@@ -137,22 +137,17 @@ class P5MegaStruct():
 		self.RUNLUMIDATA = {}
 		for line in f:
 			cols = line.strip('\n').split()
-			self.RUNLUMIDATA[int(cols[1])] = (float(cols[2]), float(cols[3]))
+			RUN = int(cols[1])
+			LS = int(cols[2])
+			ILUMI = float(cols[3])*1.e33
+			if RUN not in self.RUNLUMIDATA.keys():
+				self.RUNLUMIDATA[RUN] = {}
+			self.RUNLUMIDATA[RUN][LS] = ILUMI
 		f.close()
 
-	# get a list of runs, sorted by starting luminosity
-	def sortedRunList(self):
-		return [i[1] for i in sorted([(tup,run) for run,tup in self.RUNLUMIDATA.items()])]
-	
-	# get a luminosity given a run and index: start (0) or end (1)
-	def lumi(self, run, index):
-		return self.RUNLUMIDATA[run][index]
-	
-	# get a vector of luminosities with some function of start, end applied
-	def lumiVector(self, lumiFunc=None):
-		if lumiFunc is None:
-			lumiFunc = self.lumiFunc
-		return np.array([lumiFunc(self.lumi(run, 0), self.lumi(run, 1)) for run in self.sortedRunList()])
+	# get a luminosity given a run and lumisection
+	def lumi(self, run, ls):
+		return self.RUNLUMIDATA[run][ls]
 
 ##### P5 ANALYZER CLASS #####
 class P5Analyzer(P5MegaStruct):
@@ -174,7 +169,7 @@ class P5Analyzer(P5MegaStruct):
 			for RUN in self.RUNLIST:
 				self.RUN = RUN
 				#f = R.TFile.Open(GITLAB_PATH+'trees/ana_'+str(RUN)+'.root')
-				f = R.TFile.Open('/afs/cern.ch/user/c/cschnaib/public/ForRiju/test_282663_0.root')
+				f = R.TFile.Open('/afs/cern.ch/user/c/cschnaib/public/GIF/ana_P5.root')
 				t = f.Get('GIFTree/GIFDigiTree')
 				self.analyze(t, self.PARAMS)
 			self.cleanup(self.PARAMS)

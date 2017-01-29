@@ -193,11 +193,22 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 		graphs[i].SetLineColor  (colors[i])
 		graphs[i].SetFillColor  (colors[i])
 	
+	# This is for the current axis
+	xmax = canvas.firstPlot.plot.GetXaxis().GetXmax()
+	print xmax
+	axis = canvas.makeExtraAxis(0., xmax/(3.e33 if cham==1 else 5.e33), 0., 230.e33 if cham==1 else 185.e33)
+	axis.SetTitle('Current [#muA]')
+
 	# write on the plot
-	canvas.drawText(text='#color[0]{3 hits}', pos=(.75, .17), font='b')
-	canvas.drawText(text='#color[0]{4 hits}', pos=(.75, .3 ), font='b')
-	canvas.drawText(text='#color[0]{5 hits}', pos=(.75, .55), font='b')
-	canvas.drawText(text='#color[0]{6 hits}', pos=(.75, .8 ), font='b')
+	#canvas.drawText(text='#color[0]{3 hits}', pos=(.75, .17), font='b')
+	#canvas.drawText(text='#color[0]{4 hits}', pos=(.75, .3 ), font='b')
+	#canvas.drawText(text='#color[0]{5 hits}', pos=(.75, .55), font='b')
+	#canvas.drawText(text='#color[0]{6 hits}', pos=(.75, .8 ), font='b')
+	# This is for the current axis
+	canvas.drawText(text='#color[0]{3 hits}', pos=(.75, .17+.12), font='b')
+	canvas.drawText(text='#color[0]{4 hits}', pos=(.75, .3 +.1 ), font='b')
+	canvas.drawText(text='#color[0]{5 hits}', pos=(.75, .55+.1 ), font='b')
+	canvas.drawText(text='#color[0]{6 hits}', pos=(.75, .8 +.0 ), font='b')
 
 	# Step 6
 
@@ -215,6 +226,6 @@ for cham in CHAMLIST:
 		[data.lumiVector(cham, 0)     for nhits in [3, 4, 5, 6]],
 		[data.fracVector(cham, nhits) for nhits in [3, 4, 5, 6]],
 		'Luminosity [Hz/cm^{2}]',
-		'Fraction of "Good" Segments',
+		'Fraction of LCT-Matched Segments',
 		'all'
 	)
