@@ -17,6 +17,12 @@ def analyze(self, t, PARAMS):
 def load(self, PARAMS):
 	pass
 
+def setup(self, PARAMS):
+	pass
+
+def cleanup(self, PARAMS):
+	pass
+
 ##### DECLARE ANALYZERS #####
 MS.GIFAnalyzer.analyze = analyze
 MS.GIFAnalyzer.load    = load

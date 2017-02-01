@@ -55,8 +55,9 @@ _Class Methods_
 	* Canvas.addLegendEntry  (Plot)
 	* Canvas.addMainPlot     (Plot, addToLegend=True)
 	* Canvas.setFitBoxStyle  (owner, lWidth=0.3, lHeight=0.15, pos='tl', lOffset=0.05, fontsize=0.04)
-	* Canvas.makeRatioPlot   (topHist, bottomHist, plusminus=0.5, option='', yiy='Data/MC', xtit='')
+	* Canvas.makeRatioPlot   (topHist, bottomHist, plusminus=0.5, option='', ytit='Data/MC', xtit='')
 	* Canvas.makeTransparent ()
+	* Canvas.makeExtraAxis   (xmin, xmax, Xmin=, Xmax=, Ymin=, Ymax=, Yoffset=) [returns axis]
 	* Canvas.finishCanvas    ()
 	* Canvas.save            (name, extList='')
 	* Canvas.scaleMargins    (factor, edges='')
@@ -80,16 +81,14 @@ _Class Methods_
 # 
 # analyze(), load(), val(), and valVector() should almost certainly be overridden
 # Overriding fillData() is permissible but should probably be avoided
+# setup() and cleanup() are also provided for pre- and post-loop actions
 # 
-# ATTLIST and FFLIST allow control over which GIF data to analyze
+# ATTLIST, FFLIST, and RUNLIST allow control over which data to analyze
+# ATT, MEAS, and RUN are provided for organizational purposes
 # 
 # PARAMS allows passing ANY kind of additional parameters to analyze() and load()
 # It can be any type; since analyze() and load() are fully implemented externally,
 # do as you will with PARAMS. It can be a flag, a file name, a whole class, whatever
-# 
-# lumiFunc is a lambda function of the start and end luminosities. By default
-# it averages the two; pass in, for example, lambda start, end: start to just get
-# the initial luminosity
 
 == GIFMegaStruct
 _Class Members_
@@ -107,36 +106,46 @@ _Class Methods_
 
 == GIFAnalyzer(GIFMegaStruct)
 _Class Members_
-	* (dict) VALDATA
+	* (dict)  VALDATA
+	* (list)  ATTLIST
+	* (list)  FFLIST
+	* (float) ATT
+	* (int)   MEAS
+	* ()      PARAMS
 
 _Class Methods_
-	* GIFAnalyzer           (F_DATAFILE=None, ATTLIST=None, FFLIST=0, PARAMS=None)
-	* GIFAnalyzer.fillData  (ATTLIST, FFLIST)
-	* GIFAnalyzer.val       (cham, meas)
-	* GIFAnalyzer.valVector (cham, ff)
-	* GIFAnalyzer.analyze   (t, PARAMS)
-	* GIFAnalyzer.load      (PARAMS)
+	* GIFAnalyzer             (F_DATAFILE=None, ATTLIST=None, FFLIST=0, PARAMS=None)
+	* GIFAnalyzer.getMeaslist (ATT)
+	* GIFAnalyzer.fillData    ()
+	* GIFAnalyzer.val         (cham, meas)
+	* GIFAnalyzer.valVector   (cham, ff)
+	* GIFAnalyzer.analyze     (t, PARAMS)
+	* GIFAnalyzer.load        (PARAMS)
+	* GIFAnalyzer.setup       (PARAMS)
+	* GIFAnalyzer.cleanup     (PARAMS)
 
 == P5MegaStruct
 _Class Members_
 	* (dict) RUNLUMIDATA
-	* (func) lumiFunc = lambda start, end: 0.5 * (start + end)
 
 _Class Methods_
 	* P5MegaStruct               ()
 	* P5MegaStruct.fillRunLumi   ()
-	* P5MegaStruct.sortedRunList ()
-	* P5MegaStruct.lumi          (run, index)
-	* P5MegaStruct.lumiVector    (lumiFunc=self.lumiFunc)
+	* P5MegaStruct.lumi          (run, ls)
 
 == P5Analyzer(P5MegaStruct)
 _Class Members_
 	* (dict) VALDATA
+	* (list) RUNLIST
+	* (int)  RUN
+	* ()     PARAMS
 
 _Class Methods_
 	* P5Analyzer           (F_DATAFILE=None, RUNLIST=None, PARAMS=None)
-	* P5Analyzer.fillData  (RUNLIST)
+	* P5Analyzer.fillData  ()
 	* P5Analyzer.val       (run, cham)
 	* P5Analyzer.valVector (cham)
 	* P5Analyzer.analyze   (t, PARAMS)
 	* P5Analyzer.load      (PARAMS)
+	* P5Analyzer.setup     (PARAMS)
+	* P5Analyzer.cleanup   (PARAMS)

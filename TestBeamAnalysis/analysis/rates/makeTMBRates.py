@@ -14,13 +14,13 @@ f_trigdata = '../datafiles/trigdata'
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
 	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
-	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
-	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+#	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+#	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
 	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
-	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
-	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
-	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
-	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
+#	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+#	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+#	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
+#	7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
 R.gROOT.SetBatch(True)
@@ -145,7 +145,7 @@ class MegaStruct():
 data = MegaStruct(f_measgrid, f_attenhut, f_trigdata)
 
 ### MAKEPLOT FUNCTION
-def makePlot(x, y, ytit, fn, extra, logy, norm=None, normO=None, pretty=pretty):
+def makePlot(x, y, ytit, fn, extra, logy, cham, norm=None, normO=None, pretty=pretty):
 	# *** USAGE:
 	#  1) construct Plotter.Plot(Object, legName, legType="felp", option)
 	#  2) construct Plotter.Canvas(lumi, logy, ratioFactor, extra, cWidth=800, cHeight=600)
@@ -204,7 +204,8 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, normO=None, pretty=pretty):
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
 	canvas.firstPlot.plot.GetYaxis().SetTitleOffset(graphs[0].GetYaxis().GetTitleOffset()*1.4)
 	canvas.firstPlot.plot.GetYaxis().SetTitle(ytit)
-	canvas.firstPlot.plot.GetXaxis().SetTitle('Mean Current [#muA]')
+	#canvas.firstPlot.plot.GetXaxis().SetTitle('Mean Current [#muA]')
+	canvas.firstPlot.plot.GetXaxis().SetTitle('Luminosity [Hz/cm^{2}]')
 	canvas.firstPlot.plot.SetMinimum(yrange[0]*0.8)
 	canvas.firstPlot.plot.SetMaximum(yrange[1]*1.2)
 	canvas.firstPlot.scaleTitles(0.8)
@@ -214,6 +215,14 @@ def makePlot(x, y, ytit, fn, extra, logy, norm=None, normO=None, pretty=pretty):
 		graphs[i].SetMarkerColor(pretty[p]['color'])
 		graphs[i].SetMarkerStyle(pretty[p]['marker'])
 		graphs[i].SetMarkerSize(2.2)
+
+	xmin = 0.
+	xmax = canvas.firstPlot.plot.GetXaxis().GetXmax()/(3.e33 if cham == 1 else 5.e33)
+	# Linear
+	axis = canvas.makeExtraAxis(0., xmax)
+	# Log
+	#axis = canvas.makeExtraAxis(xmin, xmax, Ymin=7. if cham==1 else 17., Yoffset=0)
+	axis.SetTitle('Current [#muA]')
 
 	# Step 6
 
@@ -242,24 +251,25 @@ def tprint(cols):
 ### MAKE ALL PLOTS
 for cham in chamlist:
 	for numer, denom, logy, normO in [\
-		('ALCT*CLCT','L1A',False, False),
-		('CFEB Sum' ,None ,True , False),
-		('ALCT0'    ,'L1A',True , False),
-		('CLCT0'    ,'L1A',True , False),
-		('L1A'      ,None ,False, False),
-		('ALCT*CLCT','L1A',False, True ),
-		('Window'   ,'L1A',False, False)
+		#('ALCT*CLCT','L1A',False, False),
+		#('CFEB Sum' ,None ,True , False),
+		('ALCT0'    ,'L1A',False , False),
+		#('CLCT0'    ,'L1A',True , False),
+		#('L1A'      ,None ,False, False),
+		#('ALCT*CLCT','L1A',False, True ),
+		#('Window'   ,'L1A',False, False)
 	]:
 		if numer == 'Window': tprint([data.regVector(cham, ff, numer)/(1 if denom is None else data.regVector(cham, ff, denom)) for ff in pretty.keys()])
 		makePlot(\
-			[data.currentVector(cham, ff) for ff in pretty.keys()],
+			[data.lumiVector(cham, ff) for ff in pretty.keys()],
 			[data.regVector(cham, ff, numer) for ff in pretty.keys()],
 			numer + ('' if denom is None else '/'+denom) + ('' if not normO else '/Original/L1A'),
 			'pdfs/me'+str(cham)+'1-'+numer+('' if denom is not None else '-N')+('' if not normO else '-normO')+'_noHigh.pdf',
 			'ME'+str(cham)+'/1',
 			logy,
+			cham,
 			#norm = None if denom is None else [data.regVector(cham, ff, denom)*data.regVector(cham, ff, 'Duration') for ff in pretty.keys()]
 			#norm = [(1 if denom is None else data.regVector(cham, ff, denom))*data.regVector(cham, ff, 'Duration') for ff in pretty.keys()]
 			norm = None if denom is None else [data.regVector(cham, ff, denom) for ff in pretty.keys()],
-			normO = None if not normO else [data.regVector(cham, 0, numer)/data.regVector(cham, 0, 'L1A') for ff in pretty.keys()]
+			normO = None if not normO else [data.regVector(cham, 0, numer)/data.regVector(cham, 0, 'L1A') for ff in pretty.keys()],
 		)

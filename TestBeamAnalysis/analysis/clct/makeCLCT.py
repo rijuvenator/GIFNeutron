@@ -25,13 +25,13 @@ fromFile = '../datafiles/clctLay'
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
 		0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
-		1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
-		2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-		3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
-		4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
-		5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
-		6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
-		7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
+#		1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+#		2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
+#		3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+#		4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
+#		5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
+#		6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
+#		7 : { 'name' : 'TightAll',        'color' : R.kBlack,   'marker' : R.kFullCircle      }
 }
 
 R.gROOT.SetBatch(True)
@@ -181,7 +181,7 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 	# Step 1
 	plots = []
 	for i,p in enumerate(pretty.keys()):
-		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'pe', 'PE'))
+		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'p', 'PE'))
 
 	# Step 2
 	canvas = Plotter.Canvas('ME'+str(CHAM)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
@@ -208,6 +208,10 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 		graphs[i].SetMarkerStyle(pretty[p]['marker'])
 		graphs[i].SetMarkerSize(2)
 
+	xmax = canvas.firstPlot.plot.GetXaxis().GetXmax()
+	axis = canvas.makeExtraAxis(0., xmax/(3.e33 if CHAM == 1 else 5.e33))
+	axis.SetTitle('Current [#muA]')
+
 	# Step 6
 
 	# Step 7
@@ -220,27 +224,27 @@ def makePlot(x, y, cham, xtitle, ytitle, title, pretty=pretty):
 ### MAKE ALL PLOTS
 for cham in chamlist:
 	# Plots with current on x-axis
-	makePlot(\
-			[data.currentVector(cham, ff) for ff in pretty.keys()],
-			[data.clctVector(cham, ff) for ff in pretty.keys()],
-			cham,
-			'Mean Current [#muA]',
-			'CLCT Layers',
-			'curr'
-			)
+#	makePlot(\
+#			[data.currentVector(cham, ff) for ff in pretty.keys()],
+#			[data.clctVector(cham, ff) for ff in pretty.keys()],
+#			cham,
+#			'Mean Current [#muA]',
+#			'CLCT Layers',
+#			'curr'
+#			)
 	# Plots with luminosity on x-axis
 	makePlot(\
 			[data.lumiVector(cham, ff) for ff in pretty.keys()],
 			[data.clctVector(cham, ff) for ff in pretty.keys()],
 			cham,
 			'Luminosity [Hz/cm^{2}]',
-			'CLCT Layers',
+			'#LT CLCT Layers #GT',
 			'lumi')
 	# Plots with 1/A on x-axis
-	makePlot(\
-			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
-			[data.clctVector(cham, ff) for ff in pretty.keys()],
-			cham,
-			'Source Intensity 1/A',
-			'CLCT Layers',
-			'att')
+#	makePlot(\
+#			[np.reciprocal(data.attVector()) for ff in pretty.keys()],
+#			[data.clctVector(cham, ff) for ff in pretty.keys()],
+#			cham,
+#			'Source Intensity 1/A',
+#			'CLCT Layers',
+#			'att')
