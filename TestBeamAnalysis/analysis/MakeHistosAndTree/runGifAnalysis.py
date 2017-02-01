@@ -22,15 +22,14 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 	# Fill 5423
 	runs5423 = [283407, 283408,  283413, 283415, 283416] # skip 283414 since no data taken
 	# Fill 5405
-	runs5405 = [283040, 283041, 283042, 283043]
+	runs5405 = [283041, 283042, 283043]# skip 283040 not in good run list
 	# Fill 5443
 	runs5443 = [283884, 283885]
 	# Fill 5338
-	runs5338 = [281638, 281639,  281641] # skip 281640,
+	runs5338 = [281638, 281639,  281641] # skip 281640 not in good run list
 	# Fill 5386 (low-PU run)
 	runs5386 = [282663]
-	#runList = runs5423 + runs5405 + runs5443 + runs5338 + runs5386
-	runList = [282663]
+	runList = runs5423 + runs5405 + runs5443 + runs5338 + runs5386
 
 	for run in runList:
 		run_fn = open('runFiles/'+str(run)+'.txt')
