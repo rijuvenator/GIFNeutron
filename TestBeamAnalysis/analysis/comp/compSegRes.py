@@ -7,7 +7,7 @@ Plus plots for each measurement of the distribution
 import numpy as np
 import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.TestBeamAnalysis.OldPlotter as Plotter
 import Gif.TestBeamAnalysis.Auxiliary as Aux
 
 ##### PARAMETERS #####

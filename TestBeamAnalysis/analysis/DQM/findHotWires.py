@@ -7,10 +7,12 @@ import Gif.TestBeamAnalysis.Auxiliary as Aux
 import Gif.TestBeamAnalysis.ChamberHandler as CH
 import Gif.TestBeamAnalysis.MegaStruct as MS
 
-PFN = 'output_p5.root'
+PFN = 'hotWires.root'
 
 FP = None
-FP = PFN
+#FP = PFN
+
+clist = range(-18, 0) + range(1, 19)
 
 # make sure you're not accidentally overwriting anything
 if os.path.isfile(PFN) and FP is None:
@@ -26,39 +28,15 @@ if not os.path.isfile(PFN) and FP is not None:
 	print 'Input files do not exist; exiting now...'
 	exit()
 
-# Pattern class
-class Pattern():
-	def __init__(self, k):
-		self.khs = k
-		self.pat = {\
-			2  : {6:[k-5, k-4, k-3], 5:[k-4, k-3, k-2], 4:[k-2, k-1, k], 3:[k            ], 2:[k+1, k+2     ], 1:[k+3, k+4, k+5]},
-			3  : {1:[k-5, k-4, k-3], 2:[k-2, k-1     ], 3:[k          ], 4:[k  , k+1, k+2], 5:[k+2, k+3, k+4], 6:[k+3, k+4, k+5]},
-			4  : {6:[k-4, k-3, k-2], 5:[k-4, k-3, k-2], 4:[k-2, k-1   ], 3:[k            ], 2:[k+1, k+2     ], 1:[k+2, k+3, k+4]},
-			5  : {1:[k-4, k-3, k-2], 2:[k-2, k-1     ], 3:[k          ], 4:[k+1, k+2     ], 5:[k+2, k+3, k+4], 6:[k+2, k+3, k+4]},
-			6  : {6:[k-3, k-2, k-1], 5:[k-2, k-1     ], 4:[k-1, k     ], 3:[k            ], 2:[k  , k+1     ], 1:[k+1, k+2, k+3]},
-			7  : {1:[k-3, k-2, k-1], 2:[k-1, k       ], 3:[k          ], 4:[k  , k+1     ], 5:[k+1, k+2     ], 6:[k+1, k+2, k+3]},
-			8  : {6:[k-2, k-1, k  ], 5:[k-2, k-1, k  ], 4:[k-1, k     ], 3:[k            ], 2:[k  , k+1     ], 1:[k  , k+1, k+2]},
-			9  : {1:[k-2, k-1, k  ], 2:[k-1, k       ], 3:[k          ], 4:[k  , k+1     ], 5:[k  , k+1, k+2], 6:[k  , k+1, k+2]},
-			10 : {6:[k-1, k  , k+1], 5:[k-1, k  , k+1], 4:[k          ], 3:[k            ], 2:[k            ], 1:[k-1, k  , k+1]}
-		}
-
 # runs before file loop; open a file, declare a hist dictionary
 def setup(self, PARAMS):
 	self.HISTS = {}
 	FN = PARAMS
 	self.F_OUT = R.TFile(FN,'RECREATE')
 	self.F_OUT.cd()
-	for ring in ringlist:
-		self.HISTS[ring] = {\
-			'time': R.TH1F('t'+ring, '', 10, 0., 10.),
-			'lumi': R.TH1F('l'+ring, '', 30, 0., 15.e33),
-			'totl': R.TH1F('a'+ring, '', 30, 0., 15.e33),
-		}
-		self.HISTS[ring]['time'].SetDirectory(0)
-		self.HISTS[ring]['lumi'].SetDirectory(0)
-		self.HISTS[ring]['totl'].SetDirectory(0)
-
-ringlist = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
+	for c in clist:
+		self.HISTS[c] = R.TH1F('h'+str(c), '', 160, 1, 161)
+		self.HISTS[c].SetDirectory(0)
 
 # once per file
 def analyze(self, t, PARAMS):
@@ -81,8 +59,8 @@ def analyze(self, t, PARAMS):
 		twolcts = list(set([i for i in E.lct_cham if E.lct_cham.count(i)>1]))
 		for lct in lcts:
 			if lct.cham in twolcts: continue
-			nComp = 0
 			cham = CH.Chamber(lct.cham)
+			if cham.display('{S}{R}') != '21' : continue
 			nHS = cham.nstrips*2
 			nWG = cham.nwires
 			LCTAreas = \
@@ -105,31 +83,20 @@ def analyze(self, t, PARAMS):
 					for comp in comps:
 						if comp.cham != lct.cham: continue
 						if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
-							self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
 							if comp.timeBin >= 1 and comp.timeBin <= 5:
-								nComp += 1
-					self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
-					self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
+								self.HISTS[cham.endcap * cham.chamber].Fill(comp.staggeredHalfStrip)
 
 	self.F_OUT.cd()
-	for ring in ringlist:
-		self.HISTS[ring]['time'].Write()
-		self.HISTS[ring]['lumi'].Write()
-		self.HISTS[ring]['totl'].Write()
+	for c in clist:
+		self.HISTS[c].Write()
 
 # if file is already made
 def load(self, PARAMS):
 	f = R.TFile.Open(self.F_DATAFILE)
 	self.HISTS = {}
-	for ring in ringlist:
-		self.HISTS[ring] = {\
-			'time' : f.Get('t'+ring),
-			'lumi' : f.Get('l'+ring),
-			'totl' : f.Get('a'+ring),
-		}
-		self.HISTS[ring]['time'].SetDirectory(0)
-		self.HISTS[ring]['lumi'].SetDirectory(0)
-		self.HISTS[ring]['totl'].SetDirectory(0)
+	for c in clist:
+		self.HISTS[c] = f.Get('h'+str(c))
+		self.HISTS[c].SetDirectory(0)
 
 # override class methods
 R.gROOT.SetBatch(True)
@@ -141,67 +108,22 @@ MS. P5Analyzer.setup = setup
 pdata = MS.P5Analyzer (PARAMS=PFN, F_DATAFILE=FP, RUNLIST=[282663])
 
 ##### MAKEPLOT FUNCTIONS #####
-def makeTimePlot(h, ring):
+def makePlot(h, ch):
 	if h.Integral() == 0: return
 	plot = Plotter.Plot(h, option='hist')
-	canvas = Plotter.Canvas(lumi='ME'+ring, logy=False)
+	canvas = Plotter.Canvas(lumi=ch.display('ME{E}{S}/{R}/{C}'), logy=False)
 	canvas.makeLegend()
 	canvas.addMainPlot(plot, addToLegend=False)
 	canvas.makeTransparent()
-	#canvas.firstPlot.plot.SetMaximum(1.05)
 	canvas.firstPlot.plot.SetMinimum(0)
-	#canvas.firstPlot.plot.SetMinimum(0.00001)
+	canvas.firstPlot.plot.SetMaximum(20)
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/BGCompTimeNew'+'_'+ring+'.pdf')
+	canvas.c.SaveAs('pdfs/HotStrips'+'_'+ch.display('ME{E}{S}{R}_{C}')+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
-def makeLumiPlot(h1, h2, ring):
-	binit = range(1, h1.GetNbinsX()+1)
-	ncomps = [h1.GetBinContent(i) for i in binit]
-	totals = [h2.GetBinContent(i) for i in binit]
-	#lumi = np.array([])
-	#lumi = h1.GetXaxis().GetCenter(lumi)
-	#lumi = np.array(lumi)
-	lumiA = np.array([(15.e33)/30 * (i+0.5) for i in range(30)])
-	dataA = np.array([ncomp/float(total) if total != 0 else 0. for ncomp,total in zip(ncomps,totals)])
-	lumi = np.array(lumiA[10:26])
-	data = np.array(dataA[10:26])
-	h = R.TGraph(len(lumi), lumi, data)
-	#print lumi, data
-	plot = Plotter.Plot(h, option='PE')
-	canvas = Plotter.Canvas(lumi='ME'+ring, logy=False)
-	canvas.makeLegend()
-	canvas.addMainPlot(plot, addToLegend=False)
-	canvas.makeTransparent()
-	canvas.scaleMargins(1.25, 'R')
-	canvas.firstPlot.setTitles(X='Luminosity [Hz/cm^{2}]', Y='#LT Number of Background Comparators #GT')
-	canvas.firstPlot.plot.GetXaxis().SetLimits(0., 15.e33)
-	canvas.firstPlot.plot.SetMinimum(0. )
-	canvas.firstPlot.plot.SetMaximum(0.6)
-	canvas.firstPlot.scaleTitles(0.8)
-	canvas.firstPlot.scaleLabels(0.8)
-	canvas.firstPlot.scaleTitleOffsets(1.2)
-	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/BGCompAvgNNew'+'_'+ring+'.pdf')
-	R.SetOwnership(canvas.c, False)
-
-def makeNumDum(h, ring, which):
-	plot = Plotter.Plot(h, option='P')
-	canvas = Plotter.Canvas(lumi='ME'+ring, logy=False)
-	canvas.makeLegend()
-	canvas.addMainPlot(plot, addToLegend=False)
-	canvas.makeTransparent()
-	canvas.scaleMargins(1.25, 'R')
-	canvas.firstPlot.setTitles(X='Luminosity [Hz/cm^{2}]', Y='Number of Background Comparators' if which == 'ncomp' else 'Counts')
-	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/BGCompAvgNNew'+'_'+ring+'_'+which+'.pdf')
-	R.SetOwnership(canvas.c, False)
-
-for ring in ringlist:
-	makeTimePlot(pdata.HISTS[ring]['time'], ring)
-	makeLumiPlot(pdata.HISTS[ring]['lumi'], pdata.HISTS[ring]['totl'], ring)
-	makeNumDum(pdata.HISTS[ring]['lumi'], ring, 'ncomp')
-	makeNumDum(pdata.HISTS[ring]['totl'], ring, 'lumi')
+for c in clist:
+	ch = CH.Chamber(108+(c if c>0 else 300+abs(c)))
+	makePlot(pdata.HISTS[c], ch)
 
 ##### WITH WIRES
 '''

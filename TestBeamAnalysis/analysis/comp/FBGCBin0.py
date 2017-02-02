@@ -7,7 +7,7 @@ import Gif.TestBeamAnalysis.Auxiliary as Aux
 import Gif.TestBeamAnalysis.ChamberHandler as CH
 import Gif.TestBeamAnalysis.MegaStruct as MS
 
-PFN = 'output_p5.root'
+PFN = 'output_bin0.root'
 
 FP = None
 FP = PFN
@@ -106,7 +106,7 @@ def analyze(self, t, PARAMS):
 						if comp.cham != lct.cham: continue
 						if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
 							self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
-							if comp.timeBin >= 1 and comp.timeBin <= 5:
+							if comp.timeBin == 0:
 								nComp += 1
 					self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
 					self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
@@ -152,7 +152,7 @@ def makeTimePlot(h, ring):
 	canvas.firstPlot.plot.SetMinimum(0)
 	#canvas.firstPlot.plot.SetMinimum(0.00001)
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/BGCompTimeNew'+'_'+ring+'.pdf')
+	canvas.c.SaveAs('pdfs/BGCompTimeBin0'+'_'+ring+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 def makeLumiPlot(h1, h2, ring):
@@ -177,12 +177,12 @@ def makeLumiPlot(h1, h2, ring):
 	canvas.firstPlot.setTitles(X='Luminosity [Hz/cm^{2}]', Y='#LT Number of Background Comparators #GT')
 	canvas.firstPlot.plot.GetXaxis().SetLimits(0., 15.e33)
 	canvas.firstPlot.plot.SetMinimum(0. )
-	canvas.firstPlot.plot.SetMaximum(0.6)
+	#canvas.firstPlot.plot.SetMaximum(0.25)
 	canvas.firstPlot.scaleTitles(0.8)
 	canvas.firstPlot.scaleLabels(0.8)
 	canvas.firstPlot.scaleTitleOffsets(1.2)
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/BGCompAvgNNew'+'_'+ring+'.pdf')
+	canvas.c.SaveAs('pdfs/BGCompAvgNBin0'+'_'+ring+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 def makeNumDum(h, ring, which):
@@ -194,7 +194,7 @@ def makeNumDum(h, ring, which):
 	canvas.scaleMargins(1.25, 'R')
 	canvas.firstPlot.setTitles(X='Luminosity [Hz/cm^{2}]', Y='Number of Background Comparators' if which == 'ncomp' else 'Counts')
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/BGCompAvgNNew'+'_'+ring+'_'+which+'.pdf')
+	canvas.c.SaveAs('pdfs/BGCompAvgNBin0'+'_'+ring+'_'+which+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 for ring in ringlist:

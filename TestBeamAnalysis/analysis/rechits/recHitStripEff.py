@@ -6,7 +6,7 @@ RecHit made at the location of strip ADC data'''
 import numpy as np
 import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.TestBeamAnalysis.OldPlotter as Plotter
 import Gif.TestBeamAnalysis.Auxiliary as Aux
 
 ##### PARAMETERS #####

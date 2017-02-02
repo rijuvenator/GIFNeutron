@@ -4,7 +4,7 @@ statusMsg('Running TreeTest...')
 
 import numpy as np
 import ROOT as R
-import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.TestBeamAnalysis.OldPlotter as Plotter
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.Auxiliary as Aux
 statusMsg('All modules imported.')

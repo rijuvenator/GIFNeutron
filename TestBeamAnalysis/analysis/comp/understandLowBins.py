@@ -7,10 +7,10 @@ import Gif.TestBeamAnalysis.Auxiliary as Aux
 import Gif.TestBeamAnalysis.ChamberHandler as CH
 import Gif.TestBeamAnalysis.MegaStruct as MS
 
-PFN = 'output_p5.root'
+PFN = 'lowBins.root'
 
 FP = None
-FP = PFN
+#FP = PFN
 
 # make sure you're not accidentally overwriting anything
 if os.path.isfile(PFN) and FP is None:
@@ -107,6 +107,8 @@ def analyze(self, t, PARAMS):
 						if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
 							self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
 							if comp.timeBin >= 1 and comp.timeBin <= 5:
+								if comp.timeBin < 3 and cham.display('{S}{R}')=='21':
+									print '{:6d} {:3d} {:s}'.format(idx, cham.id, cham.display('ME{E}{S}/{R}/{C}'))
 								nComp += 1
 					self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
 					self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
@@ -139,6 +141,8 @@ MS. P5Analyzer.setup = setup
 
 # run analysis!
 pdata = MS.P5Analyzer (PARAMS=PFN, F_DATAFILE=FP, RUNLIST=[282663])
+
+exit()
 
 ##### MAKEPLOT FUNCTIONS #####
 def makeTimePlot(h, ring):

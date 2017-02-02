@@ -1,7 +1,7 @@
 import numpy as np
 import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.TestBeamAnalysis.OldPlotter as Plotter
 
 ##### PARAMETERS #####
 # Which chambers to do
