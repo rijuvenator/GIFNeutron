@@ -1,0 +1,210 @@
+# Documention for Python modules.
+# 
+# Should be self-explanatory for the most part
+# The first method listed is always the constructor
+# Any arguments with an = are optional (defaults usually given); any without are mandatory
+# 
+# Syntax Highlighting:
+! === MODULE ===
+== Class
+	* ~external members/methods
+	- ~internal members/methods
+
+# ##### DOCUMENTATION #####
+
+! === Plotter ===
+# Plotter module contains the Plot, Legend, and Canvas classes
+# Intended to be a general purpose plot and canvas handling module
+# incorporating a flexible TDRStyle, convenient wrappers and automation
+
+== Plot
+_Class Members_
+	* (TObject) plot
+	* (string)  legName
+	* (string)  legType
+	* (string)  option
+
+_Class Methods_
+# axes is a string containing a possibly empty subset of 'XYZ'. All axes must exist.
+	* Plot                   (plot, legName='hist', legType='felp', option='')
+	* Plot.scaleTitles       (factor, axes='XY')
+	* Plot.scaleLabels       (factor, axes='XY')
+	* Plot.scaleTitleOffsets (factor, axes='XY')
+	* Plot.setTitles         (X=None, Y=None, Z=None)
+
+== Legend(TLegend)
+_Class Members_
+	* (TLegend) self
+	* (int)     lines
+	* (string)  corner
+
+_Class Methods_
+	* Legend                (X1, Y1, X2, Y2, corner)
+	* Legend.addLegendEntry (Plot)
+	* Legend.moveLegend     (X=0., Y=0.)
+	* Legend.moveEdges      (L=0., R=0., T=0., B=0.)
+	* Legend.resizeHeight   (scale=1.)
+
+== Canvas(TCanvas)
+_Class Members_
+	* (TCanvas) self
+	* (int)     cWidth
+	* (int)     cHeight
+	* (string)  fontcode
+	* (float)   fontscale
+	* (bool)    logy
+	* (string)  lumi
+	* (string)  extra
+	* (float)   ratioFactor
+	- (int)     font
+	- (float)   fontsize
+	- (TPad)    mainPad
+	- (Legend)  legend
+	- (bool)    axesDrawn
+	- (TObject) firstPlot
+	- (list)    plotList
+	- (TPad)    ratPad
+	- (TH1F)    rat
+	- (TGraph)  gr
+
+_Class Methods_
+# I've omitted some uninteresting defaults from the constructor doc
+# pos      is a 2 character string: 'tb'  + 'rl'
+# align    is a 2 character string: 'bct' + 'lcr'
+# fontcode is a string containing a possibly empty subset of 'bi'
+# edges    is a string containing a possibly empty subset of 'LRTB'
+	* Canvas                 (lumi=, extra=, logy=False, ratioFactor=0, cWidth=800, cHeight=600, fontcode=, fontscale=)
+	* Canvas.addMainPlot     (Plot, addToPlotList=True)
+	* Canvas.makeLegend      (lWidth=0.125, pos='tr', fontscale=1., autoOrder=True)
+	* Canvas.addLegendEntry  (Plot)
+	* Canvas.setFitBoxStyle  (owner, lWidth=0.3, lHeight=0.15, pos='tl', lOffset=0.05, fontscale=0.75)
+	* Canvas.makeRatioPlot   (topHist, bottomHist, plusminus=0.5, option='', ytit='Data/MC', xtit='')
+	* Canvas.makeTransparent ()
+	* Canvas.moveExponent    ()
+	* Canvas.makeExtraAxis   (xmin, xmax, Xmin=, Xmax=, Ymin=, Ymax=, Yoffset=, Yoffsetscale=0.23, title='', bMarginScale=) [returns axis]
+	* Canvas.scaleMargins    (factor, edges='')
+	* Canvas.drawText        (text='', pos=(0., 0.), align='bl', fontcode='', fontscale=1.)
+	* Canvas.finishCanvas    ()
+	* Canvas.save            (name, extList='')
+	* Canvas.deleteCanvas    ()
+
+`*** HOW TO USE THE PLOTTER MODULE ***`
+
+	_1) Make Plots_
+		* Plotter.[Plot](Object, legName, legType='felp', option)
+		{binding decisions: none}
+	_2) Make Canvas_
+		* Plotter.[Canvas](lumi=, extra='Internal', logy=False, ratioFactor=0, cWidth=800, cHeight=600, fontcode=''(bi), fontscale=1)
+		{binding decisions: cWidth, cHeight, ratioFactor}
+	_3) Add Plots_
+		* Plotter.Canvas.[addMainPlot](Plot, addToPlotList=True)
+		{binding decisions: draw order}
+	_4) Make Legend_
+		* Plotter.Canvas.[makeLegend]    (lWidth=0.125, pos='tr', fontscale=1., autoOrder=True)
+		* Plotter.Canvas.[addLegendEntry](Plot)
+		{binding decisions: legend order (automation)}
+		# Note: If making an extra axis and legend position is to be automatically calculated, make the axis and THEN make the legend.
+	_5) Add additional structures_
+		* Plotter.Canvas.[makeRatioPlot](topHist, bottomHist, plusminus=0.5, option='', ytit='Data/MC', xtit='')
+		{binding decisions: topHist, bottomHist}
+		* Plotter.Canvas.[makeExtraAxis](xmin, xmax, Xmin=, Xmax=, Ymin=, Ymax=, Yoffset=, Yoffsetscale=0.23, title='', bMarginScale=)
+		{binding decisions: everything}
+		# Note: changes pad margins
+	_6) Apply cosmetics_
+		* Anything involving sizes, positions, decorations, marker, line, and fill styles, etc.
+		* Plotter.Canvas.[makeTransparent]()
+		* Plotter.Canvas.[moveExponent]   ()
+		* Plotter.Canvas.[scaleMargins]   (factor, edges=''(LRTB))
+		* Plotter.Canvas.[drawText]       (text, pos=(0., 0.), align='bl', fontcode='', fontscale=1.)
+		* Plotter.Canvas.[setFitBoxStyle] (owner, lWidth=0.3, lHeight=0.15, pos='tl', lOffset=0.05, fontscale=0.75)
+	_7) Finish, Save, and Delete_
+		* Plotter.Canvas.[finishCanvas]()
+		* Plotter.Canvas.[save]        (name, extList='')
+		* Plotter.Canvas.[deleteCanvas]()
+
+! === MegaStruct ===
+# MegaStruct classes for handling, filling, and organizing GIF and P5 data
+# 
+# The *MegaStruct classes handle the meta-structure common to data of type *
+# 
+# For GIF data one can obtain any current/attenuation factor/luminosity
+# in a systematic way with currentVector(), attVector(), and lumiVector()
+# For P5 Data one can similarly obtain a luminosity (or function of)
+# 
+# The *Analyzer classes derive from the *MegaStruct classes, and provide
+# a skeleton class for filling and retrieving specific data, per script
+# 
+# VALDATA, val, and valVector are provided by default for this purpose
+# analyze() takes in a tree and executes once per "external data set"
+# load() executes if F_DATAFILE is not None and allows retrieval, e.g. histograms
+# 
+# analyze(), load(), val(), and valVector() should almost certainly be overridden
+# Overriding fillData() is permissible but should probably be avoided
+# setup() and cleanup() are also provided for pre- and post-loop actions
+# 
+# ATTLIST, FFLIST, and RUNLIST allow control over which data to analyze
+# ATT, MEAS, and RUN are provided for organizational purposes
+# 
+# PARAMS allows passing ANY kind of additional parameters to analyze() and load()
+# It can be any type; since analyze() and load() are fully implemented externally,
+# do as you will with PARAMS. It can be a flag, a file name, a whole class, whatever
+
+== GIFMegaStruct
+_Class Members_
+	- (dict) MEASDATA
+	- (dict) CURRDATA
+
+_Class Methods_
+	* GIFMegaStruct               ()
+	- GIFMegaStruct.fillMeas      ()
+	- GIFMegaStruct.fillCurr      ()
+	- GIFMegaStruct.current       (cham, meas)
+	* GIFMegaStruct.attVector     (castrated=False)
+	* GIFMegaStruct.currentVector (cham, ff, castrated=False)
+	* GIFMegaStruct.lumiVector    (cham, ff, castrated=False)
+
+== GIFAnalyzer(GIFMegaStruct)
+_Class Members_
+	- (dict)  VALDATA
+	* (list)  ATTLIST
+	* (list)  FFLIST
+	* (float) ATT
+	* (int)   MEAS
+	* ()      PARAMS
+
+_Class Methods_
+	* GIFAnalyzer             (F_DATAFILE=None, ATTLIST=None, FFLIST=0, PARAMS=None)
+	* GIFAnalyzer.getMeaslist (ATT)
+	- GIFAnalyzer.fillData    ()
+	* GIFAnalyzer.val         (cham, meas)
+	* GIFAnalyzer.valVector   (cham, ff)
+	* GIFAnalyzer.analyze     (t, PARAMS)
+	* GIFAnalyzer.load        (PARAMS)
+	* GIFAnalyzer.setup       (PARAMS)
+	* GIFAnalyzer.cleanup     (PARAMS)
+
+== P5MegaStruct
+_Class Members_
+	- (dict) RUNLUMIDATA
+
+_Class Methods_
+	* P5MegaStruct               ()
+	- P5MegaStruct.fillRunLumi   ()
+	- P5MegaStruct.lumi          (run, ls)
+
+== P5Analyzer(P5MegaStruct)
+_Class Members_
+	- (dict) VALDATA
+	* (list) RUNLIST
+	* (int)  RUN
+	* ()     PARAMS
+
+_Class Methods_
+	* P5Analyzer           (F_DATAFILE=None, RUNLIST=None, PARAMS=None)
+	- P5Analyzer.fillData  ()
+	* P5Analyzer.val       (run, cham)
+	* P5Analyzer.valVector (cham)
+	* P5Analyzer.analyze   (t, PARAMS)
+	* P5Analyzer.load      (PARAMS)
+	* P5Analyzer.setup     (PARAMS)
+	* P5Analyzer.cleanup   (PARAMS)
