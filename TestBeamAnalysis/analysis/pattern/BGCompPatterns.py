@@ -1,4 +1,4 @@
-import os, math
+import os, math, sys
 import numpy as np
 import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
@@ -7,15 +7,40 @@ import Gif.TestBeamAnalysis.Auxiliary as Aux
 import Gif.TestBeamAnalysis.ChamberHandler as CH
 import Gif.TestBeamAnalysis.MegaStruct as MS
 
-PFN = 'bgpatterns.root'
+if len(sys.argv)<3:
+	print 'Usage: python BGCompPatterns.py MODE[GIF/P5] OVERWRITE[1,0]'
+	exit()
+else:
+	if sys.argv[1] == 'GIF':
+		OFN = 'bgpatterns_GIF.root'
+		ISGIF = True
+	elif sys.argv[1] == 'P5':
+		OFN = 'bgpatterns_P5.root'
+		ISGIF = False
+	else:
+		print 'Invalid argument; Usage: python BGCompPatterns.py MODE[GIF/P5] OVERWRITE[1,0]'
+		exit()
+	if sys.argv[2] == '1':
+		FDATA = None
+	elif sys.argv[2] == '0':
+		FDATA = OFN
+	else:
+		print 'Invalid argument; Usage: python BGCompPatterns.py MODE[GIF/P5] OVERWRITE[1,0]'
+		exit()
 
-FP = None
-#FP = PFN
+# make sure the file exists
+if not os.path.isfile(OFN) and FDATA is not None:
+	print 'Input files do not exist; exiting now...'
+	exit()
 
+# Pattern ID function
 def PatternID(comp, comps):
 	id_ = 0
 
 	# definition of bits
+	# 0 1 2
+	# 7   3
+	# 6 5 4
 	bits = (\
 		(-1, +1), # 0
 		( 0, +1), # 1
@@ -32,7 +57,7 @@ def PatternID(comp, comps):
 		for bit,(SHS,LAY) in enumerate(bits):
 			if  c.staggeredHalfStrip == comp.staggeredHalfStrip + SHS\
 			and c.layer              == comp.layer              + LAY:
-				id_ = id_ | (1<<bit)
+				id_ = id_ | (1<<bit) # turn on bit
 	
 	# list of edges for each bit, ordered clockwise
 	edges = (\
@@ -46,11 +71,28 @@ def PatternID(comp, comps):
 		((-2, -1), (-2,  0), (-2, +1)                    )  # 7
 	)
 
+	extraedgelist = (\
+		((-3,  0), (-3, +1), (-3, +2), (-2, +3), (-1, +3), ( 0, +3)), # 0
+		((-2, +3), (-1, +3), ( 0, +3), (+1, +3), (+2, +3)          ), # 1
+		(( 0, +3), (+1, +3), (+2, +3), (+3, +2), (+3, +1), (+3,  0)), # 2
+		((+3, +2), (+3, +1), (+3,  0), (+3, -1), (+3, -2)          ), # 3
+		((+3,  0), (+3, -1), (+3, -2), (+2, -3), (+1, -3), ( 0, -3)), # 4
+		((+2, -3), (+1, -3), ( 0, -3), (-1, -3), (-2, -3)          ), # 5
+		(( 0, -3), (-1, -3), (-2, -3), (-3, -2), (-3, -1), (-3,  0)), # 6
+		((-3, -2), (-3, -1), (-3,  0), (-3, +1), (-3, +2)          )  # 7
+	)
+
+
 	# figure out list of edges To Be Considered
 	tbc = []
 	for bit, edgelist in enumerate(edges):
+		if id_ & (1<<bit): # check if bit is set
+			tbc.extend(list(edgelist))
+
+	for bit, edgelist in enumerate(extraedgelist):
 		if id_ & (1<<bit):
 			tbc.extend(list(edgelist))
+
 	tbc = list(set(tbc))
 
 	# veto if edge comparators exist
@@ -64,24 +106,9 @@ def PatternID(comp, comps):
 
 	return id_
 
-
-# make sure you're not accidentally overwriting anything
-if os.path.isfile(PFN) and FP is None:
-	answer = raw_input('OK to overwrite existing files? [y/n] ')
-	if answer == 'y':
-		print 'Overwriting files...'
-	else:
-		print 'Using existing files...'
-		FP = PFN
-
-# make sure the file exists
-if not os.path.isfile(PFN) and FP is not None:
-	print 'Input files do not exist; exiting now...'
-	exit()
-
 # runs before file loop; open a file, declare a hist dictionary
 def setup(self, PARAMS):
-	FN = PARAMS
+	FN = PARAMS[0]
 	self.F_OUT = R.TFile(FN,'RECREATE')
 	self.F_OUT.cd()
 	self.HIST = R.TH1F('h', '', 256, 0, 256)
@@ -89,15 +116,17 @@ def setup(self, PARAMS):
 
 # once per file
 def analyze(self, t, PARAMS):
+	ISGIF = PARAMS[1]
 	for idx, entry in enumerate(t):
-		#print 'Events:', idx, '\r',
+		print 'Events:', idx, '\r',
 
-		if      t.Z_mass <= 98. and t.Z_mass >= 84.\
-			and t.nJets20 == 0\
-			and t.Z_pT <= 20.:
-			pass
-		else:
-			continue
+		if not ISGIF:
+			if      t.Z_mass <= 98. and t.Z_mass >= 84.\
+				and t.nJets20 == 0\
+				and t.Z_pT <= 20.:
+				pass
+			else:
+				continue
 
 		if list(t.lct_id) == [] or list(t.comp_id) == []: continue
 		E = Primitives.ETree(t, DecList=['LCT','COMP','WIRE'])
@@ -150,18 +179,23 @@ def load(self, PARAMS):
 	self.HIST = f.Get('h')
 	self.HIST.SetDirectory(0)
 
-# override class methods
+# override class methods and run analysis!
 R.gROOT.SetBatch(True)
-MS. P5Analyzer.analyze = analyze
-MS. P5Analyzer.load = load
-MS. P5Analyzer.setup = setup
-MS. P5Analyzer.cleanup = cleanup
-
-# run analysis!
-pdata = MS.P5Analyzer (PARAMS=PFN, F_DATAFILE=FP, RUNLIST=[282663])
+if ISGIF:
+	MS.GIFAnalyzer.analyze = analyze
+	MS.GIFAnalyzer.load = load
+	MS.GIFAnalyzer.setup = setup
+	MS.GIFAnalyzer.cleanup = cleanup
+	data = MS.GIFAnalyzer (PARAMS=[OFN, ISGIF], F_DATAFILE=FDATA, ATTLIST=[4.6])
+else:
+	MS. P5Analyzer.analyze = analyze
+	MS. P5Analyzer.load = load
+	MS. P5Analyzer.setup = setup
+	MS. P5Analyzer.cleanup = cleanup
+	data = MS.P5Analyzer (PARAMS=[OFN, ISGIF], F_DATAFILE=FDATA, RUNLIST=[282663])
 
 ##### MAKEPLOT FUNCTIONS #####
-def makePlot(h):
+def makePlot(h, ISGIF):
 	print 'The histogram was filled', int(h.GetEntries()), 'times'
 	pdict = {}
 	for i in range(256):
@@ -255,7 +289,10 @@ def makePlot(h):
 		lines[-1].Draw()
 
 	canvas.finishCanvas()
-	canvas.save('pdfs/BGPatterns.pdf')
+	if ISGIF:
+		canvas.save('pdfs/BGPatterns_GIF.pdf')
+	else:
+		canvas.save('pdfs/BGPatterns_P5.pdf')
 	R.SetOwnership(canvas, False)
 
-makePlot(pdata.HIST)
+makePlot(data.HIST, ISGIF)

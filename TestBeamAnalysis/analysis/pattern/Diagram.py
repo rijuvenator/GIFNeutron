@@ -4,6 +4,7 @@ import Gif.TestBeamAnalysis.Plotter as Plotter
 R.gROOT.SetBatch(True)
 
 class Canvas(R.TCanvas):
+	# layout defines the sub-pad structure: x=cols, y=rows
 	def __init__(self, layout={'x':1,'y':1}):
 		self.HEIGHT = 500
 		self.WIDTH  = 700
@@ -15,6 +16,7 @@ class Canvas(R.TCanvas):
 
 		Plotter.setStyle(self.CWIDTH, self.CHEIGHT, 42, 0.04)
 		R.TCanvas.__init__(self, 'c', '', self.CWIDTH, self.CHEIGHT)
+		# Make pads
 		for x in range(self.LAYOUT['x']):
 			for y in range(self.LAYOUT['y']):
 				x1 = x     * self.WIDTH  / float(self.CWIDTH )
@@ -24,6 +26,7 @@ class Canvas(R.TCanvas):
 				self.PADS[(x,y)] = R.TPad(str(x)+str(y),'',x1,y1,x2,y2)
 				self.PADS[(x,y)].Draw()
 
+	# ~generic drawText function
 	def drawText(self, text='', pos=(0., 0.), align='bl', fontcode='', fontscale=1.):
 		latex = R.TLatex()
 		AlignDict = {'l' : 1, 'c' : 2, 'r' : 3, 'b' : 1, 't' : 3}
@@ -35,9 +38,11 @@ class Canvas(R.TCanvas):
 		latex.SetTextSize(0.1 * fontscale)
 		latex.DrawLatexNDC(pos[0], pos[1], text)
 	
+	# draw a pattern pad
 	def drawGrid(self, pair, pid):
 			self.cd()
 			self.PADS[pair].cd()
+			# mapping from box bit number to lower left corner pixel position / 100
 			boxes = {\
 				0 : (3., 3.),
 				1 : (4., 3.),
@@ -49,6 +54,7 @@ class Canvas(R.TCanvas):
 				7 : (3., 2.),
 				8 : (4., 2.),
 			}
+			# draw the boxes; fill the ON boxes (defined by pid) with gray, and also the middle
 			for box in boxes:
 				x1 = (boxes[box][0] * 100.        ) / self.WIDTH
 				y1 = (boxes[box][1] * 100.        ) / self.HEIGHT
@@ -62,21 +68,26 @@ class Canvas(R.TCanvas):
 					self.BOXES[-1].SetFillColor(R.kWhite)
 				self.BOXES[-1].Draw('l')
 	
+	# draw visual boundary lines
 	def drawLines(self):
 		self.cd()
 		self.LINES = [\
-			R.TLine((1. -0.05)/self.LAYOUT['x'], 0, (1. -0.05)/self.LAYOUT['x'], 1),
-			R.TLine((3. -0.05)/self.LAYOUT['x'], 0, (3. -0.05)/self.LAYOUT['x'], 1),
-			R.TLine((12.-0.05)/self.LAYOUT['x'], 0, (12.-0.05)/self.LAYOUT['x'], 1)
+			R.TLine((4. -0.05)/self.LAYOUT['x'], 0                           , (4. -0.05)/self.LAYOUT['x'], 1                           ),
+			R.TLine(0                          , (6. + 0.05)/self.LAYOUT['y'], (4. -0.05)/self.LAYOUT['x'], (6. + 0.05)/self.LAYOUT['y']),
+			R.TLine(0                          , (4. + 0.05)/self.LAYOUT['y'], (4. -0.05)/self.LAYOUT['x'], (4. + 0.05)/self.LAYOUT['y']),
+			R.TLine((4. -0.05)/self.LAYOUT['x'], (2. + 0.05)/self.LAYOUT['y'], 1.0                        , (2. + 0.05)/self.LAYOUT['y']),
 		]
 		for line in self.LINES:
 			line.SetLineWidth(1)
 			line.Draw()
 	
+	# save
 	def save(self):
 		self.SaveAs('test.pdf')
 
-c = Canvas(layout={'x':13,'y':4})
+# instantiate canvas
+c = Canvas(layout={'x':8, 'y':7})
+# pids
 labels = [\
 	0,                   # 1 isolated
 	1, 16, 4, 64,        # 2 diag: neg neg pos pos
@@ -94,6 +105,7 @@ labels = [\
 		136,             # 3 horiz
 	161                  # 4 S
 ]
+# names
 names = [\
 	'Lonely',
 	'2#minusDiag-U', '2#minusDiag-D', '2+Diag-U', '2+Diag-D',
@@ -109,6 +121,35 @@ names = [\
 	'3-Vert', '3-Horiz',
 	'S'
 ]
+# ordered pad pairs
+pairlist = [\
+	(0, 6),
+	(0, 5), (1, 5), (2, 5), (3, 5),
+	(0, 4), (1, 4), (2, 4), (3, 4),
+	(0, 3), (1, 3), (2, 3),
+	(0, 2), (1, 2), (2, 2),
+	(0, 1), (1, 1), (2, 1), (3, 1),
+	(0, 0), (1, 0), (2, 0),
+	(4, 6), (5, 6), (6, 6),
+	(4, 5), (5, 5),
+	(4, 4), (5, 4), (6, 4), (7, 4),
+	(4, 3), (5, 3), (6, 3), (7, 3),
+	(4, 2), (5, 2),
+	(4, 1)
+]
+# { (pad pair) : (PID, name) }
+pairdict = dict(zip(pairlist, zip(labels, names)))
+
+for pair in pairlist:
+	c.drawGrid(pair, pairdict[pair][0])
+	c.drawText(text='PID '+str(pairdict[pair][0]), pos=(10./c.WIDTH, 300./c.HEIGHT), fontcode='b', fontscale=1.25)
+	c.drawText(text=       str(pairdict[pair][1]), pos=( 0./c.WIDTH, 200./c.HEIGHT), fontcode='b', fontscale=1.25)
+c.drawLines()
+c.save()
+
+# Old format
+'''
+c = Canvas(layout={'x':13,'y':4})
 pairlist = [\
 	(0,  3),
 	(1,  3), (1,  2), (1,  1), (1,  0),
@@ -124,12 +165,14 @@ pairlist = [\
 	(11, 3), (11, 2),
 	(12, 3)
 ]
-pairdict = dict(zip(pairlist, zip(labels, names)))
-
-for pair in pairlist:
-	c.drawGrid(pair, pairdict[pair][0])
-	c.drawText(text='PID '+str(pairdict[pair][0]), pos=(10./c.WIDTH, 300./c.HEIGHT), fontcode='b', fontscale=1.25)
-	c.drawText(text=       str(pairdict[pair][1]), pos=( 0./c.WIDTH, 200./c.HEIGHT), fontcode='b', fontscale=1.25)
-c.drawLines()
-c.save()
-
+def drawLines(self):
+	self.cd()
+	self.LINES = [\
+		R.TLine((1. -0.05)/self.LAYOUT['x'], 0, (1. -0.05)/self.LAYOUT['x'], 1),
+		R.TLine((3. -0.05)/self.LAYOUT['x'], 0, (3. -0.05)/self.LAYOUT['x'], 1),
+		R.TLine((12.-0.05)/self.LAYOUT['x'], 0, (12.-0.05)/self.LAYOUT['x'], 1)
+	]
+	for line in self.LINES:
+		line.SetLineWidth(1)
+		line.Draw()
+'''
