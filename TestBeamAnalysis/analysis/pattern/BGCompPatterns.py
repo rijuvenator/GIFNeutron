@@ -37,7 +37,7 @@ if not os.path.isfile(OFN) and FDATA is not None:
 def PatternID(comp, comps):
 	id_ = 0
 
-	# definition of bits
+	# definition of bits (wrt Center)
 	# 0 1 2
 	# 7   3
 	# 6 5 4
@@ -163,9 +163,6 @@ def analyze(self, t, PARAMS):
 								pid = PatternID(comp, comps)
 								if pid >= 0:
 									self.HIST.Fill(pid)
-									if pid == 34:
-										print idx, comp.cham
-
 
 	self.F_OUT.cd()
 	self.HIST.Write()
@@ -196,36 +193,39 @@ else:
 
 ##### MAKEPLOT FUNCTIONS #####
 def makePlot(h, ISGIF):
+	# get non-empty PIDs
 	print 'The histogram was filled', int(h.GetEntries()), 'times'
 	pdict = {}
 	for i in range(256):
 		if h.GetBinContent(i+1)>0:
-			#print '{:3d} {:6d}'.format(i, int(plot.GetBinContent(i+1)))
+			#print '{:3d} {:6d}'.format(i, int(h.GetBinContent(i+1)))
 			pdict[i] = int(h.GetBinContent(i+1))
 
+	# enumerate and name PIDs
 	labels = [\
-		0,                   # 1 isolated
-		1, 16, 4, 64,        # 2 diag: neg neg pos pos
-			2, 32,           # 2 vert
-			8, 128,          # 2 horiz
-		3, 24, 160,          # 3 Corner
-			6, 40, 192,      # 3 Gamma
-			9, 72, 132, 144, # 3 knight: TL BL TR BR
-			10, 48, 129,     # 3 L
-			12, 96, 130,     # 3 J
-			17, 68,          # 3 diag: neg pos
-			18, 33, 36, 66,  # 3 periscope: BR TL TR BR
+		0,                   # 1 Lonely
+		1, 16, 4, 64,        # 2 Diag: neg-U neg-D pos-U pos-D
+			2, 32,           # 2 Vert: U, D
+			8, 128,          # 2 Horiz: U, D
+		3, 24, 160,          # 3 Corner: U, R, L
+			6, 40, 192,      # 3 Gamma: U, R, L
+			9, 72, 132, 144, # 3 Dog-L, Gun-L, Dog-R, Gun-R
+			10, 48, 129,     # 3 L: R, D, L
+			12, 96, 130,     # 3 J: R, D, L
+			17, 68,          # 3 Diag: neg pos
+			18, 33, 36, 66,  # 3 Periscope: BR TL TR BR
 			5, 20, 80, 65,   # 3 C: U R B L
-			34,              # 3 vert
-			136,             # 3 horiz
+			34,              # 3 Vert
+			136,             # 3 Horiz
 		161                  # 4 S
 	]
+	# fill empties and see if any are missing
 	for label in labels:
 		if label not in pdict.keys():
 			pdict[label] = 0
-
 	print 'List of new IDs are:', [i for i in pdict.keys() if i not in labels]
 
+	# make multiple histograms based on number of hits
 	binslices = {\
 		1 : range(1 , 2 ),
 		2 : range(2 , 10),
@@ -241,6 +241,7 @@ def makePlot(h, ISGIF):
 	for bin_, label in enumerate(labels):
 		hists[1].GetXaxis().SetBinLabel(bin_+1, str(label))
 	
+	# make the plot and canvas objects and add the plots
 	plots = {}
 	for ncomps in binslices.keys():
 		plots[ncomps] = Plotter.Plot(hists[ncomps], option='hist', legName=str(ncomps)+' hits', legType='f')
@@ -251,6 +252,7 @@ def makePlot(h, ISGIF):
 	for ncomps in binslices.keys():
 		canvas.addMainPlot(plots[ncomps])
 
+	# decorate and format
 	canvas.makeTransparent()
 	canvas.scaleMargins(0.5, 'L')
 	canvas.firstPlot.setTitles(X='Pattern ID', Y='Counts')
@@ -259,10 +261,12 @@ def makePlot(h, ISGIF):
 	canvas.firstPlot.SetMaximum(10**math.ceil(math.log(canvas.firstPlot.GetMaximum(),10)) - 1)
 	canvas.firstPlot.SetMinimum(10**-1 + 0.0001)
 
+	# move legend
 	canvas.scaleMargins(2., 'R')
 	canvas.makeLegend()
 	canvas.legend.moveLegend(X=.16)
 
+	# colors
 	colors = {1 : R.kGreen, 2 : R.kBlue, 3 : R.kOrange, 4 : R.kRed}
 	for ncomps in binslices.keys():
 		plots[ncomps].SetLineWidth(0)
@@ -280,6 +284,7 @@ def makePlot(h, ISGIF):
 	for ncomps in binslices.keys():
 		plots[ncomps].Draw('same')
 
+	# grouping lines
 	ymin = canvas.firstPlot.GetMinimum()
 	ymax = canvas.firstPlot.GetMaximum()
 	lines = []
@@ -288,6 +293,7 @@ def makePlot(h, ISGIF):
 		lines.append(R.TLine(labels.index(bin_)+1, ymin, labels.index(bin_)+1, ymax))
 		lines[-1].Draw()
 
+	# finish up
 	canvas.finishCanvas()
 	if ISGIF:
 		canvas.save('pdfs/BGPatterns_GIF.pdf')

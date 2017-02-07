@@ -33,19 +33,25 @@ if not os.path.isfile(OFN) and FDATA is not None:
 	print 'Input files do not exist; exiting now...'
 	exit()
 
+##### CLUSTER CLASSES #####
 class Cluster(object):
 	def __init__(self, complist):
 		self.complist = complist
-		self.TL = (min([comp.staggeredHalfStrip for comp in self.complist]), max([comp.layer for comp in self.complist]))
-		self.H = max([comp.layer for comp in self.complist]) - min([comp.layer for comp in self.complist]) + 1
+		SHSList = [comp.staggeredHalfStrip for comp in self.complist]
+		LAYList = [comp.layer              for comp in self.complist]
+		self.TL = (min(SHSList), max(LAYList))
+		self.H = max(LAYList) - min(LAYList) + 1
+		self.PID = self.PatternID()
+		self.edges = {'T':max(LAYList), 'R':max(SHSList), 'B':min(LAYList), 'L':min(SHSList)}
 
 	# Pattern ID function
 	def PatternID(self):
+		# skip if cluster size > 3 high
 		if self.H > 3:
 			return -1
 		id_ = 0
 
-		# definition of bits
+		# definition of bits (wrt TL)
 		# 0 1 2
 		# 3 4 5
 		# 6 7 8
@@ -73,7 +79,10 @@ class ClusterCollection(object):
 	def __init__(self, complist):
 		self.complist = complist
 		self.ClusterList = []
+		# for keeping track of which comparators are already in a cluster
 		self.compcopy = self.complist[:]
+		# loop through the comparators that are still in compcopy, find cluster
+		# remove from comp copy, make Cluster, repeat until loop ends
 		for comp in self.complist:
 			if comp not in self.compcopy: continue
 			cluster = [comp]
@@ -83,6 +92,7 @@ class ClusterCollection(object):
 			self.ClusterList.append(Cluster(cluster))
 	
 	def findCluster(self, keycomp, cluster):
+		# find cluster: if comp in cluster, ignore, else, if nearby, add to cluster, recurse until loop ends
 		for comp in self.compcopy:
 			if comp in cluster: continue
 			if abs(comp.staggeredHalfStrip-keycomp.staggeredHalfStrip) <= 1 and abs(comp.layer-keycomp.layer) <= 1:
@@ -151,9 +161,9 @@ def analyze(self, t, PARAMS):
 			if complist != []:
 				cc = ClusterCollection(complist)
 				for cluster in cc.ClusterList:
-					if cluster.PatternID() >= 0:
-						self.HIST.Fill(cluster.PatternID())
-
+					pid = cluster.PID()
+					if pid >= 0:
+						self.HIST.Fill(pid)
 
 	self.F_OUT.cd()
 	self.HIST.Write()
@@ -184,15 +194,17 @@ else:
 
 ##### MAKEPLOT FUNCTIONS #####
 def makePlot(h, ISGIF):
+	# get non-empty PIDs
 	print 'The histogram was filled', int(h.GetEntries()), 'times'
 	pdict = {}
 	for i in range(512):
 		if h.GetBinContent(i+1)>0:
-			print '{:3d} {:6d}'.format(i, int(h.GetBinContent(i+1)))
+			#print '{:3d} {:6d}'.format(i, int(h.GetBinContent(i+1)))
 			pdict[i] = int(h.GetBinContent(i+1))
 
+	# enumerate and name PIDs
 	labels = [\
-		1,                # lonely
+		1,                # Lonely
 		3, 9,             # 2-Horiz, 2-Vert
 		10, 17,           # 2+Diag, 2-Diag
 		11, 19, 25, 26,   # Gamma, Corner, L, J
@@ -202,12 +214,13 @@ def makePlot(h, ISGIF):
 		74, 82, 137, 145, # Peri-TR, Peri-BL, Peri-BR, Peri-TL
 		84, 273           # 3+Diag, 3-Diag
 	]
+	# fill empties and see if any are missing
 	for label in labels:
 		if label not in pdict.keys():
 			pdict[label] = 0
-
 	print 'List of new IDs are:', [i for i in pdict.keys() if i not in labels]
 
+	# make multiple histograms based on number of hits
 	binslices = {\
 		1 : range(1 , 2 ),
 		2 : range(2 , 6 ),
@@ -222,6 +235,7 @@ def makePlot(h, ISGIF):
 	for bin_, label in enumerate(labels):
 		hists[1].GetXaxis().SetBinLabel(bin_+1, str(label))
 	
+	# make the plot and canvas objects and add the plots
 	plots = {}
 	for ncomps in binslices.keys():
 		plots[ncomps] = Plotter.Plot(hists[ncomps], option='hist', legName=str(ncomps)+' hits', legType='f')
@@ -232,6 +246,7 @@ def makePlot(h, ISGIF):
 	for ncomps in binslices.keys():
 		canvas.addMainPlot(plots[ncomps])
 
+	# decorate and format
 	canvas.makeTransparent()
 	canvas.scaleMargins(0.5, 'L')
 	canvas.firstPlot.setTitles(X='Pattern ID', Y='Counts')
@@ -240,27 +255,30 @@ def makePlot(h, ISGIF):
 	canvas.firstPlot.SetMaximum(10**math.ceil(math.log(canvas.firstPlot.GetMaximum(),10)) - 1)
 	canvas.firstPlot.SetMinimum(10**-1 + 0.0001)
 
+	# move legend
 	canvas.scaleMargins(2., 'R')
 	canvas.makeLegend()
 	canvas.legend.moveLegend(X=.16)
 
+	# colors
 	colors = {1 : R.kGreen, 2 : R.kBlue, 3 : R.kOrange, 4 : R.kRed}
 	for ncomps in binslices.keys():
 		plots[ncomps].SetLineWidth(0)
 		plots[ncomps].SetFillColor(colors[ncomps])
 
-	## two neighboring comparators; should be suppressed
-	#shades = R.TH1F('shades','',len(labels), 0, len(labels))
-	#bins = [3, 24, 160, 6, 40, 192, 8, 128, 9, 72, 132, 144, 10, 48, 129, 12, 96, 130, 136, 161]
-	#for bin_ in bins:
-	#	shades.SetBinContent(labels.index(bin_)+1, canvas.firstPlot.GetMaximum())
-	#shades.SetLineWidth(0)
-	#shades.SetFillStyle(3004)
-	#shades.SetFillColorAlpha(R.kBlack, 0.5)
-	#shades.Draw('same')
-	#for ncomps in binslices.keys():
-	#	plots[ncomps].Draw('same')
+	# two neighboring comparators; should be suppressed
+	shades = R.TH1F('shades','',len(labels), 0, len(labels))
+	bins = [3, 11, 19, 25, 26, 14, 28, 35, 49, 56]
+	for bin_ in bins:
+		shades.SetBinContent(labels.index(bin_)+1, canvas.firstPlot.GetMaximum())
+	shades.SetLineWidth(0)
+	shades.SetFillStyle(3004)
+	shades.SetFillColorAlpha(R.kBlack, 0.5)
+	shades.Draw('same')
+	for ncomps in binslices.keys():
+		plots[ncomps].Draw('same')
 
+	# grouping lines
 	ymin = canvas.firstPlot.GetMinimum()
 	ymax = canvas.firstPlot.GetMaximum()
 	lines = []
@@ -269,6 +287,7 @@ def makePlot(h, ISGIF):
 		lines.append(R.TLine(labels.index(bin_)+1, ymin, labels.index(bin_)+1, ymax))
 		lines[-1].Draw()
 
+	# finish up
 	canvas.finishCanvas()
 	if ISGIF:
 		canvas.save('pdfs/BGPatterns_GIF.pdf')

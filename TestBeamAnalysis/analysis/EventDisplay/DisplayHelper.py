@@ -145,3 +145,7 @@ class Canvas():
 		text.SetTextAlign(31)
 		text.SetTextSize(20./200.)
 		text.DrawLatexNDC(1-self.pads[PAD].GetRightMargin(), 1-self.pads[PAD].GetTopMargin() + 10./self.height, TEXT)
+	
+	def deleteCanvas(self):
+		R.gROOT.ProcessLine('delete gROOT->FindObject("c");')
+
