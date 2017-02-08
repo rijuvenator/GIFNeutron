@@ -1,5 +1,4 @@
-''' Submission script for running the GIF Analysis code
-Historammer and N-Tupler
+''' Submission script for running the GIF Analysis code N-Tupler
 '''
 import sys,os
 import commands
@@ -32,8 +31,6 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 
 	measurements = [Meas.meas[str(m)] for m in measList]
 	for TBM in measurements:
-		# commented out since we only want trees (histos are chamber dependent)
-		#chamber = TBM.cham
 		fn = TBM.ROOTFile(prefix='/store/user/cschnaib/GIF/')
 		ana_dataset = 'ana_%s.root'%(TBM.meas)
 		outPath = plotsDir+ana_dataset
@@ -43,13 +40,6 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 		print ""
 
 		gif_py = open('GifAnalysis.py').read()
-		# commented out since we only want trees (histos are chamber dependent)
-		#if not 'noHistos' in sys.argv:
-		#    gif_py += '\ndoHistos(process)\n'
-		#if not 'noTree' in sys.argv:
-		gif_py += '\ndoTree(process)\n'
-		# commented out since we only want trees (histos are chamber dependent)
-		#process.GIFHistos.chamberType = cms.untracked.string('%(chamber)s')
 		gif_py += '''
 process.source.fileNames  = cms.untracked.vstring('%(fn)s')
 process.TFileService.fileName = cms.string('%(outPath)s')

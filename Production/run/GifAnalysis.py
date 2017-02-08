@@ -20,26 +20,15 @@ process.p = cms.Path(process.muonCSCDigis * process.csc2DRecHits * process.cscSe
 process.CSCGeometryESModule.useGangedStripsInME1a = False
 process.idealForDigiCSCGeometry.useGangedStripsInME1a = False
 
-def doTree(process):
-    process.GIFTree = cms.EDAnalyzer('MakeSimpleGIFTree',
-                            wireDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCWireDigi'),
-                            stripDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCStripDigi'),
-                            alctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCALCTDigi'),
-                            clctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCCLCTDigi'),
-                            lctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCCorrelatedLCTDigi'),
-                            compDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCComparatorDigi'),
-                            segmentTag = cms.InputTag('cscSegments'),
-                            recHitTag = cms.InputTag('csc2DRecHits'),
-    )
-    process.p *= process.GIFTree
-
-def doHistos(process):
-    process.GIFHistos = cms.EDAnalyzer('Gif',
-                            stripDigiTag = cms.InputTag('muonCSCDigis','MuonCSCStripDigi'),
-                            wireDigiTag = cms.InputTag('muonCSCDigis','MuonCSCWireDigi'),
-                            cscRecHitTag = cms.InputTag('csc2DRecHits'),#,''),
-                            cscSegTag = cms.InputTag('cscSegments'),
-                            chamberType = cms.untracked.string('ME21'), #chamber type: ME1/1-11, ME2/1-21  
-    )
-    process.p *= process.GIFHistos
+process.GIFTree = cms.EDAnalyzer('MakeSimpleGIFTree',
+						wireDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCWireDigi'),
+						stripDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCStripDigi'),
+						alctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCALCTDigi'),
+						clctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCCLCTDigi'),
+						lctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCCorrelatedLCTDigi'),
+						compDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCComparatorDigi'),
+						segmentTag = cms.InputTag('cscSegments'),
+						recHitTag = cms.InputTag('csc2DRecHits'),
+)
+process.p *= process.GIFTree
 

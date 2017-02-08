@@ -1,5 +1,11 @@
-''' Submission script for running the GIF Analysis code
-Historammer and N-Tupler
+''' 
+
+*******
+Warning this script is broken
+*******
+
+
+Submission script for running the GIF Analysis code N-Tupler
 '''
 import sys,os
 import commands
