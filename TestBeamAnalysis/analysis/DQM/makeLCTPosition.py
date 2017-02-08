@@ -1,5 +1,5 @@
 import numpy as np
-import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.TestBeamAnalysis.OldPlotter as Plotter
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import ROOT as R
 

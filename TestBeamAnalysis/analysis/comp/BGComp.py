@@ -2,7 +2,7 @@ import os
 import numpy as np
 import ROOT as R
 import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.TestBeamAnalysis.OldPlotter as Plotter
 import Gif.TestBeamAnalysis.Auxiliary as Aux
 import Gif.TestBeamAnalysis.ChamberHandler as CH
 import Gif.TestBeamAnalysis.MegaStruct as MS
@@ -106,10 +106,10 @@ def analyze(self, t, PARAMS):
 						if comp.cham != lct.cham: continue
 						if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
 							self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
-						if comp.timeBin >= 1 and comp.timeBin <= 5:
-							nComp += 1
-			self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
-			self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
+							if comp.timeBin >= 1 and comp.timeBin <= 5:
+								nComp += 1
+					self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
+					self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
 
 	self.F_OUT.cd()
 	for ring in ringlist:
@@ -149,10 +149,10 @@ def makeTimePlot(h, ring):
 	canvas.addMainPlot(plot, addToLegend=False)
 	canvas.makeTransparent()
 	#canvas.firstPlot.plot.SetMaximum(1.05)
-	#canvas.firstPlot.plot.SetMinimum(0)
+	canvas.firstPlot.plot.SetMinimum(0)
 	#canvas.firstPlot.plot.SetMinimum(0.00001)
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/BGCompTime'+'_'+ring+'.pdf')
+	canvas.c.SaveAs('pdfs/BGCompTimeNew'+'_'+ring+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 def makeLumiPlot(h1, h2, ring):
@@ -164,11 +164,11 @@ def makeLumiPlot(h1, h2, ring):
 	#lumi = np.array(lumi)
 	lumiA = np.array([(15.e33)/30 * (i+0.5) for i in range(30)])
 	dataA = np.array([ncomp/float(total) if total != 0 else 0. for ncomp,total in zip(ncomps,totals)])
-	lumi = np.array(lumiA[9:26])
-	data = np.array(dataA[9:26])
+	lumi = np.array(lumiA[10:26])
+	data = np.array(dataA[10:26])
 	h = R.TGraph(len(lumi), lumi, data)
 	#print lumi, data
-	plot = Plotter.Plot(h, option='P')
+	plot = Plotter.Plot(h, option='PE')
 	canvas = Plotter.Canvas(lumi='ME'+ring, logy=False)
 	canvas.makeLegend()
 	canvas.addMainPlot(plot, addToLegend=False)
@@ -177,12 +177,12 @@ def makeLumiPlot(h1, h2, ring):
 	canvas.firstPlot.setTitles(X='Luminosity [Hz/cm^{2}]', Y='#LT Number of Background Comparators #GT')
 	canvas.firstPlot.plot.GetXaxis().SetLimits(0., 15.e33)
 	canvas.firstPlot.plot.SetMinimum(0. )
-	canvas.firstPlot.plot.SetMaximum(0.3)
+	canvas.firstPlot.plot.SetMaximum(0.6)
 	canvas.firstPlot.scaleTitles(0.8)
 	canvas.firstPlot.scaleLabels(0.8)
 	canvas.firstPlot.scaleTitleOffsets(1.2)
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/BGCompAvgN'+'_'+ring+'.pdf')
+	canvas.c.SaveAs('pdfs/BGCompAvgNNew'+'_'+ring+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 def makeNumDum(h, ring, which):
@@ -194,14 +194,14 @@ def makeNumDum(h, ring, which):
 	canvas.scaleMargins(1.25, 'R')
 	canvas.firstPlot.setTitles(X='Luminosity [Hz/cm^{2}]', Y='Number of Background Comparators' if which == 'ncomp' else 'Counts')
 	canvas.finishCanvas()
-	canvas.c.SaveAs('pdfs/BGCompAvgN'+'_'+ring+'_'+which+'.pdf')
+	canvas.c.SaveAs('pdfs/BGCompAvgNNew'+'_'+ring+'_'+which+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
 for ring in ringlist:
 	makeTimePlot(pdata.HISTS[ring]['time'], ring)
 	makeLumiPlot(pdata.HISTS[ring]['lumi'], pdata.HISTS[ring]['totl'], ring)
-	#makeNumDum(pdata.HISTS[ring]['lumi'], ring, 'ncomp')
-	#makeNumDum(pdata.HISTS[ring]['totl'], ring, 'lumi')
+	makeNumDum(pdata.HISTS[ring]['lumi'], ring, 'ncomp')
+	makeNumDum(pdata.HISTS[ring]['totl'], ring, 'lumi')
 
 ##### WITH WIRES
 '''

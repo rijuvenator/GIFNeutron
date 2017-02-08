@@ -54,7 +54,7 @@ for i in scalars[:,3]:
 #		np.std(scalars[:,3]),
 #		np.std(scalars[:,3])/np.mean(scalars[:,3])*100.0)
 
-import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.TestBeamAnalysis.OldPlotter as Plotter
 from ROOT import *
 
 gROOT.SetBatch(kTRUE)

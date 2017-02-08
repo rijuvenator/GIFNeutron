@@ -17,38 +17,49 @@ R.gROOT.SetBatch(True)
 ED.setStyle('primitives') # holy crap! setStyle was taking up 99% of the computation time!
 
 ##### COMMAND LINE PARAMETERS
-parser = argparse.ArgumentParser(description='Makes event displays for given event list file and chamber')
-parser.add_argument('--cham'  ,dest='CHAM'  ,help='Chamber serial number')
-parser.add_argument('--list'  ,dest='LIST'  ,help='Event list text file')
-parser.add_argument('--file'  ,dest='FILE'  ,help='Data file name')
-parser.add_argument('--outDir',dest='OUTDIR',help='Plot saving directory',default='pdfs')
+parser = argparse.ArgumentParser(description='Makes event displays')
+parser.add_argument('--config',dest='CONFIG',help='Configuration file'   ,default='ED.config')
+parser.add_argument('--outDir',dest='OUTDIR',help='Plot saving directory',default='pdfs'     )
 args = parser.parse_args()
 
 ##### PARAMETERS #####
-# Measurement List, Chamber IDs (1, 110), Event List (1 indexed)
-FILES     = [args.FILE]
-CHAMS     = [int(args.CHAM)]
-EVENTFILE = open(args.LIST)
-ENTRIES   = []
-for event in EVENTFILE:
-	# Make display plots 1 indexed, tree is 0 indexed
-	ENTRIES.append(int(event.strip('\n')))
 OUTDIR = args.OUTDIR
+# CONFIG dictionary: CONFIG[FN][ENTRY] = [CHAMLIST]
+CONFIG = {}
+F_CONFIG = open(args.CONFIG)
+for line in F_CONFIG:
+	# skip empty lines and comments
+	if line[0] == '#' or line == '\n':
+		continue
+	cols = line.strip('\n').split()
+	if cols[0] == 'GIF':
+		MEAS = cols[1]
+		FN = '../../trees/ana_'+MEAS+'.root'
+		CONFIG[FN] = {}
+	elif cols[0] == 'P5':
+		FN = cols[1]
+		CONFIG[FN] = {}
+	else:
+		ENTRY = int(cols[0])
+		CHAM  = int(cols[1])
+		if ENTRY not in CONFIG[FN].keys():
+			CONFIG[FN][ENTRY] = []
+		CONFIG[FN][ENTRY].append(CHAM)
 
 # Which displays to plot
-DOPATTERN  = True
 DOSEGMENTS = False
+DOPATTERN  = True
 DRAWZTITLE = True
 
 ##### BEGIN CODE #####
 THRESHOLD = 13.3
 
-for FILE in FILES:
+for FILE in CONFIG.keys():
 	# Get file and tree
 	f = R.TFile.Open(FILE)
 	t = f.Get('GIFTree/GIFDigiTree')
 
-	for ENTRY in ENTRIES:
+	for ENTRY in CONFIG[FILE].keys():
 		# Get the event, make the ETree, and make lists of primitives objects
 		t.GetEntry(ENTRY)
 		EVENT = t.Event_EventNumber
@@ -67,7 +78,7 @@ for FILE in FILES:
 		if DOSEGMENTS:
 			segs    = [Primitives.Segment(E, i) for i in range(len(E.seg_cham  ))]
 
-		for CHAM in CHAMS:
+		for CHAM in CONFIG[FILE][ENTRY]:
 			CHAMBER = CH.Chamber(CHAM)
 			# Upper limits for wire group numbers and half strip numbers
 			WIRE_MAX = CHAMBER.nwires
@@ -76,7 +87,7 @@ for FILE in FILES:
 			# Ndivisions codes
 			ND = {\
 				'st' : { 64 : 520,  80 : 520, 112 : 1020            },
-				'hs' : {128 : 520, 160 : 520, 224 : 1020            },
+				'hs' : {128 :1020, 160 :1020, 224 : 1020            },
 				'wg' : { 48 : 510,  64 : 520,  96 :  520, 112 : 1020}
 			}
 
@@ -198,12 +209,12 @@ for FILE in FILES:
 			##### CLEAN UP #####
 			for pad in canvas.pads:
 				pad.cd()
-				pad.RedrawAxis('')
+				pad.RedrawAxis()
 
 			# lumi text
 			RUN = t.Event_RunNumber
 			LS  = t.Event_LumiSection
-			canvas.drawLumiText(CHAMBER.display('ME{E}{S}/{R}/{C}') + ', RES =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
+			canvas.drawLumiText(CHAMBER.display('ME{E}{S}/{R}/{C}') + ', REL =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
 
 			# save as
 			canvas.canvas.SaveAs(OUTDIR+'/ED_'+CHAMBER.display('ME{E}{S}{R}{C}_')+str(EVENT)+'.pdf')
@@ -211,5 +222,6 @@ for FILE in FILES:
 			print '\033[1mFILE \033[32m'+'ED_'+CHAMBER.display('ME{E}{S}{R}{C}_')+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
 
 			del hWires, hComps, hADC, hNotReadS
+			canvas.deleteCanvas()
 
 	f.Close()

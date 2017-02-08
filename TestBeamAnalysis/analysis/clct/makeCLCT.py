@@ -1,6 +1,6 @@
 import numpy as np
 import ROOT as R
-import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.TestBeamAnalysis.OldPlotter as Plotter
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.roottools as tools
 import Gif.TestBeamAnalysis.Auxiliary as Aux
@@ -20,7 +20,7 @@ castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
 #fromFile = None
-fromFile = '../datafiles/clctLay'
+fromFile = '../datafiles/data_clctLay'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {
