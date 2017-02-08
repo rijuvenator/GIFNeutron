@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import os
 import ROOT
-import Gif.TestBeamAnalysis.Measurements as Meas
-from Gif.TestBeamAnalysis.roottools import *
+import Gif.NeutronSim.Measurements as Meas
+from Gif.NeutronSim.roottools import *
 
 # List of hists from makeSegmentHistos to compare
 hists = [

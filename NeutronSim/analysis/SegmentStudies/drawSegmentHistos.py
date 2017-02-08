@@ -5,8 +5,8 @@ options : ?
 
 import os,sys
 import ROOT as r
-import Gif.TestBeamAnalysis.Measurements as Meas
-from Gif.TestBeamAnalysis.roottools import *
+import Gif.NeutronSim.Measurements as Meas
+from Gif.NeutronSim.roottools import *
 from inputHists import *
 import argparse
 parser = argparse.ArgumentParser(description='Segment Analysis : make histograms from tree')

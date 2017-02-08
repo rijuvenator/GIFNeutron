@@ -1,7 +1,7 @@
 from ROOT import *
 import numpy as np
 import commands as cmd
-import Gif.TestBeamAnalysis.OldPlotter as Plotter
+import Gif.NeutronSim.OldPlotter as Plotter
 
 f = open('data')
 print "File opened"

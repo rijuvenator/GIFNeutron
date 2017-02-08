@@ -1,12 +1,5 @@
 #include "Gif/NeutronSim/interface/FillGIFInfo.h"
 
-bool FillInfo::isInChamlist(unsigned short int id, std::vector<std::vector<unsigned short int>> &chamlist)
-{
-	bool isInFirst  = std::any_of(chamlist[0].begin(), chamlist[0].end(), [id](unsigned short int i){return i == id;});
-	bool isInSecond = std::any_of(chamlist[1].begin(), chamlist[1].end(), [id](unsigned short int i){return i == id;});
-	return isInFirst || isInSecond;
-}
-
 void FillGIFEventInfo::fill(const edm::Event& iEvent){
   reset();
   Event_EventNumber     = iEvent.id().event();
@@ -16,13 +9,12 @@ void FillGIFEventInfo::fill(const edm::Event& iEvent){
 }
 
 
-void FillGIFRecHitInfo::fill(const CSCRecHit2DCollection& recHits, std::vector<std::vector<unsigned short int>> &chamlist){
+void FillGIFRecHitInfo::fill(const CSCRecHit2DCollection& recHits){
   reset();
   for (CSCRecHit2DCollection::const_iterator hiti=recHits.begin(); hiti!=recHits.end(); hiti++)
   {
       DetId idd = (hiti)->geographicalId();
       CSCDetId hitID(idd.rawId());
-	  if (!isInChamlist(GIFHelper::chamberSerial(hitID), chamlist)) continue;
       rh_id          .push_back(GIFHelper::chamberSerial(hitID));
       rh_lay         .push_back(GIFHelper::convertTo<size8>(hitID.layer(),"rh_lay"));
       rh_pos_x       .push_back(hiti->localPosition().x());
@@ -70,11 +62,10 @@ void FillGIFRecHitInfo::fill(const CSCRecHit2DCollection& recHits, std::vector<s
   }
 }
 
-void FillGIFStripInfo::fill(const CSCStripDigiCollection& strips, std::vector<std::vector<unsigned short int>> &chamlist){
+void FillGIFStripInfo::fill(const CSCStripDigiCollection& strips){
   reset();
   for (CSCStripDigiCollection::DigiRangeIterator dSDiter=strips.begin(); dSDiter!=strips.end(); dSDiter++) {
     CSCDetId id = (CSCDetId)(*dSDiter).first;
-	if (!isInChamlist(GIFHelper::chamberSerial(id), chamlist)) continue;
 
     std::vector<CSCStripDigi>::const_iterator stripIter = (*dSDiter).second.first;
     std::vector<CSCStripDigi>::const_iterator lStrip = (*dSDiter).second.second;
@@ -98,12 +89,11 @@ void FillGIFStripInfo::fill(const CSCStripDigiCollection& strips, std::vector<st
   } // end strip loop
 }
 
-void FillGIFCompInfo::fill(const CSCComparatorDigiCollection& comps, std::vector<std::vector<unsigned short int>> &chamlist){
+void FillGIFCompInfo::fill(const CSCComparatorDigiCollection& comps){
   reset();
   for (CSCComparatorDigiCollection::DigiRangeIterator chamber=comps.begin(); chamber!=comps.end(); chamber++)
   {
     CSCDetId id = (*chamber).first;
-	if (!isInChamlist(GIFHelper::chamberSerial(id), chamlist)) continue;
 
     const CSCComparatorDigiCollection::Range& range =(*chamber).second;
     for(CSCComparatorDigiCollection::const_iterator digiItr = range.first; digiItr != range.second; ++digiItr)
@@ -119,14 +109,13 @@ void FillGIFCompInfo::fill(const CSCComparatorDigiCollection& comps, std::vector
 
 }
 
-void FillGIFWireInfo::fill(const CSCWireDigiCollection& wires, std::vector<std::vector<unsigned short int>> &chamlist){
+void FillGIFWireInfo::fill(const CSCWireDigiCollection& wires){
   reset();
   // lay is array of layer occupancy indexed by layer
   int lay[6] = {0,0,0,0,0,0};
   for (CSCWireDigiCollection::DigiRangeIterator chamber=wires.begin(); chamber!=wires.end(); chamber++)
   {
     CSCDetId id = (*chamber).first;
-	if (!isInChamlist(GIFHelper::chamberSerial(id), chamlist)) continue;
     int layer = id.layer();
       const CSCWireDigiCollection::Range& range =(*chamber).second;
       for(CSCWireDigiCollection::const_iterator digiItr = range.first; digiItr != range.second; ++digiItr)
@@ -156,12 +145,11 @@ void FillGIFWireInfo::fill(const CSCWireDigiCollection& wires, std::vector<std::
 
 
 
-void FillGIFLCTInfo::fill(const CSCCorrelatedLCTDigiCollection& lcts, std::vector<std::vector<unsigned short int>> &chamlist){
+void FillGIFLCTInfo::fill(const CSCCorrelatedLCTDigiCollection& lcts){
   reset();
   for (CSCCorrelatedLCTDigiCollection::DigiRangeIterator chamber=lcts.begin(); chamber!=lcts.end(); chamber++)
   {
     CSCDetId id = (*chamber).first;
-	if (!isInChamlist(GIFHelper::chamberSerial(id), chamlist)) continue;
     const CSCCorrelatedLCTDigiCollection::Range& range =(*chamber).second;
     for(CSCCorrelatedLCTDigiCollection::const_iterator digiItr = range.first; digiItr != range.second; ++digiItr)
     {
@@ -214,7 +202,7 @@ int FillGIFSegmentInfo::segmentQuality(edm::OwnVector<CSCSegment>::const_iterato
   return quality;
 }
 
-void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollection& segments, const CSCRecHit2DCollection* recHits, std::vector<std::vector<unsigned short int>> &chamlist){
+void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollection& segments, const CSCRecHit2DCollection* recHits){
   reset();
 
   for(CSCSegmentCollection::const_iterator dSiter=segments.begin(); dSiter != segments.end(); dSiter++) {
@@ -222,7 +210,6 @@ void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollect
 	DetId gid = (*dSiter).geographicalId();
 
 	CSCDetId chamberId(gid.rawId());
-	if (!isInChamlist(GIFHelper::chamberSerial(chamberId), chamlist)) continue;
 	const CSCChamber *segChamber = theCSC->chamber(chamberId);
 
 	std::vector<std::vector<float>> seg_pos;
@@ -323,12 +310,11 @@ void FillGIFSegmentInfo::fill(const CSCGeometry * theCSC,const CSCSegmentCollect
 
 }
 
-void FillGIFCLCTInfo::fill(const CSCCLCTDigiCollection& clcts, std::vector<std::vector<unsigned short int>> &chamlist){
+void FillGIFCLCTInfo::fill(const CSCCLCTDigiCollection& clcts){
   reset();
 
   for(CSCCLCTDigiCollection::DigiRangeIterator chamber=clcts.begin(); chamber != clcts.end(); chamber++) {
     CSCDetId id = (*chamber).first;
-	if (!isInChamlist(GIFHelper::chamberSerial(id), chamlist)) continue;
     const CSCCLCTDigiCollection::Range& range =(*chamber).second;
     for(CSCCLCTDigiCollection::const_iterator digiItr = range.first; digiItr != range.second; ++digiItr)
     {
@@ -349,12 +335,11 @@ void FillGIFCLCTInfo::fill(const CSCCLCTDigiCollection& clcts, std::vector<std::
 }
 
 
-void FillGIFALCTInfo::fill(const CSCALCTDigiCollection& alcts, std::vector<std::vector<unsigned short int>> &chamlist){
+void FillGIFALCTInfo::fill(const CSCALCTDigiCollection& alcts){
   reset();
 
   for(CSCALCTDigiCollection::DigiRangeIterator chamber=alcts.begin(); chamber != alcts.end(); chamber++) {
     CSCDetId id = (*chamber).first;
-	if (!isInChamlist(GIFHelper::chamberSerial(id), chamlist)) continue;
     const CSCALCTDigiCollection::Range& range =(*chamber).second;
     for(CSCALCTDigiCollection::const_iterator digiItr = range.first; digiItr != range.second; ++digiItr)
     {

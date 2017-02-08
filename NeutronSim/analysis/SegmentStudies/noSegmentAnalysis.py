@@ -1,7 +1,7 @@
 import ROOT as r
 import struct
 import os,sys
-from Gif.TestBeamAnalysis.TestBeamMeasurements import *
+from Gif.NeutronSim.TestBeamMeasurements import *
 
 r.gROOT.SetBatch(True)
 

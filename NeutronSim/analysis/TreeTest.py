@@ -4,9 +4,9 @@ statusMsg('Running TreeTest...')
 
 import numpy as np
 import ROOT as R
-import Gif.TestBeamAnalysis.OldPlotter as Plotter
-import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.Auxiliary as Aux
+import Gif.NeutronSim.OldPlotter as Plotter
+import Gif.NeutronSim.Primitives as Primitives
+import Gif.NeutronSim.Auxiliary as Aux
 statusMsg('All modules imported.')
 
 f = R.TFile.Open('../trees/ana_3284.root')

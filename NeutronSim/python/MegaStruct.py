@@ -1,13 +1,13 @@
 import subprocess as bash
 import numpy as np
 import ROOT as R
-import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.Plotter as Plotter
-import Gif.TestBeamAnalysis.Auxiliary as Aux
-import Gif.TestBeamAnalysis.ChamberHandler as CH
+import Gif.NeutronSim.Primitives as Primitives
+import Gif.NeutronSim.Plotter as Plotter
+import Gif.NeutronSim.Auxiliary as Aux
+import Gif.NeutronSim.ChamberHandler as CH
 
 CMSSW_PATH = bash.check_output('echo $CMSSW_BASE',shell=True).strip('\n') + '/src/'
-GITLAB_PATH = CMSSW_PATH + 'Gif/TestBeamAnalysis/'
+GITLAB_PATH = CMSSW_PATH + 'Gif/NeutronSim/'
 F_MEASGRID = GITLAB_PATH + 'analysis/datafiles/measgrid'
 F_ATTENHUT = GITLAB_PATH + 'analysis/datafiles/attenhut'
 F_RUNGRID  = GITLAB_PATH + 'analysis/datafiles/runlumigrid'

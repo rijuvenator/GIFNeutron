@@ -5,8 +5,8 @@ options : --extra EXTRA (optional)
 import ROOT as r
 import struct
 import os,sys
-import Gif.TestBeamAnalysis.Measurements as Meas
-#from Gif.TestBeamAnalysis.TestBeamMeasurements import *
+import Gif.NeutronSim.Measurements as Meas
+#from Gif.NeutronSim.TestBeamMeasurements import *
 import argparse
 parser = argparse.ArgumentParser(description='Segment Analysis : make histograms from tree')
 parser.add_argument('--extra',dest='extra',help='Extra info about plots',default=None)

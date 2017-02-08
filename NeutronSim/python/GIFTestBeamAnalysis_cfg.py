@@ -14,7 +14,8 @@ process.load('Configuration.StandardSequences.Reconstruction_cff')
 #process.load('RecoMuon.GlobalMuonProducer.globalMuons_cff')
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
-process.GlobalTag.globaltag = '74X_dataRun2_Prompt_v0'
+from Configuration.AlCa.GlobalTag import GlobalTag
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:mc', '')
 
 process.load('FWCore.MessageLogger.MessageLogger_cfi')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000

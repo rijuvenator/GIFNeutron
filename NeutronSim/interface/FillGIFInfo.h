@@ -116,7 +116,7 @@ class FillGIFRecHitInfo : public FillInfo
 		}
 
 	public:
-		void fill(const CSCRecHit2DCollection& recHits, std::vector<std::vector<unsigned short int>> &chamlist);
+		void fill(const CSCRecHit2DCollection& recHits);
 };
 
 class FillGIFStripInfo : public FillInfo
@@ -147,7 +147,7 @@ class FillGIFStripInfo : public FillInfo
 		}
 
 	public:
-		void fill(const CSCStripDigiCollection& strips, std::vector<std::vector<unsigned short int>> &chamlist);
+		void fill(const CSCStripDigiCollection& strips);
 };
 
 class FillGIFCompInfo : public FillInfo
@@ -185,7 +185,7 @@ class FillGIFCompInfo : public FillInfo
 		}
 
 	public:
-		void fill(const CSCComparatorDigiCollection& comps, std::vector<std::vector<unsigned short int>> &chamlist);
+		void fill(const CSCComparatorDigiCollection& comps);
 };
 
 
@@ -222,7 +222,7 @@ class FillGIFWireInfo : public FillInfo
 		}
 
 	public:
-		void fill(const CSCWireDigiCollection& wires, std::vector<std::vector<unsigned short int>> &chamlist);
+		void fill(const CSCWireDigiCollection& wires);
 };
 
 
@@ -260,7 +260,7 @@ class FillGIFLCTInfo : public FillInfo
 		}
 
 	public:
-		void fill(const CSCCorrelatedLCTDigiCollection& lcts, std::vector<std::vector<unsigned short int>> &chamlist);
+		void fill(const CSCCorrelatedLCTDigiCollection& lcts);
 };
 
 
@@ -357,7 +357,7 @@ class FillGIFSegmentInfo : public FillInfo
 
 	public:
 		// if having problems, try defaulting the recHits argument to = 0 (I changed it) --Riju
-		void fill(const CSCGeometry * theCSC,const CSCSegmentCollection& segments, const CSCRecHit2DCollection * recHits, std::vector<std::vector<unsigned short int>> &chamlist);
+		void fill(const CSCGeometry * theCSC,const CSCSegmentCollection& segments, const CSCRecHit2DCollection * recHits);
 		size16 findRecHitIdx(const CSCRecHit2D& hit, const CSCRecHit2DCollection* allRecHits);
 		int segmentQuality(edm::OwnVector<CSCSegment>::const_iterator segment);
 };
@@ -410,7 +410,7 @@ class FillGIFCLCTInfo : public FillInfo
 		}
 
 	public:
-		void fill(const CSCCLCTDigiCollection& clcts, std::vector<std::vector<unsigned short int>> &chamlist);
+		void fill(const CSCCLCTDigiCollection& clcts);
 };
 
 class FillGIFALCTInfo : public FillInfo
@@ -453,7 +453,7 @@ class FillGIFALCTInfo : public FillInfo
 		}
 
 	public:
-		void fill(const CSCALCTDigiCollection& alcts, std::vector<std::vector<unsigned short int>> &chamlist);
+		void fill(const CSCALCTDigiCollection& alcts);
 };
 
 #endif

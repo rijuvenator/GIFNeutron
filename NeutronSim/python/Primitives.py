@@ -1,4 +1,4 @@
-import Gif.TestBeamAnalysis.ChamberHandler as CH
+import Gif.NeutronSim.ChamberHandler as CH
 
 ##########
 # This file defines the Primitives classes for ease of access and idiomatic analysis code.

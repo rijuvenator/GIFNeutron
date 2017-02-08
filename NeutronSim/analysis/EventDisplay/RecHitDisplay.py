@@ -1,11 +1,11 @@
 import numpy as np
 import ROOT as R
-import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.Auxiliary as Aux
+import Gif.NeutronSim.Primitives as Primitives
+import Gif.NeutronSim.Auxiliary as Aux
 import DisplayHelper as ED # "Event Display"
 import Patterns
 import argparse
-import Gif.TestBeamAnalysis.ChamberHandler as CH
+import Gif.NeutronSim.ChamberHandler as CH
 
 ##########
 # This file gets the data, makes the histograms, makes the objects, and makes the plots

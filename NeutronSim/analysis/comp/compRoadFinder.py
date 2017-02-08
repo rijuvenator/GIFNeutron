@@ -7,7 +7,7 @@ import Gif.NeutronSim.Auxiliary as Aux
 import Gif.NeutronSim.ChamberHandler as CH
 import Gif.NeutronSim.MegaStruct as MS
 
-PFN = 'lowBins.root'
+PFN = 'output_p5.root'
 
 FP = None
 #FP = PFN
@@ -44,10 +44,12 @@ class Pattern():
 
 # runs before file loop; open a file, declare a hist dictionary
 def setup(self, PARAMS):
-	self.HISTS = {}
-	FN = PARAMS
-	self.F_OUT = R.TFile(FN,'RECREATE')
-	self.F_OUT.cd()
+	pass
+	#self.HISTS = {}
+	#FN = PARAMS
+	#self.F_OUT = R.TFile(FN,'RECREATE')
+	#self.F_OUT.cd()
+	'''
 	for ring in ringlist:
 		self.HISTS[ring] = {\
 			'time': R.TH1F('t'+ring, '', 10, 0., 10.),
@@ -57,13 +59,14 @@ def setup(self, PARAMS):
 		self.HISTS[ring]['time'].SetDirectory(0)
 		self.HISTS[ring]['lumi'].SetDirectory(0)
 		self.HISTS[ring]['totl'].SetDirectory(0)
+	'''
 
 ringlist = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 
 # once per file
 def analyze(self, t, PARAMS):
 	for idx, entry in enumerate(t):
-		#if idx == 10000: break
+		#if idx == 100: break
 
 		if      t.Z_mass <= 98. and t.Z_mass >= 84.\
 			and t.nJets20 == 0\
@@ -77,6 +80,8 @@ def analyze(self, t, PARAMS):
 		lcts  = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham ))]
 		comps = [Primitives.Comp   (E, i) for i in range(len(E.comp_cham))]
 		wires = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham))]
+
+		backgroundCompList = {1:[],2:[],3:[],4:[],5:[],6:[]}
 
 		twolcts = list(set([i for i in E.lct_cham if E.lct_cham.count(i)>1]))
 		for lct in lcts:
@@ -105,23 +110,84 @@ def analyze(self, t, PARAMS):
 					for comp in comps:
 						if comp.cham != lct.cham: continue
 						if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
-							self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
+							#self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
+							backgroundCompList[int(comp.layer)].append(comp)
 							if comp.timeBin >= 1 and comp.timeBin <= 5:
-								if comp.timeBin < 3 and cham.display('{S}{R}')=='21':
-									print '{:6d} {:3d} {:s}'.format(idx, cham.id, cham.display('ME{E}{S}/{R}/{C}'))
 								nComp += 1
-					self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
-					self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
+		nLays = 6
+		maxDiff = 5
+		minRoadLength = 4
+		roadWidth = 3 # size away from central road hs
+		minShare = 2
+		roads = []
+		compList = []
+		#
+		# Determine outer layers
+		#
+		for (beginLay,endLay) in [(1,6),(1,5),(2,6),(1,4),(2,5),(3,6)]:
+			#
+			# Calculate hs difference between comparators in outer layer and inner layer
+			#
+			layDiff = endLay - beginLay
+			for beginComp in backgroundCompList[beginLay]:
+				for endComp in backgroundCompList[endLay]:
+					if endComp.cham!=beginComp.cham: continue
+					road = []
+					xDiff = endComp.staggeredHalfStrip - beginComp.staggeredHalfStrip
+					#
+					# Make road and count comparators 
+					#
+					road.append(beginComp)
+					for lay in range(beginLay+1,endLay):
+						xpos = (float(xDiff)/layDiff)*(lay-beginLay) + beginComp.staggeredHalfStrip
+						#print int(round(incomp.staggeredHalfStrip+xpos)), int(round(xpos))
+						for c in backgroundCompList[lay]:
+							if c.cham != beginComp.cham: continue
+							if c.staggeredHalfStrip >= xpos-roadWidth and c.staggeredHalfStrip <= xpos+roadWidth:
+								road.append(c)
+					road.append(endComp)
+					if len(set([comp.layer for comp in road]))<minRoadLength: continue
+					'''
+					print '*',idx, beginComp.cham
+					print '*',beginLay,endLay,layDiff,beginComp.staggeredHalfStrip,endComp.staggeredHalfStrip,xDiff
+					for c in road:
+						print c.layer, c.staggeredHalfStrip, c.timeBin, c.cham
+					print
+					'''
+					roads.append(road)
+		# 
+		# Remove comparators from background comp list if they're in a road
+		# 
+		sortFunc = lambda road: len(set([comp.layer for comp in road]))
+		roads.sort(key=sortFunc,reverse=True)
+		for road in roads:
+			allCompsInBkg = True
+			for comp in road:
+				if comp not in backgroundCompList[comp.layer]:
+					allCompsInBkg = False
+					break
+			if allCompsInBkg:
+				for comp in road:
+					print idx, comp.cham, comp.layer, comp.staggeredHalfStrip, comp.timeBin
+					backgroundCompList[comp.layer].remove(comp)
 
-	self.F_OUT.cd()
+
+			
+
+					#self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
+					#self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
+
+	#self.F_OUT.cd()
 	for ring in ringlist:
-		self.HISTS[ring]['time'].Write()
-		self.HISTS[ring]['lumi'].Write()
-		self.HISTS[ring]['totl'].Write()
+		pass
+		#self.HISTS[ring]['time'].Write()
+		#self.HISTS[ring]['lumi'].Write()
+		#self.HISTS[ring]['totl'].Write()
 
 # if file is already made
 def load(self, PARAMS):
 	f = R.TFile.Open(self.F_DATAFILE)
+	'''
 	self.HISTS = {}
 	for ring in ringlist:
 		self.HISTS[ring] = {\
@@ -132,6 +198,7 @@ def load(self, PARAMS):
 		self.HISTS[ring]['time'].SetDirectory(0)
 		self.HISTS[ring]['lumi'].SetDirectory(0)
 		self.HISTS[ring]['totl'].SetDirectory(0)
+	'''
 
 # override class methods
 R.gROOT.SetBatch(True)
@@ -141,8 +208,6 @@ MS. P5Analyzer.setup = setup
 
 # run analysis!
 pdata = MS.P5Analyzer (PARAMS=PFN, F_DATAFILE=FP, RUNLIST=[282663])
-
-exit()
 
 ##### MAKEPLOT FUNCTIONS #####
 def makeTimePlot(h, ring):
@@ -201,11 +266,13 @@ def makeNumDum(h, ring, which):
 	canvas.c.SaveAs('pdfs/BGCompAvgNNew'+'_'+ring+'_'+which+'.pdf')
 	R.SetOwnership(canvas.c, False)
 
+'''
 for ring in ringlist:
 	makeTimePlot(pdata.HISTS[ring]['time'], ring)
 	makeLumiPlot(pdata.HISTS[ring]['lumi'], pdata.HISTS[ring]['totl'], ring)
 	makeNumDum(pdata.HISTS[ring]['lumi'], ring, 'ncomp')
 	makeNumDum(pdata.HISTS[ring]['totl'], ring, 'lumi')
+'''
 
 ##### WITH WIRES
 '''

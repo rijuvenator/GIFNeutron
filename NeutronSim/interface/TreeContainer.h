@@ -42,6 +42,8 @@
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
+#include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
+#include "SimDataFormats/TrackingHit/interface/PSimHit.h"
 
 #include "TFile.h"
 #include "TTree.h"

@@ -1,5 +1,5 @@
 import ROOT as R
-import Gif.TestBeamAnalysis.ChamberHandler as CH
+import Gif.NeutronSim.ChamberHandler as CH
 
 f = R.TFile.Open('../test.root')
 t = f.Get('GIFTree/GIFDigiTree')

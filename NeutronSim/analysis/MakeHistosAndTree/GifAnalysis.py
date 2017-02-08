@@ -1,6 +1,5 @@
 import FWCore.ParameterSet.Config as cms
-from Gif.TestBeamAnalysis.GIFTestBeamAnalysis_cfg import process
-import FWCore.PythonUtilities.LumiList as LumiList
+from Gif.NeutronSim.GIFNeutronSim_cfg import process
 
 process.source = cms.Source('PoolSource', 
     fileNames = cms.untracked.vstring( 
@@ -22,37 +21,32 @@ process.p = cms.Path(process.muonCSCDigis * process.csc2DRecHits * process.cscSe
 process.CSCGeometryESModule.useGangedStripsInME1a = False
 process.idealForDigiCSCGeometry.useGangedStripsInME1a = False
 
-process.load('JetMETCorrections.Configuration.JetCorrectors_cff')
-#process.load('RecoMET.METFilters.metFilters_cff')
-#process.p*=process.metFilters
 
-#process.load("JetMETCorrections.Type1MET.correctedMet_cff")
-#process.load("JetMETCorrections.Type1MET.correctionTermsPfMetType1Type2_cff")
-
-process.p*=process.ak4PFCHSL1FastjetCorrector * process.ak4PFCHSL2RelativeCorrector * process.ak4PFCHSL3AbsoluteCorrector * process.ak4PFCHSResidualCorrector * process.ak4PFCHSL1FastL2L3ResidualCorrector
-#process.p*=process.corrPfMetType1
-#process.p*=process.pfMetT1
+#MuonDigiCollection<CSCDetId,CSCALCTDigi>    "simCscTriggerPrimitiveDigis"   ""                "RECO"    
+#MuonDigiCollection<CSCDetId,CSCCLCTDigi>    "simCscTriggerPrimitiveDigis"   ""                "RECO"    
+#MuonDigiCollection<CSCDetId,CSCComparatorDigi>    "simMuonCSCDigis"           "MuonCSCComparatorDigi"   "RECO"    
+#MuonDigiCollection<CSCDetId,CSCCorrelatedLCTDigi>    "csctfDigis"                ""                "RECO"    
+#MuonDigiCollection<CSCDetId,CSCCorrelatedLCTDigi>    "simCscTriggerPrimitiveDigis"   ""                "RECO"    
+#MuonDigiCollection<CSCDetId,CSCCorrelatedLCTDigi>    "simCscTriggerPrimitiveDigis"   "MPCSORTED"       "RECO"    
+#MuonDigiCollection<CSCDetId,CSCStripDigi>    "simMuonCSCDigis"           "MuonCSCStripDigi"   "RECO"    
+#MuonDigiCollection<CSCDetId,CSCWireDigi>    "simMuonCSCDigis"           "MuonCSCWireDigi"   "RECO"    
+#MuonDigiCollection<CSCDetId,GEMCSCLCTDigi>    "simCscTriggerPrimitiveDigis"   ""                "RECO"    
+#MuonDigiCollection<CSCDetId,int>      "simCscTriggerPrimitiveDigis"   ""                "RECO"    
 
 
 def doTree(process):
-    process.GIFTree = cms.EDAnalyzer('MakeSimpleGIFTree',
-							# Physics
-							vertexCollection = cms.InputTag('offlinePrimaryVertices'),
-							muonCollection = cms.InputTag('muons'),
-							electronCollection = cms.InputTag('gedGsfElectrons'),
-							photonCollection = cms.InputTag('gedPhotons'),
-							#metCollection = cms.InputTag('pfMetT1'),
-							jetCollection = cms.InputTag('ak4PFJetsCHS'),
-							jetCorrection = cms.InputTag('ak4PFCHSL1FastL2L3ResidualCorrector'),
+    process.GIFTree = cms.EDAnalyzer('MakeSimpleNeutronSimTree',
 							# CSC
-                            wireDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCWireDigi'),
-                            stripDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCStripDigi'),
-                            alctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCALCTDigi'),
-                            clctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCCLCTDigi'),
-                            lctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCCorrelatedLCTDigi'),
-                            compDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCComparatorDigi'),
-                            segmentTag = cms.InputTag('cscSegments'),
-                            recHitTag = cms.InputTag('csc2DRecHits'),
+							#rawDataTag = cms.InputTag("rawDataCollector"),# FOR RAW RUNS
+							wireDigiTag = cms.InputTag("simMuonCSCDigis","MuonCSCWireDigi"),
+							stripDigiTag = cms.InputTag("simMuonCSCDigis","MuonCSCStripDigi"),
+							alctDigiTag = cms.InputTag("simCscTriggerPrimitiveDigis",""),
+							clctDigiTag = cms.InputTag("simCscTriggerPrimitiveDigis",""),
+							lctDigiTag =  cms.InputTag("simCscTriggerPrimitiveDigis",""),
+							compDigiTag = cms.InputTag("simMuonCSCDigis","MuonCSCComparatorDigi"),
+							segmentTag = cms.InputTag("cscSegments"),
+							recHitTag = cms.InputTag("csc2DRecHits"),
+							simHitTag = cms.InputTag("g4SimHits","MuonCSCHits")
     )
     process.p *= process.GIFTree
 

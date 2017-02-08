@@ -1,6 +1,6 @@
 import ROOT as R
 import numpy as np
-import Gif.TestBeamAnalysis.OldPlotter as Plotter
+import Gif.NeutronSim.OldPlotter as Plotter
 
 #dataY= [\
 #	(3412, float('inf')),

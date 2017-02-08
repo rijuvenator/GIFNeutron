@@ -1,5 +1,5 @@
 import numpy as np
-import Gif.TestBeamAnalysis.OldPlotter as Plotter
+import Gif.NeutronSim.OldPlotter as Plotter
 import ROOT as R
 
 ### PARAMETERS

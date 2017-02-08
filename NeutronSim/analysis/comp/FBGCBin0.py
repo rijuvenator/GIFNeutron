@@ -1,11 +1,11 @@
 import os
 import numpy as np
 import ROOT as R
-import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.OldPlotter as Plotter
-import Gif.TestBeamAnalysis.Auxiliary as Aux
-import Gif.TestBeamAnalysis.ChamberHandler as CH
-import Gif.TestBeamAnalysis.MegaStruct as MS
+import Gif.NeutronSim.Primitives as Primitives
+import Gif.NeutronSim.OldPlotter as Plotter
+import Gif.NeutronSim.Auxiliary as Aux
+import Gif.NeutronSim.ChamberHandler as CH
+import Gif.NeutronSim.MegaStruct as MS
 
 PFN = 'output_bin0.root'
 

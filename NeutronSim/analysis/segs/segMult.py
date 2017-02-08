@@ -1,9 +1,9 @@
 import numpy as np
 import ROOT as R
-import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.OldPlotter as Plotter
-import Gif.TestBeamAnalysis.Auxiliary as Aux
-import Gif.TestBeamAnalysis.roottools as Tools
+import Gif.NeutronSim.Primitives as Primitives
+import Gif.NeutronSim.OldPlotter as Plotter
+import Gif.NeutronSim.Auxiliary as Aux
+import Gif.NeutronSim.roottools as Tools
 
 ##### PARAMETERS #####
 # Which chambers to do
