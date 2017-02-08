@@ -1,5 +1,5 @@
 import FWCore.ParameterSet.Config as cms
-from Gif.NeutronSim.GIFNeutronSim_cfg import process
+from Gif.NeutronSim.GIFTestBeamAnalysis_cfg import process
 
 process.source = cms.Source('PoolSource', 
     fileNames = cms.untracked.vstring( 
@@ -20,19 +20,6 @@ process.p = cms.Path(process.muonCSCDigis * process.csc2DRecHits * process.cscSe
 """Customise digi/reco geometry to use unganged ME1/a channels"""
 process.CSCGeometryESModule.useGangedStripsInME1a = False
 process.idealForDigiCSCGeometry.useGangedStripsInME1a = False
-
-
-#MuonDigiCollection<CSCDetId,CSCALCTDigi>    "simCscTriggerPrimitiveDigis"   ""                "RECO"    
-#MuonDigiCollection<CSCDetId,CSCCLCTDigi>    "simCscTriggerPrimitiveDigis"   ""                "RECO"    
-#MuonDigiCollection<CSCDetId,CSCComparatorDigi>    "simMuonCSCDigis"           "MuonCSCComparatorDigi"   "RECO"    
-#MuonDigiCollection<CSCDetId,CSCCorrelatedLCTDigi>    "csctfDigis"                ""                "RECO"    
-#MuonDigiCollection<CSCDetId,CSCCorrelatedLCTDigi>    "simCscTriggerPrimitiveDigis"   ""                "RECO"    
-#MuonDigiCollection<CSCDetId,CSCCorrelatedLCTDigi>    "simCscTriggerPrimitiveDigis"   "MPCSORTED"       "RECO"    
-#MuonDigiCollection<CSCDetId,CSCStripDigi>    "simMuonCSCDigis"           "MuonCSCStripDigi"   "RECO"    
-#MuonDigiCollection<CSCDetId,CSCWireDigi>    "simMuonCSCDigis"           "MuonCSCWireDigi"   "RECO"    
-#MuonDigiCollection<CSCDetId,GEMCSCLCTDigi>    "simCscTriggerPrimitiveDigis"   ""                "RECO"    
-#MuonDigiCollection<CSCDetId,int>      "simCscTriggerPrimitiveDigis"   ""                "RECO"    
-
 
 def doTree(process):
     process.GIFTree = cms.EDAnalyzer('MakeSimpleNeutronSimTree',

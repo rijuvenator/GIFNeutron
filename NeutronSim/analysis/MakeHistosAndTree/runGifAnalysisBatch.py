@@ -11,26 +11,34 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 	cmssw_base = commands.getoutput('echo $CMSSW_BASE')
 
 	baseDir = cmssw_base+'/src/Gif/NeutronSim/analysis/MakeHistosAndTree/'
-	inDir = cmssw_base+'/src/Gif/NeutronSim/analysis/GenerateNeutronMC/crab/crab_MinBiasNeutron_test_1/'
-	outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/26Jan/'
+	#inDir = cmssw_base+'/src/Gif/NeutronSim/analysis/GenerateNeutronMC/crab/crab_MinBiasNeutron_test_1/'
+	inDir =     '/store/user/cschnaib/Neutron/MinBiasNeutron/MinBiasNeutronSim/170207_135404/0000/'
+	inDir1000 = '/store/user/cschnaib/Neutron/MinBiasNeutron/MinBiasNeutronSim/170207_135404/0001/'
+	outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/NeutronSimTrees/'
 
 	if not os.path.isdir(outDir):
 		print "Directory", outDir, "does not exist; exiting."
 		exit()
 	dryrun = 'dryrun' in sys.argv
 
-	nFiles = 10
-	for i in range(nFiles):
+	nFiles = 1000
+	for i in range(10,nFiles+1):
+		if i==519: continue
+		if i==648: continue
 
-		inFile = 'mb_13TeV_mu_ALL_xs_test_'+str(i)+'.root'
-		inPath = inDir + inFile
+		inFile = 'mb_13TeV_mu_ALL_xs_'+str(i)+'.root'
+
+		if i!=1000:
+			inPath = inDir + inFile
+		else:
+			inPath = inDir1000 + inFile
 		outFile = 'ana_neutronMC_'+str(i)+'.root'
 		outPath = outDir + outFile
 
 		gif_py = open('GifAnalysis.py').read()
 		gif_py += '''
 doTree(process)
-process.source.fileNames  = cms.untracked.vstring(%(runFile)s)
+process.source.fileNames  = cms.untracked.vstring('%(inPath)s')
 process.TFileService.fileName = cms.string('%(outPath)s')
 ''' % locals()
 
