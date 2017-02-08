@@ -85,7 +85,7 @@ class Canvas(R.TCanvas):
 	
 	# save
 	def save(self):
-		self.SaveAs('test.pdf')
+		self.SaveAs('patterns_unmodded.pdf')
 
 # instantiate canvas
 c = Canvas(layout={'x':8, 'y':7})
@@ -102,7 +102,7 @@ labels = [\
 		12, 96, 130,     # 3 J: R, D, L
 		17, 68,          # 3 Diag: neg pos
 		18, 33, 36, 66,  # 3 Periscope: BR TL TR BR
-		5, 20, 80, 65,   # 3 C: U R B L
+		5, 20, 80, 65,   # 3 Mickey: U R B L
 		34,              # 3 Vert
 		136,             # 3 Horiz
 	161                  # 4 S
@@ -119,7 +119,7 @@ names = [\
 	'J-R', 'J-D', 'J-L',
 	'3#minusDiag', '3+Diag',
 	'Peri-BR', 'Peri-TL', 'Peri-TR', 'Peri-BR',
-	'C-U', 'C-R', 'C-B', 'C-L',
+	'Mickey-U', 'Mickey-R', 'Mickey-B', 'Mickey-L',
 	'3-Vert', '3-Horiz',
 	'S'
 ]

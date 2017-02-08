@@ -20,7 +20,7 @@ castrated = False
 
 # Whether or not to get the data from a file. None if not; filename if so.
 #fromFile = None
-fromFile = '../datafiles/clctLay'
+fromFile = '../datafiles/data_clctLay'
 
 # Dictionary containing cosmetic data, comment out for fewer ones
 pretty = {

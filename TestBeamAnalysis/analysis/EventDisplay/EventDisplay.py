@@ -214,7 +214,7 @@ for FILE in CONFIG.keys():
 			# lumi text
 			RUN = t.Event_RunNumber
 			LS  = t.Event_LumiSection
-			canvas.drawLumiText(CHAMBER.display('ME{E}{S}/{R}/{C}') + ', RES =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
+			canvas.drawLumiText(CHAMBER.display('ME{E}{S}/{R}/{C}') + ', REL =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
 
 			# save as
 			canvas.canvas.SaveAs(OUTDIR+'/ED_'+CHAMBER.display('ME{E}{S}{R}{C}_')+str(EVENT)+'.pdf')

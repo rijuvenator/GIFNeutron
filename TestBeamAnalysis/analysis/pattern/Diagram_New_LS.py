@@ -81,7 +81,7 @@ class Canvas(R.TCanvas):
 	
 	# save
 	def save(self):
-		self.SaveAs('test.pdf')
+		self.SaveAs('patterns_clustered_LS.pdf')
 
 # instantiate canvas
 c = Canvas(layout={'x':7, 'y':4})
@@ -92,7 +92,7 @@ labels = [\
 	10, 17,           # 2+Diag, 2-Diag
 	11, 19, 25, 26,   # Gamma, Corner, L, J
 	14, 28, 35, 49,   # Gun-R, Dog-R, Gun-L, Dog-L
-	21, 42, 81, 138,  # C-U, C-D, C-L, C-R
+	21, 42, 81, 138,  # Mickey-U, Mickey-D, Mickey-L, Mickey-R
 	56, 73, 84, 273,  # 3-Horiz, 3-Vert, 3+Diag, 3-Diag
 	74, 82, 137, 145, # Peri-TR, Peri-BL, Peri-BR, Peri-TL
 ]
@@ -102,7 +102,7 @@ names = [\
 	'2-Horiz', '2-Vert', '2+Diag', '2#minusDiag',
 	'Gamma', 'Corner', 'L', 'J',
 	'Gun-R', 'Dog-R', 'Gun-L', 'Dog-L',
-	'C-U', 'C-D', 'C-L', 'C-R',
+	'Mickey-U', 'Mickey-D', 'Mickey-L', 'Mickey-R',
 	'3-Horiz', '3-Vert', '3+Diag', '3#minusDiag',
 	'Peri-TR', 'Peri-BL', 'Peri-BR', 'Peri-TL',
 ]

@@ -214,7 +214,7 @@ def makePlot(h, ISGIF):
 			12, 96, 130,     # 3 J: R, D, L
 			17, 68,          # 3 Diag: neg pos
 			18, 33, 36, 66,  # 3 Periscope: BR TL TR BR
-			5, 20, 80, 65,   # 3 C: U R B L
+			5, 20, 80, 65,   # 3 Mickey: U R B L
 			34,              # 3 Vert
 			136,             # 3 Horiz
 		161                  # 4 S

@@ -7,6 +7,8 @@ import ROOT as R
 import Gif.TestBeamAnalysis.OldPlotter as Plotter
 import Gif.TestBeamAnalysis.Primitives as Primitives
 import Gif.TestBeamAnalysis.Auxiliary as Aux
+import Gif.TestBeamAnalysis.ChamberHandler as CH
+import Gif.TestBeamAnalysis.MegaStruct as MS
 statusMsg('All modules imported.')
 
 f = R.TFile.Open('../trees/ana_3284.root')

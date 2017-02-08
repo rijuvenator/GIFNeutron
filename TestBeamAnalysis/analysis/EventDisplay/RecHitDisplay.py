@@ -177,13 +177,14 @@ for FILE in CONFIG.keys():
 			# lumi text
 			RUN = t.Event_RunNumber
 			LS  = t.Event_LumiSection
-			canvas.drawLumiText(CHAMBER.display('ME{E}{S}/{R}/{C}') + ', RES =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
+			canvas.drawLumiText(CHAMBER.display('ME{E}{S}/{R}/{C}') + ', REL =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
 
 			# save as
 			canvas.canvas.SaveAs(OUTDIR+'/RH_'+CHAMBER.display('ME{E}{S}{R}{C}_')+str(EVENT)+'.pdf')
 			R.SetOwnership(canvas.canvas, False)
 			print '\033[1mFILE \033[32m'+'RH_'+CHAMBER.display('ME{E}{S}{R}{C}_')+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
 
+			del gRHS, gRHW
 			canvas.deleteCanvas()
 
 	f.Close()

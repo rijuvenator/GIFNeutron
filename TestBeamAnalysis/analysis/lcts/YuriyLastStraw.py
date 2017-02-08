@@ -124,4 +124,4 @@ xmax = canvas.firstPlot.plot.GetXaxis().GetXmax()
 axis = canvas.makeExtraAxis(0., xmax/3.e33)
 axis.SetTitle('Current [#muA]')
 
-canvas.c.SaveAs('plot.pdf')
+canvas.c.SaveAs('pdfs/YuriyLastStraw.pdf')

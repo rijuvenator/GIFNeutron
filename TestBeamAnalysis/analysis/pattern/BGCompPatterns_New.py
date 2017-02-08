@@ -87,8 +87,8 @@ class ClusterCollection(object):
 			if comp not in self.compcopy: continue
 			cluster = [comp]
 			self.findCluster(comp, cluster)
-			for cc in cluster:
-				self.compcopy.remove(cc)
+			for thisComp in cluster:
+				self.compcopy.remove(thisComp)
 			self.ClusterList.append(Cluster(cluster))
 	
 	def findCluster(self, keycomp, cluster):
@@ -99,6 +99,7 @@ class ClusterCollection(object):
 				cluster.append(comp)
 				self.findCluster(comp, cluster)
 
+##### ANALYZER FUNCTIONS #####
 # runs before file loop; open a file, declare a hist dictionary
 def setup(self, PARAMS):
 	FN = PARAMS[0]
@@ -147,23 +148,67 @@ def analyze(self, t, PARAMS):
 				3 : {'hs0' : 0.          , 'hs1' : nHS*0.50},
 			}
 
-			complist = []
-
+			BGCompList = {1:[], 2:[], 3:[], 4:[], 5:[], 6:[]}
 			for key in LCTAreas.keys():
 				if  lct.keyWireGroup >= LCTAreas[key]['wg0'] and lct.keyWireGroup <= LCTAreas[key]['wg1']\
 				and lct.keyHalfStrip >= LCTAreas[key]['hs0'] and lct.keyHalfStrip <= LCTAreas[key]['hs1']:
 					for comp in comps:
 						if comp.cham != lct.cham: continue
 						if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
-							if comp.timeBin >= 1 and comp.timeBin <= 5:
-								complist.append(comp)
+							BGCompList[comp.layer].append(comp)
 
+			minRoadLength = 4 # minimum 4 layers in a road
+			roadWidth     = 3 # size away from central road hs
+			roads = []
+			sortFunc = lambda road: len(set([comp.layer for comp in road]))
+			# Loop through outer layers
+			for (beginLay,endLay) in [(1,6),(1,5),(2,6),(1,4),(2,5),(3,6)]:
+				# Calculate hs difference between comparators in outer layer and inner layer
+				layDiff = endLay - beginLay
+				for beginComp in BGCompList[beginLay]:
+					for endComp in BGCompList[endLay]:
+						# Make road and count comparators
+						road = []
+						xDiff = endComp.staggeredHalfStrip - beginComp.staggeredHalfStrip
+						road.append(beginComp)
+						for lay in range(beginLay+1, endLay):
+							xpos = (float(xDiff)/layDiff)*(lay-beginLay) + beginComp.staggeredHalfStrip
+							for c in BGCompList[lay]:
+								if c.cham != beginComp.cham: continue
+								if c.staggeredHalfStrip >= xpos-roadWidth and c.staggeredHalfStrip <= xpos+roadWidth:
+									road.append(c)
+						road.append(endComp)
+
+						if sortFunc(road) < minRoadLength: continue
+						roads.append(road)
+
+			if roads != []:
+				continue
+
+			# Remove comparators from background comp list if they're in a road
+			#roads.sort(key=sortFunc,reverse=True)
+			#for road in roads:
+			#	allCompsInBkg = True
+			#	for comp in road:
+			#		if comp not in BGCompList[comp.layer]:
+			#			allCompsInBkg = False
+			#			break
+			#	if allCompsInBkg:
+			#		for comp in road:
+			#			#print idx, comp.cham, comp.layer, comp.staggeredHalfStrip, comp.timeBin
+			#			BGCompList[comp.layer].remove(comp)
+
+			# Make clusters from remaining comps and compute PIDs
+			complist = []
+			for layer in range(1, 7):
+				complist = complist + [comp for comp in BGCompList[layer] if comp.timeBin <= 5 and comp.timeBin >= 1]
 			if complist != []:
 				cc = ClusterCollection(complist)
 				for cluster in cc.ClusterList:
-					pid = cluster.PID()
+					pid = cluster.PID
 					if pid >= 0:
 						self.HIST.Fill(pid)
+
 
 	self.F_OUT.cd()
 	self.HIST.Write()
