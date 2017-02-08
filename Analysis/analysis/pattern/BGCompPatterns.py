@@ -1,11 +1,11 @@
 import os, math, sys
 import numpy as np
 import ROOT as R
-import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.Plotter as Plotter
-import Gif.TestBeamAnalysis.Auxiliary as Aux
-import Gif.TestBeamAnalysis.ChamberHandler as CH
-import Gif.TestBeamAnalysis.MegaStruct as MS
+import Gif.Analysis.Primitives as Primitives
+import Gif.Analysis.Plotter as Plotter
+import Gif.Analysis.Auxiliary as Aux
+import Gif.Analysis.ChamberHandler as CH
+import Gif.Analysis.MegaStruct as MS
 
 if len(sys.argv)<3:
 	print 'Usage: python BGCompPatterns.py MODE[GIF/P5] OVERWRITE[1,0]'

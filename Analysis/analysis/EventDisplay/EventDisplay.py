@@ -1,11 +1,11 @@
 import numpy as np
 import ROOT as R
-import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.Auxiliary as Aux
+import Gif.Analysis.Primitives as Primitives
+import Gif.Analysis.Auxiliary as Aux
 import DisplayHelper as ED # "Event Display"
 import Patterns
 import argparse
-import Gif.TestBeamAnalysis.ChamberHandler as CH
+import Gif.Analysis.ChamberHandler as CH
 
 ##########
 # This file gets the data, makes the histograms, makes the objects, and makes the plots

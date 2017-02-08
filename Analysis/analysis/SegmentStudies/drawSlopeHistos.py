@@ -5,8 +5,8 @@ options : ?
 
 import os,sys
 import ROOT as r
-from Gif.TestBeamAnalysis.TestBeamMeasurements import *
-from Gif.TestBeamAnalysis.roottools import *
+from Gif.Analysis.TestBeamMeasurements import *
+from Gif.Analysis.roottools import *
 from inputHists import *
 import argparse
 parser = argparse.ArgumentParser(description='Segment Analysis : make histograms from tree')

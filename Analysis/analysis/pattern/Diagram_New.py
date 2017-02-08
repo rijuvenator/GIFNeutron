@@ -1,5 +1,5 @@
 import ROOT as R
-import Gif.TestBeamAnalysis.Plotter as Plotter
+import Gif.Analysis.Plotter as Plotter
 
 R.gROOT.SetBatch(True)
 

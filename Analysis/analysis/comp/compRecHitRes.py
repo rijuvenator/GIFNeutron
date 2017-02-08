@@ -1,9 +1,9 @@
 import numpy as np
 import ROOT as R
-import Gif.TestBeamAnalysis.OldPlotter as Plotter
-import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.roottools as tools
-import Gif.TestBeamAnalysis.Auxiliary as Aux
+import Gif.Analysis.OldPlotter as Plotter
+import Gif.Analysis.Primitives as Primitives
+import Gif.Analysis.roottools as tools
+import Gif.Analysis.Auxiliary as Aux
 import sys
 
 ### PARAMETERS

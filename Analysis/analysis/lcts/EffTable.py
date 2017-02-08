@@ -1,6 +1,6 @@
 import numpy as np
 import ROOT as R
-import Gif.TestBeamAnalysis.Primitives as Primitives
+import Gif.Analysis.Primitives as Primitives
 import sys
 
 MEASGRID = '../datafiles/measgrid'

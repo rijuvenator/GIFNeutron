@@ -1,6 +1,6 @@
 import numpy as np
-import Gif.TestBeamAnalysis.OldPlotter as Plotter
-import Gif.TestBeamAnalysis.Primitives as Primitives
+import Gif.Analysis.OldPlotter as Plotter
+import Gif.Analysis.Primitives as Primitives
 import ROOT as R
 
 R.gROOT.SetBatch(True)

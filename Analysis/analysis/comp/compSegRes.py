@@ -6,9 +6,9 @@ Plus plots for each measurement of the distribution
 
 import numpy as np
 import ROOT as R
-import Gif.TestBeamAnalysis.Primitives as Primitives
-import Gif.TestBeamAnalysis.OldPlotter as Plotter
-import Gif.TestBeamAnalysis.Auxiliary as Aux
+import Gif.Analysis.Primitives as Primitives
+import Gif.Analysis.OldPlotter as Plotter
+import Gif.Analysis.Auxiliary as Aux
 
 ##### PARAMETERS #####
 # Which chambers to do
