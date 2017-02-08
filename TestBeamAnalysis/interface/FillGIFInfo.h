@@ -16,14 +16,14 @@ class FillGIFEventInfo : public FillInfo
 		virtual ~FillGIFEventInfo() {};
 
 	private:
-		int Event_EventNumber;
+		unsigned int Event_EventNumber;
 		int Event_RunNumber  ;
 		int Event_LumiSection;
 		int Event_BXCrossing ;
 
 		virtual void reset()
 		{
-			Event_EventNumber  = -1;
+			Event_EventNumber  = 0;
 			Event_RunNumber    = -1;
 			Event_LumiSection  = -1;
 			Event_BXCrossing   = -1;
