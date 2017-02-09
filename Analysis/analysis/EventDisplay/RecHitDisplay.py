@@ -34,32 +34,36 @@ for line in F_CONFIG:
 	cols = line.strip('\n').split()
 	if cols[0] == 'GIF':
 		MEAS = cols[1]
-		FN = '../../trees/ana_'+MEAS+'.root'
-		CONFIG[FN] = {}
+		KEY = ('../../trees/ana_'+MEAS+'.root', 'GIF')
+		CONFIG[KEY] = {}
 	elif cols[0] == 'P5':
-		FN = cols[1]
-		CONFIG[FN] = {}
+		KEY = (cols[1],'P5')
+		CONFIG[KEY] = {}
+	elif cols[0] == 'MC':
+		KEY = (cols[1],'MC')
+		CONFIG[KEY] = {}
 	else:
 		ENTRY = int(cols[0])
 		CHAM  = int(cols[1])
-		if ENTRY not in CONFIG[FN].keys():
-			CONFIG[FN][ENTRY] = []
-		CONFIG[FN][ENTRY].append(CHAM)
+		if ENTRY not in CONFIG[KEY].keys():
+			CONFIG[KEY][ENTRY] = []
+		CONFIG[KEY][ENTRY].append(CHAM)
 
 # Which displays to plot
 DOSEGMENTS = True
 DRAWZTITLE = False
 TITLESON   = True
 ORIGFORMAT = False
+DOSCINT    = True
 
 ##### BEGIN CODE #####
 
-for FILE in CONFIG.keys():
+for FILE,TYPE in CONFIG.keys():
 	# Get file and tree
 	f = R.TFile.Open(FILE)
 	t = f.Get('GIFTree/GIFDigiTree')
 
-	for ENTRY in CONFIG[FILE].keys():
+	for ENTRY in CONFIG[(FILE,TYPE)].keys():
 		# Get the event, make the ETree, and make lists of primitives objects
 		t.GetEntry(ENTRY)
 		EVENT = t.Event_EventNumber
@@ -73,7 +77,7 @@ for FILE in CONFIG.keys():
 			segs    = [Primitives.Segment(E, i) for i in range(len(E.seg_cham  ))]
 			lcts    = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham  ))]
 
-		for CHAM in CONFIG[FILE][ENTRY]:
+		for CHAM in CONFIG[(FILE,TYPE)][ENTRY]:
 			CHAMBER = CH.Chamber(CHAM)
 			# Upper limits for wire group numbers and half strip numbers
 
@@ -84,7 +88,8 @@ for FILE in CONFIG.keys():
 			# Ndivisions codes
 			ND = {\
 				'st' : { 64 : 520,  80 : 520, 112 : 1020            },
-				'wg' : { 48 : 520,  64 : 520,  96 :  520, 112 : 1020}
+
+				'wg' : { 48 : 510,  64 : 520,  96 :  520, 112 : 1020}
 			}
 
 			# Instantiate canvas
@@ -130,30 +135,33 @@ for FILE in CONFIG.keys():
 					if seg.cham != CHAM: continue
 					for lct in lcts:
 						if lct.cham != CHAM: continue
-						if Aux.matchSegLCT(seg, lct, thresh=(2., 2.), old=False):
+						if Aux.matchSegLCT(seg, lct, thresh=(3., 3.)):
 							SegDrawList.append(seg)
 				SEGLAYERS = [1, 2, 3, 4, 5, 6]
 				layZ = np.array([float(i) + 0.5 for i in SEGLAYERS])
 				segGraphs = []
+				# no highlighting for segment rechits except at GIF
 				for seg in SegDrawList:
-					for i in seg.rhID:
-						rhS['seg'].append(float(rechits[i].halfStrip)/2.+ 0.5)
-						rhW['seg'].append(float(rechits[i].wireGroup)   + 0.5)
-						rhL['seg'].append(float(rechits[i].layer)       + 0.5)
+					if TYPE == 'GIF':
+						for i in seg.rhID:
+							rhS['seg'].append(float(rechits[i].halfStrip)/2.+ 0.5)
+							rhW['seg'].append(float(rechits[i].wireGroup)   + 0.5)
+							rhL['seg'].append(float(rechits[i].layer)       + 0.5)
 					segGraphs.append({})
 					stX = np.array([seg.staggeredStrip    [lay]+1.0 for lay in SEGLAYERS])
 					wgX = np.array([seg.wireGroup         [lay] for lay in SEGLAYERS])
 					segGraphs[-1]['st'] = {'fill' : R.TGraph(len(layZ), stX, layZ), 'empt' : R.TGraph(len(layZ), stX, layZ), 'pad' : 0}
 					segGraphs[-1]['wg'] = {'fill' : R.TGraph(len(layZ), wgX, layZ), 'empt' : R.TGraph(len(layZ), wgX, layZ), 'pad' : 2}
 
-				gSRHS = R.TGraph(len(rhS['seg']), np.array(rhS['seg']), np.array(rhL['seg']))
-				canvas.pads[0].cd()
-				gSRHS.Draw('P')
-				gSRHS.SetMarkerColor(R.kRed)
-				gSRHW = R.TGraph(len(rhW['seg']), np.array(rhW['seg']), np.array(rhL['seg']))
-				canvas.pads[2 if not ORIGFORMAT else 1].cd()
-				gSRHW.Draw('P')
-				gSRHW.SetMarkerColor(R.kRed)
+				if TYPE == 'GIF':
+					gSRHS = R.TGraph(len(rhS['seg']), np.array(rhS['seg']), np.array(rhL['seg']))
+					canvas.pads[0].cd()
+					gSRHS.Draw('P')
+					gSRHS.SetMarkerColor(R.kRed)
+					gSRHW = R.TGraph(len(rhW['seg']), np.array(rhW['seg']), np.array(rhL['seg']))
+					canvas.pads[2 if not ORIGFORMAT else 1].cd()
+					gSRHW.Draw('P')
+					gSRHW.SetMarkerColor(R.kRed)
 
 				for gr in segGraphs:
 					for key in ['st', 'wg']:
@@ -169,20 +177,46 @@ for FILE in CONFIG.keys():
 						gr[key]['fill'].Draw('L same')
 						gr[key]['empt'].Draw('L same')
 
+			# Scintillator region
+			if DOSCINT and TYPE == 'GIF':
+				SL = (\
+						R.TLine(Aux.SCINT[CHAM]['HS'][0]/2, 1, Aux.SCINT[CHAM]['HS'][0]/2, 7),
+						R.TLine(Aux.SCINT[CHAM]['HS'][1]/2, 1, Aux.SCINT[CHAM]['HS'][1]/2, 7),
+						R.TLine(Aux.SCINT[CHAM]['WG'][0]  , 1, Aux.SCINT[CHAM]['WG'][0]  , 7),
+						R.TLine(Aux.SCINT[CHAM]['WG'][1]  , 1, Aux.SCINT[CHAM]['WG'][1]  , 7)
+					)
+				for line in SL:
+					line.SetLineColor(R.kRed)
+					line.SetLineWidth(2)
+				canvas.pads[0                         ].cd(); SL[0].Draw(); SL[1].Draw()
+				canvas.pads[2 if not ORIGFORMAT else 1].cd(); SL[2].Draw(); SL[3].Draw()
+
 			##### CLEAN UP #####
 			for pad in canvas.pads:
 				pad.cd()
 				pad.RedrawAxis()
 
-			# lumi text
-			RUN = t.Event_RunNumber
-			LS  = t.Event_LumiSection
-			canvas.drawLumiText(CHAMBER.display('ME{E}{S}/{R}/{C}') + ', REL =({R},{E},{L})'.format(R=str(RUN),E=str(EVENT),L=str(LS)))
+			if TYPE == 'P5':
+				# lumi text
+				RUN = t.Event_RunNumber
+				LS  = t.Event_LumiSection
+				canvas.drawLumiText('{CS}, REL =({R}, {E}, {L})'.format(CS=CHAMBER.display('ME{E}{S}/{R}/{C}'), R=str(RUN), E=str(EVENT), L=str(LS)))
 
-			# save as
-			canvas.canvas.SaveAs(OUTDIR+'/RH_'+CHAMBER.display('ME{E}{S}{R}{C}_')+str(EVENT)+'.pdf')
-			R.SetOwnership(canvas.canvas, False)
-			print '\033[1mFILE \033[32m'+'RH_'+CHAMBER.display('ME{E}{S}{R}{C}_')+str(EVENT)+'.pdf'+'\033[30m CREATED\033[0m'
+				# save as
+				canvas.canvas.SaveAs('{}/RH_P5_{}_{}.pdf'.format(OUTDIR, CHAMBER.display('ME{E}{S}{R}{C}'), EVENT))
+				R.SetOwnership(canvas.canvas, False)
+				print '\033[1;31m'          + 'P5 ENTRY {} CHAMBER {}'.format(ENTRY, CHAMBER.id)                        + '\033[m'
+				print '\033[1mFILE \033[32m'+ 'RH_P5_{}_{}.pdf'       .format(CHAMBER.display('ME{E}{S}{R}{C}'), EVENT) + '\033[30m CREATED\033[0m'
+			elif TYPE == 'GIF':
+				# lumi text
+				MEAS = FILE[-9:-5]
+				canvas.drawLumiText('m#{MEAS}, {CS}, Event #{EVENT}'.format(MEAS=MEAS, CS=CHAMBER.display('ME{S}/{R}'), EVENT=EVENT))
+
+				# save as
+				canvas.canvas.SaveAs('{}/RH_GIF_{}_{}_{}.pdf'.format(OUTDIR, MEAS, CHAMBER.display('ME{S}{R}'), EVENT))
+				R.SetOwnership(canvas.canvas, False)
+				print '\033[1;31m'           + 'GIF ENTRY {} CHAMBER {}'.format(ENTRY, CHAMBER.id)                        + '\033[m'
+				print '\033[1mFILE \033[32m' + 'RH_GIF_{}_{}_{}.pdf'    .format(MEAS, CHAMBER.display('ME{S}{R}'), EVENT) + '\033[30m CREATED\033[0m'
 
 			del gRHS, gRHW
 			canvas.deleteCanvas()
