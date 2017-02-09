@@ -3,6 +3,7 @@ import ROOT as R
 import Gif.Analysis.Primitives as Primitives
 import Gif.Analysis.OldPlotter as Plotter
 import Gif.Analysis.Auxiliary as Aux
+from Gif.Analysis.MegaStruct import F_GIFDATA
 
 ##### PARAMETERS #####
 # Which chambers to do
@@ -20,7 +21,7 @@ CHIMAX = 5
 h = {}
 p = {}
 for MEAS in MEASLIST:
-	f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
+	f = R.TFile.Open(F_GIFDATA.replace('XXXX',str(MEAS)))
 	t = f.Get('GIFTree/GIFDigiTree')
 
 	h[MEAS] = {1: {}, 110: {}}

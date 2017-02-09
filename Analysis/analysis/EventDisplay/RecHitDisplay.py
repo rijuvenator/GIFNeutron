@@ -6,6 +6,7 @@ import DisplayHelper as ED # "Event Display"
 import Patterns
 import argparse
 import Gif.Analysis.ChamberHandler as CH
+from Gif.Analysis.MegaStruct import F_GIFDATA, F_P5DATA, F_MCDATA
 
 ##########
 # This file gets the data, makes the histograms, makes the objects, and makes the plots
@@ -34,13 +35,13 @@ for line in F_CONFIG:
 	cols = line.strip('\n').split()
 	if cols[0] == 'GIF':
 		MEAS = cols[1]
-		KEY = ('../../trees/ana_'+MEAS+'.root', 'GIF')
+		KEY = (F_GIFDATA.replace('XXXX',MEAS), 'GIF')
 		CONFIG[KEY] = {}
 	elif cols[0] == 'P5':
-		KEY = (cols[1],'P5')
+		KEY = (F_P5DATA,'P5')
 		CONFIG[KEY] = {}
 	elif cols[0] == 'MC':
-		KEY = (cols[1],'MC')
+		KEY = (F_MCDATA,'MC')
 		CONFIG[KEY] = {}
 	else:
 		ENTRY = int(cols[0])
@@ -61,7 +62,8 @@ DOSCINT    = True
 for FILE,TYPE in CONFIG.keys():
 	# Get file and tree
 	f = R.TFile.Open(FILE)
-	t = f.Get('GIFTree/GIFDigiTree')
+	TREENAME = 'GIFTree/GIFDigiTree' if TYPE != 'MC' else 'GIFTree/NeutronDigiTree'
+	t = f.Get(TREENAME)
 
 	for ENTRY in CONFIG[(FILE,TYPE)].keys():
 		# Get the event, make the ETree, and make lists of primitives objects
@@ -142,7 +144,7 @@ for FILE,TYPE in CONFIG.keys():
 				segGraphs = []
 				# no highlighting for segment rechits except at GIF
 				for seg in SegDrawList:
-					if TYPE == 'GIF':
+					if TYPE != 'P5':
 						for i in seg.rhID:
 							rhS['seg'].append(float(rechits[i].halfStrip)/2.+ 0.5)
 							rhW['seg'].append(float(rechits[i].wireGroup)   + 0.5)
@@ -153,7 +155,7 @@ for FILE,TYPE in CONFIG.keys():
 					segGraphs[-1]['st'] = {'fill' : R.TGraph(len(layZ), stX, layZ), 'empt' : R.TGraph(len(layZ), stX, layZ), 'pad' : 0}
 					segGraphs[-1]['wg'] = {'fill' : R.TGraph(len(layZ), wgX, layZ), 'empt' : R.TGraph(len(layZ), wgX, layZ), 'pad' : 2}
 
-				if TYPE == 'GIF':
+				if TYPE != 'P5':
 					gSRHS = R.TGraph(len(rhS['seg']), np.array(rhS['seg']), np.array(rhL['seg']))
 					canvas.pads[0].cd()
 					gSRHS.Draw('P')
@@ -217,6 +219,15 @@ for FILE,TYPE in CONFIG.keys():
 				R.SetOwnership(canvas.canvas, False)
 				print '\033[1;31m'           + 'GIF ENTRY {} CHAMBER {}'.format(ENTRY, CHAMBER.id)                        + '\033[m'
 				print '\033[1mFILE \033[32m' + 'RH_GIF_{}_{}_{}.pdf'    .format(MEAS, CHAMBER.display('ME{S}{R}'), EVENT) + '\033[30m CREATED\033[0m'
+			elif TYPE == 'MC':
+				# lumi text
+				canvas.drawLumiText('{CS}, Event #{EVENT}'.format(CS=CHAMBER.display('ME{E}{S}/{R}/{C}'), EVENT=EVENT))
+
+				# save as
+				canvas.canvas.SaveAs('{}/RH_MC_{}_{}.pdf'.format(OUTDIR, CHAMBER.display('ME{E}{S}{R}{C}'), EVENT))
+				R.SetOwnership(canvas.canvas, False)
+				print '\033[1;31m'          + 'MC ENTRY {} CHAMBER {}'.format(ENTRY, CHAMBER.id)                        + '\033[m'
+				print '\033[1mFILE \033[32m'+ 'RH_MC_{}_{}.pdf'       .format(CHAMBER.display('ME{E}{S}{R}{C}'), EVENT) + '\033[30m CREATED\033[0m'
 
 			del gRHS, gRHW
 			canvas.deleteCanvas()

@@ -3,6 +3,7 @@ import ROOT as R
 import Gif.Analysis.Primitives as Primitives
 import Gif.Analysis.OldPlotter as Plotter
 import Gif.Analysis.Auxiliary as Aux
+from Gif.Analysis.MegaStruct import F_GIFDATA
 
 ##### PARAMETERS #####
 # Which chambers to do
@@ -109,7 +110,7 @@ class MegaStruct():
 							'TM'  : R.TH1F('hTM'+str(CHAM)+str(MEAS), '', 400, -200., 200.),                    # "Time Missing"
 							'TS'  : R.TH1F('hTS'+str(CHAM)+str(MEAS), '', 400, -200., 200.),                    # "Time Segment"
 						}
-					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open(F_GIFDATA.replace('XXXX',str(MEAS)))
 					t = f.Get('GIFTree/GIFDigiTree')
 					for IDX, entry in enumerate(t):
 						E = Primitives.ETree(t, DecList=['SEGMENT', 'LCT', 'RECHIT'])
@@ -143,8 +144,8 @@ class MegaStruct():
 									D  = (DX**2. + DY**2.)**0.5
 									self.HISTS[CHAM][MEAS]['IS'].Fill(D)
 									self.HISTS[CHAM][MEAS]['SS'].Fill(DX, DY)
-									self.HISTS[CHAM][MEAS]['2S'].Fill(D, rechits[i].time)
-									self.HISTS[CHAM][MEAS]['TS'].Fill(rechits[i].time)
+									self.HISTS[CHAM][MEAS]['2S'].Fill(D, rechits[i].stripTime)
+									self.HISTS[CHAM][MEAS]['TS'].Fill(rechits[i].stripTime)
 								layers = [rechits[i].layer for i in seg.rhID]
 								for layer in [1, 2, 3, 4, 5, 6]:
 									if layer in layers: continue
@@ -163,7 +164,7 @@ class MegaStruct():
 												fillValD         = D
 												fillValDX        = DX
 												fillValDY        = DY
-												fillTime         = rh.time
+												fillTime         = rh.stripTime
 									#if inTime(time, CHAM):
 									if True:
 										self.HISTS[CHAM][MEAS]['ML'].Fill(fillValD)

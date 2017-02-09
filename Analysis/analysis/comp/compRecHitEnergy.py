@@ -5,6 +5,7 @@ import Gif.Analysis.Primitives as Primitives
 import Gif.Analysis.roottools as tools
 import Gif.Analysis.Auxiliary as Aux
 import sys
+from Gif.Analysis.MegaStruct import F_GIFDATA
 
 ### PARAMETERS
 # Which chambers to do; to compare to Yuriy only use ME1/1
@@ -68,7 +69,7 @@ class MegaStruct():
 		self.hists = { 1 : {} , 110 : {} }
 		for att in self.FFFMeas.keys():
 			for ff,MEAS in enumerate(self.FFFMeas[att]):
-				f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
+				f = R.TFile.Open(F_GIFDATA.replace('XXXX',str(MEAS)))
 				t = f.Get('GIFTree/GIFDigiTree')
 				for CHAM in CHAMLIST:
 					self.hists[CHAM][MEAS] = {\

@@ -3,6 +3,7 @@ import ROOT as R
 import Gif.Analysis.Primitives as Primitives
 import Gif.Analysis.OldPlotter as Plotter
 import Gif.Analysis.Auxiliary as Aux
+from Gif.Analysis.MegaStruct import F_GIFDATA
 
 ##### PARAMETERS #####
 # Which chambers to do
@@ -99,7 +100,7 @@ class MegaStruct():
 				for MEAS in self.MEASDATA[ATT][0:1]:
 					for CHAM in CHAMLIST:
 						self.HISTS[CHAM][MEAS] = R.TH1F('h'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX)
-					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open(F_GIFDATA.replace('XXXX',str(MEAS)))
 					t = f.Get('GIFTree/GIFDigiTree')
 					for entry in t:
 						E = Primitives.ETree(t, DecList=['RECHIT', 'SEGMENT'])

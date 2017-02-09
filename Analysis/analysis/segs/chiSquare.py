@@ -3,6 +3,7 @@ import ROOT as R
 import Gif.Analysis.Primitives as Primitives
 import Gif.Analysis.OldPlotter as Plotter
 import Gif.Analysis.Auxiliary as Aux
+from Gif.Analysis.MegaStruct import F_GIFDATA
 
 ##### PARAMETERS #####
 # Which chambers to do
@@ -94,7 +95,7 @@ class MegaStruct():
 		if F_DATAFILE is None:
 			for ATT in self.MEASDATA.keys():
 				for MEAS in self.MEASDATA[ATT][0:1]: # only interested in Original
-					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open(F_GIFDATA.replace('XXXX',str(MEAS)))
 					t = f.Get('GIFTree/GIFDigiTree')
 
 					BINS = 1000

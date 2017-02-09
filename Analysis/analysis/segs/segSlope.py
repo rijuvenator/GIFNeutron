@@ -136,8 +136,8 @@ class MegaStruct():
 									self.hists[CHAM][MEAS]['dXdZ'].Fill(segs[thisSeg].slope['x'])
 									self.hists[CHAM][MEAS]['dYdZ'].Fill(segs[thisSeg].slope['y'])
 									self.hists[CHAM][MEAS]['dXdY'].Fill(segs[thisSeg].slope['x'],segs[thisSeg].slope['y'])
-									time = np.array([rhs[rhid].time for rhid in segs[thisSeg].rhID]).mean()
-									#time = sum([rhs[rhid].time for rhid in segs[thisSeg].rhID])/len(segs[thisSeg].rhID)
+									time = np.array([rhs[rhid].stripTime for rhid in segs[thisSeg].rhID]).mean()
+									#time = sum([rhs[rhid].stripTime for rhid in segs[thisSeg].rhID])/len(segs[thisSeg].rhID)
 									self.hists[CHAM][MEAS]['time'].Fill(time)
 					for CHAM in CHAMLIST:
 						self.VALDATA[CHAM][MEAS] = {

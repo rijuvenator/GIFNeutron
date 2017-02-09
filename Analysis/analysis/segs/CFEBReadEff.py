@@ -2,6 +2,7 @@ import numpy as np
 import ROOT as R
 import Gif.Analysis.Primitives as Primitives
 import Gif.Analysis.OldPlotter as Plotter
+from Gif.Analysis.MegaStruct import F_GIFDATA
 
 CHAMLIST = [1, 110]
 
@@ -81,7 +82,7 @@ class MegaStruct():
 			for ATT in self.MEASDATA.keys():
 				for MEAS in self.MEASDATA[ATT]:
 					# Get file and tree
-					f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open(F_GIFDATA.replace('XXXX',str(MEAS)))
 					t = f.Get('GIFTree/GIFDigiTree')
 
 					# keep track for entire measurement

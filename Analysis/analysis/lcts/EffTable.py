@@ -2,8 +2,9 @@ import numpy as np
 import ROOT as R
 import Gif.Analysis.Primitives as Primitives
 import sys
+from Gif.Analysis.MegaStruct import F_GIFDATA, F_MEASGRID
 
-MEASGRID = '../datafiles/measgrid'
+MEASGRID = F_MEASGRID
 FF = 1 if len(sys.argv) < 2 else int(sys.argv[1])
 SCINT = {1:{'HS':(25,72),'WG':(37,43)},110:{'HS':(8,38),'WG':(55,65)}}
 
@@ -29,7 +30,7 @@ print '\033[4m{att:>5s} {meas:>4s} {cham:>4s} {L1A:>7s} {LCT:>7s} {LSc:>7s} {LSM
 for ATT in sorted(MeasDict.keys()):
 	MEAS = MeasDict[ATT][1]
 	ATT = MeasDict[ATT][0]
-	f = R.TFile.Open('../../trees/ana_'+MEAS+'.root')
+	f = R.TFile.Open(F_GIFDATA.replace('XXXX',MEAS))
 	t = f.Get('GIFTree/GIFDigiTree')
 
 	nL1A         = t.GetEntries() # nL1A

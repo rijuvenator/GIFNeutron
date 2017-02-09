@@ -6,8 +6,16 @@ import Gif.Analysis.Plotter as Plotter
 import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 
-CMSSW_PATH = bash.check_output('echo $CMSSW_BASE',shell=True).strip('\n') + '/src/'
+CMSSW_PATH  = bash.check_output('echo $CMSSW_BASE',shell=True).strip('\n') + '/src/'
 GITLAB_PATH = CMSSW_PATH + 'Gif/Analysis/'
+
+GIFDATA_PATH = GITLAB_PATH + 'trees_gif/'
+P5DATA_PATH  = GITLAB_PATH + 'trees_p5/'
+MCDATA_PATH  = GITLAB_PATH + 'trees_mc/'
+F_GIFDATA    = GIFDATA_PATH + 'ana_XXXX.root'
+F_P5DATA     = P5DATA_PATH  + 'ana_P5.root'
+F_MCDATA     = MCDATA_PATH  + 'ana_neutronMC.root'
+
 F_MEASGRID = GITLAB_PATH + 'analysis/datafiles/measgrid'
 F_ATTENHUT = GITLAB_PATH + 'analysis/datafiles/attenhut'
 F_RUNGRID  = GITLAB_PATH + 'analysis/datafiles/runlumigrid'
@@ -92,7 +100,7 @@ class GIFAnalyzer(GIFMegaStruct):
 				self.ATT = ATT
 				for MEAS in self.getMeaslist(ATT):
 					self.MEAS = MEAS
-					f = R.TFile.Open(GITLAB_PATH+'trees/ana_'+str(MEAS)+'.root')
+					f = R.TFile.Open(F_GIFDATA.replace('XXXX',str(MEAS)))
 					t = f.Get('GIFTree/GIFDigiTree')
 					self.analyze(t, self.PARAMS)
 			self.cleanup(self.PARAMS)
@@ -151,46 +159,75 @@ class P5MegaStruct():
 
 ##### P5 ANALYZER CLASS #####
 class P5Analyzer(P5MegaStruct):
-	def __init__(self, F_DATAFILE=None, RUNLIST=None, PARAMS=None):
+	def __init__(self, F_DATAFILE=None, PARAMS=None):
 		P5MegaStruct.__init__(self)
 		self.F_DATAFILE = F_DATAFILE
 		self.PARAMS = PARAMS
-		if RUNLIST is None:
-			self.RUNLIST = self.RUNLUMIDATA.keys()
-		else:
-			self.RUNLIST = RUNLIST
 		self.fillData()
-	
+
 	# the skeleton around the analyze function which fills a data dictionary
 	def fillData(self):
 		self.VALDATA = {}
 		if self.F_DATAFILE is None:
 			self.setup(self.PARAMS)
-			for RUN in self.RUNLIST:
-				self.RUN = RUN
-				#f = R.TFile.Open(GITLAB_PATH+'trees/ana_'+str(RUN)+'.root')
-				f = R.TFile.Open('/afs/cern.ch/user/c/cschnaib/public/GIF/ana_P5.root')
-				t = f.Get('GIFTree/GIFDigiTree')
-				self.analyze(t, self.PARAMS)
+			f = R.TFile.Open(F_P5DATA)
+			t = f.Get('GIFTree/GIFDigiTree')
+			self.analyze(t, self.PARAMS)
 			self.cleanup(self.PARAMS)
 		# for obtaining data dictionary from a file
 		else:
 			self.load(self.PARAMS)
-
-	# get a value given a run and chamber number
-	def val(self, run, cham):
-		return float(self.VALDATA[run][cham])
-
-	# get a vector of values
-	def valVector(self, cham):
-		return np.array([self.val(run, cham) for run in self.sortedRunList()])
 
 	# analysis function
 	def analyze(self, t, PARAMS):
 		pass
 		#for entry in t:
 		#	E = Primitives.ETree(t)
-	
+
+	# load data from file
+	def load(self, PARAMS):
+		pass
+
+	# setup before opening any files
+	def setup(self, PARAMS):
+		pass
+
+	# cleanup after analysis is done
+	def cleanup(self, PARAMS):
+		pass
+
+##### NEUTRON MC MEGASTRUCT BASE CLASS #####
+class MCMegaStruct():
+	def __init__(self):
+		pass
+
+##### NEUTRON MC ANALYZER CLASS #####
+class MCAnalyzer(MCMegaStruct):
+	def __init__(self, F_DATAFILE=None, PARAMS=None):
+		MCMegaStruct.__init__(self)
+		self.F_DATAFILE = F_DATAFILE
+		self.PARAMS = PARAMS
+		self.fillData()
+
+	# the skeleton around the analyze function which fills a data dictionary
+	def fillData(self):
+		self.VALDATA = {}
+		if self.F_DATAFILE is None:
+			self.setup(self.PARAMS)
+			f = R.TFile.Open(F_MCDATA)
+			t = f.Get('GIFTree/NeutronDigiTree')
+			self.analyze(t, self.PARAMS)
+			self.cleanup(self.PARAMS)
+		# for obtaining data dictionary from a file
+		else:
+			self.load(self.PARAMS)
+
+	# analysis function
+	def analyze(self, t, PARAMS):
+		pass
+		#for entry in t:
+		#	E = Primitives.ETree(t)
+
 	# load data from file
 	def load(self, PARAMS):
 		pass

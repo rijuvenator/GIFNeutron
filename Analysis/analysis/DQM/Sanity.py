@@ -3,6 +3,7 @@ import Gif.Analysis.OldPlotter as Plotter
 import Gif.Analysis.Primitives as Primitives
 import ROOT as R
 import sys
+from Gif.Analysis.MegaStruct import F_GIFDATA, F_P5DATA, F_MCDATA
 
 R.gROOT.SetBatch(True)
 
@@ -13,7 +14,7 @@ CHAMS    = [1, 110]
 
 ##### BEGIN CODE #####
 for MEAS in MEASLIST:
-	f = R.TFile.Open('../../trees/ana_'+str(MEAS)+'.root')
+	f = R.TFile.Open(F_GIFDATA.replace('XXXX',str(MEAS)))
 	t = f.Get('GIFTree/GIFDigiTree')
 
 	h = {}

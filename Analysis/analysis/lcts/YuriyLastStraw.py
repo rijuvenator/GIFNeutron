@@ -1,6 +1,7 @@
 import ROOT as R
 import numpy as np
 import Gif.Analysis.OldPlotter as Plotter
+from Gif.Analysis.MegaStruct import F_GIFDATA
 
 #dataY= [\
 #	(3412, float('inf')),
@@ -24,7 +25,7 @@ import Gif.Analysis.OldPlotter as Plotter
 #]
 #
 #for data in dataY + dataR:
-#	f = R.TFile.Open('../trees/ana_'+str(data[0])+'.root')
+#	f = R.TFile.Open(F_GIFDATA.replace('XXXX',str(data[0])))
 #	t = f.Get('GIFTree/GIFDigiTree')
 #
 #	nLCT = 0
