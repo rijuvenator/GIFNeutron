@@ -183,10 +183,13 @@ for FILE,TYPE in CONFIG.keys():
 				SegDrawList = []
 				for seg in segs:
 					if seg.cham != CHAM: continue
-					for lct in lcts:
-						if lct.cham != CHAM: continue
-						if Aux.matchSegLCT(seg, lct, thresh=(3., 3.)):
-							SegDrawList.append(seg)
+					if TYPE == 'GIF':
+						for lct in lcts:
+							if lct.cham != CHAM: continue
+							if Aux.matchSegLCT(seg, lct, thresh=(3., 3.)):
+								SegDrawList.append(seg)
+					else:
+						SegDrawList.append(seg)
 				SEGLAYERS = [1, 2, 3, 4, 5, 6]
 				layZ = np.array([float(i) + 0.5 for i in SEGLAYERS])
 				segGraphs = []
@@ -238,7 +241,7 @@ for FILE,TYPE in CONFIG.keys():
 				# lumi text
 				RUN = t.Event_RunNumber
 				LS  = t.Event_LumiSection
-				canvas.drawLumiText('{CS}, REL =({R}, {E}, {L})'.format(CS=CHAMBER.display('ME{E}{S}/{R}/{C}'), R=str(RUN), E=str(EVENT), L=str(LS)))
+				canvas.drawLumiText('{CS}, RLE = ({R}, {L}, {E})'.format(CS=CHAMBER.display('ME{E}{S}/{R}/{C}'), R=str(RUN), E=str(EVENT), L=str(LS)))
 
 				# save as
 				canvas.canvas.SaveAs('{}/ED_P5_{}_{}.pdf'.format(OUTDIR, CHAMBER.display('ME{E}{S}{R}{C}'), EVENT))
