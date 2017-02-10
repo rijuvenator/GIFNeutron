@@ -56,6 +56,12 @@ _GLOBAL VARIABLES_
 	* F_ATTENHUT
 	* F_RUNGRID
 
+# returns TYPE, OFN, and FDATA based on some command-line parameters
+# set up a CONFIG dictionary with file names and pass it to this function
+# then use the resulting output to construct the analyzers
+# No more messing around with None and commenting file names and etc.
+	* TYPE, OFN, FDATA = SetFileNames (CONFIG)
+
 == GIFMegaStruct
 _Class Members_
 	- (dict) MEASDATA
