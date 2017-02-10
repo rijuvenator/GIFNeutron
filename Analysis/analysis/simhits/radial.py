@@ -92,15 +92,15 @@ data = Analyzer(**kwargs)
 
 ##### MAKEPLOT FUNCTIONS #####
 def makePlots(HISTS):
-	for STATION in ['-4', '-3', '-2', '-1', '+1', '+2', '+3', '+4']:
+	for STATION in ['1', '2', '3', '4']:
 		plots = {}
 		for RING in RINGLIST:
-			if RING[1] == STATION[1]:
+			if RING[1] == STATION:
 				plots[RING] = Plotter.Plot(HISTS[RING], option='hist', legName='ME'+RING.replace('-','#minus'), legType='l')
-		canvas = Plotter.Canvas(logy=True, lumi='ME'+STATION.replace('-','#minus'))
+		canvas = Plotter.Canvas(logy=True, lumi='SimHit Distribution, Station '+STATION)
 		for RING in sorted(plots.keys()): # do 1, 2, [3] in that order
 			canvas.addMainPlot(plots[RING])
-			plots[RING].SetLineColor(R.kRed if RING[0]=='+' else R.kBlue)
+			plots[RING].SetLineColor((R.kRed if RING[0]=='+' else R.kBlue)+int(RING[2])-1)
 		canvas.makeLegend()
 		canvas.firstPlot.setTitles(X='Distance [m]', Y='Counts')
 		canvas.firstPlot.SetMaximum(10**4)
