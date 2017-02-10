@@ -86,11 +86,15 @@ void
 MakeSimpleNeutronSimTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
+	edm::ESHandle<CSCGeometry> cscGeom;
+	iSetup.get<MuonGeometryRecord>().get(cscGeom);
+	theCSC = cscGeom.product();
+
 	eventInfo.fill(iEvent);
 
 	edm::Handle<CSCRecHit2DCollection> recHits;
 	iEvent.getByToken( rh_token, recHits );
-	recHitInfo.fill(*recHits);
+	recHitInfo.fill(theCSC, *recHits);
 
 	edm::Handle<CSCStripDigiCollection> cscStripDigi;
 	iEvent.getByToken(sd_token,cscStripDigi);
@@ -102,19 +106,16 @@ MakeSimpleNeutronSimTree::analyze(const edm::Event& iEvent, const edm::EventSetu
 
 	edm::Handle<CSCComparatorDigiCollection> compDigi;
 	iEvent.getByToken(cod_token, compDigi);
-	compInfo.fill(*compDigi);
+	compInfo.fill(theCSC, *compDigi);
 
 	edm::Handle<CSCWireDigiCollection> cscWireDigi;
 	iEvent.getByToken(wd_token,cscWireDigi);
-	wireInfo.fill(*cscWireDigi);
+	wireInfo.fill(theCSC, *cscWireDigi);
 
 	edm::Handle<CSCCorrelatedLCTDigiCollection> cscLCTDigi;
 	iEvent.getByToken(ld_token, cscLCTDigi);
 	lctInfo.fill(*cscLCTDigi);
 
-	edm::ESHandle<CSCGeometry> cscGeom;
-	iSetup.get<MuonGeometryRecord>().get(cscGeom);
-	theCSC = cscGeom.product();
 	edm::Handle<CSCSegmentCollection> cscSegments;
 	iEvent.getByToken(seg_token, cscSegments);
 	segmentInfo.fill(theCSC,*cscSegments,&(*recHits));

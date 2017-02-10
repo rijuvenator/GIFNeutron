@@ -14,7 +14,8 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 	#inDir = cmssw_base+'/src/Gif/Production/GenerateNeutronMC/crab/crab_MinBiasNeutron_test_1/'
 	inDir =     '/store/user/cschnaib/Neutron/MinBiasNeutron/MinBiasNeutronSim/170207_135404/0000/'
 	inDir1000 = '/store/user/cschnaib/Neutron/MinBiasNeutron/MinBiasNeutronSim/170207_135404/0001/'
-	outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/NeutronSimTrees/'
+	outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/Neutron_with_global_pos_and_sim_id_fix/'
+	#outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/NeutronSimTrees/'
 
 	if not os.path.isdir(outDir):
 		print "Directory", outDir, "does not exist; exiting."
@@ -22,9 +23,7 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 	dryrun = 'dryrun' in sys.argv
 
 	nFiles = 1000
-	for i in range(10,nFiles+1):
-		if i==519: continue
-		if i==648: continue
+	for i in range(1,nFiles+1):
 
 		inFile = 'mb_13TeV_mu_ALL_xs_'+str(i)+'.root'
 
@@ -37,7 +36,6 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 
 		gif_py = open('GifAnalysis.py').read()
 		gif_py += '''
-doTree(process)
 process.source.fileNames  = cms.untracked.vstring('%(inPath)s')
 process.TFileService.fileName = cms.string('%(outPath)s')
 ''' % locals()

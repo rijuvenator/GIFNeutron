@@ -16,14 +16,14 @@ class FillGIFEventInfo : public FillInfo
 		virtual ~FillGIFEventInfo() {};
 
 	private:
-		int Event_EventNumber;
+		unsigned int Event_EventNumber;
 		int Event_RunNumber  ;
 		int Event_LumiSection;
 		int Event_BXCrossing ;
 
 		virtual void reset()
 		{
-			Event_EventNumber  = -1;
+			Event_EventNumber  = 0;
 			Event_RunNumber    = -1;
 			Event_LumiSection  = -1;
 			Event_BXCrossing   = -1;
@@ -44,6 +44,9 @@ class FillGIFRecHitInfo : public FillInfo
 			book("rh_lay"          ,rh_lay          );
 			book("rh_pos_x"        ,rh_pos_x        );
 			book("rh_pos_y"        ,rh_pos_y        );
+			book("rh_pos_glb_x"    ,rh_pos_glb_x    );
+			book("rh_pos_glb_y"    ,rh_pos_glb_y    );
+			book("rh_pos_glb_z"    ,rh_pos_glb_z    );
 			book("rh_pos_err_xx"   ,rh_pos_err_xx   );
 			book("rh_pos_err_xy"   ,rh_pos_err_xy   );
 			book("rh_pos_err_yy"   ,rh_pos_err_yy   );
@@ -70,6 +73,9 @@ class FillGIFRecHitInfo : public FillInfo
 		std::vector<size8>  rh_lay ;
 		std::vector<float>  rh_pos_x ;
 		std::vector<float>  rh_pos_y ;
+		std::vector<float>  rh_pos_glb_x ;
+		std::vector<float>  rh_pos_glb_y ;
+		std::vector<float>  rh_pos_glb_z ;
 		std::vector<float>  rh_pos_err_xx;
 		std::vector<float>  rh_pos_err_xy;
 		std::vector<float>  rh_pos_err_yy;
@@ -95,6 +101,9 @@ class FillGIFRecHitInfo : public FillInfo
 			rh_lay           .clear();
 			rh_pos_x         .clear();
 			rh_pos_y         .clear();
+			rh_pos_glb_x     .clear();
+			rh_pos_glb_y     .clear();
+			rh_pos_glb_z     .clear();
 			rh_pos_err_xx    .clear();
 			rh_pos_err_xy    .clear();
 			rh_pos_err_yy    .clear();
@@ -116,7 +125,7 @@ class FillGIFRecHitInfo : public FillInfo
 		}
 
 	public:
-		void fill(const CSCRecHit2DCollection& recHits);
+		void fill(const CSCGeometry * theCSC,const CSCRecHit2DCollection& recHits);
 };
 
 class FillGIFStripInfo : public FillInfo
@@ -162,6 +171,11 @@ class FillGIFCompInfo : public FillInfo
 			book("comp_comp"  ,comp_comp  );
 			book("comp_time"  ,comp_time  );
 			book("comp_timeOn",comp_timeOn);
+			book("comp_pos_x",comp_pos_x);
+			book("comp_pos_y",comp_pos_y);
+			book("comp_pos_glb_x",comp_pos_glb_x);
+			book("comp_pos_glb_y",comp_pos_glb_y);
+			book("comp_pos_glb_z",comp_pos_glb_z);
 		}
 		virtual ~FillGIFCompInfo() {};
 
@@ -172,6 +186,11 @@ class FillGIFCompInfo : public FillInfo
 		std::vector<size8>            comp_comp;
 		std::vector<size8>            comp_time;
 		std::vector<std::vector<int>> comp_timeOn;
+		std::vector<float>            comp_pos_x;
+		std::vector<float>            comp_pos_y;
+		std::vector<float>            comp_pos_glb_x;
+		std::vector<float>            comp_pos_glb_y;
+		std::vector<float>            comp_pos_glb_z;
 
 
 		virtual void reset()
@@ -182,10 +201,15 @@ class FillGIFCompInfo : public FillInfo
 			comp_comp  .clear();
 			comp_time  .clear();
 			comp_timeOn.clear();
+			comp_pos_x.clear();
+			comp_pos_y.clear();
+			comp_pos_glb_x.clear();
+			comp_pos_glb_y.clear();
+			comp_pos_glb_z.clear();
 		}
 
 	public:
-		void fill(const CSCComparatorDigiCollection& comps);
+		void fill(const CSCGeometry * theCSC,const CSCComparatorDigiCollection& comps);
 };
 
 
@@ -200,6 +224,11 @@ class FillGIFWireInfo : public FillInfo
 			book("wire_time",wire_time    );
 			book("wire_bx"  ,wire_bx      );
 			book("wire_nlay",wire_nlay,"I");
+			book("wire_pos_x",wire_pos_x);
+			book("wire_pos_y",wire_pos_y);
+			book("wire_pos_glb_x",wire_pos_glb_x);
+			book("wire_pos_glb_y",wire_pos_glb_y);
+			book("wire_pos_glb_z",wire_pos_glb_z);
 		}
 		virtual ~FillGIFWireInfo() {};
 
@@ -209,6 +238,11 @@ class FillGIFWireInfo : public FillInfo
 		std::vector<size8>  wire_grp ;
 		std::vector<size8>  wire_time;
 		std::vector<int>    wire_bx  ;
+		std::vector<float>            wire_pos_x;
+		std::vector<float>            wire_pos_y;
+		std::vector<float>            wire_pos_glb_x;
+		std::vector<float>            wire_pos_glb_y;
+		std::vector<float>            wire_pos_glb_z;
 		int                 wire_nlay;
 
 		virtual void reset()
@@ -218,11 +252,16 @@ class FillGIFWireInfo : public FillInfo
 			wire_grp .clear();
 			wire_time.clear();
 			wire_bx  .clear();
+			wire_pos_x.clear();
+			wire_pos_y.clear();
+			wire_pos_glb_x.clear();
+			wire_pos_glb_y.clear();
+			wire_pos_glb_z.clear();
 			wire_nlay = -1;
 		}
 
 	public:
-		void fill(const CSCWireDigiCollection& wires);
+		void fill(const CSCGeometry * theCSC,const CSCWireDigiCollection& wires);
 };
 
 

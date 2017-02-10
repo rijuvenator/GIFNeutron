@@ -13,6 +13,9 @@ class FillSimHitInfo : public FillInfo
 			book("sim_lay",sim_lay);
 			book("sim_pos_x",sim_pos_x);
 			book("sim_pos_y",sim_pos_y);
+			book("sim_pos_glb_x",sim_pos_glb_x);
+			book("sim_pos_glb_y",sim_pos_glb_y);
+			book("sim_pos_glb_z",sim_pos_glb_z);
 			book("sim_tof",sim_tof);
 			book("sim_energyLoss",sim_energyLoss);
 			book("sim_entry_x",sim_entry_x);
@@ -26,11 +29,14 @@ class FillSimHitInfo : public FillInfo
 		void fill(const CSCGeometry * theCSC, const edm::PSimHitContainer& simHits);
 
 	private:
-		std::vector<size8> sim_id;
+		std::vector<size16> sim_id;
 		std::vector<int> sim_particle_id;
 		std::vector<size8> sim_lay;
 		std::vector<float> sim_pos_x;
 		std::vector<float> sim_pos_y;
+		std::vector<float> sim_pos_glb_x;
+		std::vector<float> sim_pos_glb_y;
+		std::vector<float> sim_pos_glb_z;
 		std::vector<float> sim_tof;
 		std::vector<float> sim_energyLoss;
 		std::vector<float> sim_entry_x;
@@ -47,6 +53,9 @@ class FillSimHitInfo : public FillInfo
 			sim_lay.clear();
 			sim_pos_x.clear();
 			sim_pos_y.clear();
+			sim_pos_glb_x.clear();
+			sim_pos_glb_y.clear();
+			sim_pos_glb_z.clear();
 			sim_tof.clear();
 			sim_energyLoss.clear();
 			sim_entry_x.clear();

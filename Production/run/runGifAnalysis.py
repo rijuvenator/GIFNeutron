@@ -8,10 +8,10 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 	user = commands.getoutput('echo $USER')
 	cmssw_base = commands.getoutput('echo $CMSSW_BASE')
 
-	inDir = cmssw_base+'/src/Gif/Production/GenerateNeutronMC/crab/crab_MinBiasNeutronSim_test_1/results/'
+	inDir = cmssw_base+'/src/Gif/Production/GenerateNeutronMC/crab/crab_MinBiasProduction_test_1/results/'
 	outDir = cmssw_base+'/src/Gif/Production/run/output/'
 	#outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/Neutron/6Feb/'
-	#plotsDir = cmssw_base+'/src/Gif/Production/run/'
+	#plotsDir = cmssw_base+'/src/Gif/Production/analysis/MakeHistosAndTree/'
 
 	dryrun = 'dryrun' in sys.argv
 
@@ -23,14 +23,13 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 		inputMCfile = 'mb_13TeV_mu_ALL_xs_test_'+str(i)+'.root'
 		inPath = inDir + inputMCfile
 
-		outFile = 'test_crab_'+str(i)+'.root'
+		outFile = 'test_'+str(i)+'.root'
 		outPath = outDir + outFile
 
 
 		# customizations for a particular submission
 		gif_py = open('GifAnalysis.py').read()
 		gif_py += '''
-doTree(process)
 process.source.fileNames  = cms.untracked.vstring('file:%(inPath)s')
 process.TFileService.fileName = cms.string('%(outPath)s')
 ''' % locals()

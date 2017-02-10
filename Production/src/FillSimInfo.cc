@@ -23,7 +23,11 @@ void FillSimHitInfo::fill(const CSCGeometry * theCSC, const edm::PSimHitContaine
 		const CSCChamber *simChamber = theCSC->chamber(chamberId);
 		const CSCLayer *simLay = simChamber->layer(simID.layer());
 		const CSCLayerGeometry *simLayGeo = simLay->geometry();
-		LocalPoint simLP = simLay->toLocal(simChamber->toGlobal(hiti->localPosition()));
+		GlobalPoint simGlobalPoint = simChamber->toGlobal(hiti->localPosition());
+		sim_pos_glb_x.push_back(simGlobalPoint.x());
+		sim_pos_glb_y.push_back(simGlobalPoint.y());
+		sim_pos_glb_z.push_back(simGlobalPoint.z());
+		LocalPoint simLP = simLay->toLocal(simGlobalPoint);
 		float simStrip = simLayGeo->strip(simLP);
 		float simWire = simLayGeo->wireGroup(simLayGeo->nearestWire(simLP));
 		float simWireF = simWire + (simLayGeo->nearestWire(simLP) - simLayGeo->middleWireOfGroup(simWire))/(simLayGeo->numberOfWiresPerGroup(simWire)) + 0.5;
