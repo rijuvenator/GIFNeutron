@@ -106,8 +106,9 @@ class ETree():
 				self.sim_energyLoss  = list(t.sim_energyLoss )
 				self.sim_entry       = (list(t.sim_entry_x), list(t.sim_entry_y))
 				self.sim_exit        = (list(t.sim_exit_x), list(t.sim_exit_y))
-				self.sim_pos_strip   = list(t.sim_pos_strip)
-				self.sim_pos_wire    = list(t.sim_pos_wire)
+				self.sim_stripPos    = list(t.sim_pos_strip)
+				self.sim_wirePos     = list(t.sim_pos_wire)
+				self.sim_globalPos   = (list(t.sim_pos_glb_x), list(t.sim_pos_glb_y), list(t.sim_pos_glb_z))
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 class Comp():
@@ -165,16 +166,17 @@ class RecHit():
 
 class SimHit():
 	def __init__(self, E, i):
-		self.cham        = E.sim_id[i]
+		self.cham        = E.sim_cham[i]
 		self.particleID  = E.sim_particle_id[i]
-		self.layer       = E.sim_lay[i]
+		self.layer       = E.sim_layer[i]
 		self.pos         = {'x' : E.sim_pos[0][i], 'y' : E.sim_pos[1][i]}
 		self.tof         = E.sim_tof[i]
 		self.energyLoss  = E.sim_energyLoss[i]
 		self.entryPos    = {'x' : E.sim_entry[0][i], 'y' : E.sim_entry[1][i]}
 		self.exitPos     = {'x' : E.sim_exit[0][i] , 'y' : E.sim_exit[1][i]}
-		self.stripPos    = E.sim_pos_strip[i]
-		self.wirePos     = E.sim_pos_wire[i]
+		self.stripPos    = E.sim_stripPos[i]
+		self.wirePos     = E.sim_wirePos[i]
+		self.globalPos   = {'x' : E.sim_globalPos[0][i], 'y' : E.sim_globalPos[1][i], 'z' : E.sim_globalPos[2][i]}
 
 class LCT():
 	def __init__(self, E, i):
