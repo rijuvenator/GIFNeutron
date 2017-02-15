@@ -15,7 +15,7 @@ CONFIG = {
 	'MC'  : 'BASIC_MC.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
-TYPE, OFN, FDATA = MS.SetFileNames(CONFIG)
+TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 
 ##### IMPLEMENT ANALYZERS #####
 def analyze(self, t, PARAMS):
@@ -40,7 +40,7 @@ def setup(self, PARAMS):
 
 def cleanup(self, PARAMS):
 	pass
-	#print ''
+	print ''
 
 ##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 R.gROOT.SetBatch(True)

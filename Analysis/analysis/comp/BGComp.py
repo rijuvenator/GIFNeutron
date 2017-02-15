@@ -7,31 +7,22 @@ import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 
-if len(sys.argv) < 4:
-	print 'Do BX Gap?'
-	exit()
-else:
-	if sys.argv[3] == '1':
-		DOGAP = True
-	elif sys.argv[3] == '0':
-		DOGAP = False
-	else:
-		print 'Third argument should be 1 or 0.'
-		exit()
-
 RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
-	'GIF' : '',
-	'P5'  : 'BGComp_P5_noGap.root',
-	'MC'  : ''
+	'P5'  : 'BGComp_P5.root',
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
-TYPE, OFN, FDATA = MS.SetFileNames(CONFIG)
-if TYPE != 'P5':
-	print 'This script will only work for P5.'
+TYPE, OFN, FDATA, REMAINDER = MS.ParseArguments(CONFIG, extraArgs=True)
+
+if REMAINDER == []:
+	DOGAP = False
+elif REMAINDER == ['-g'] or REMAINDER == ['--gap']:
+	DOGAP = True
+else:
+	print 'Not a valid option.'
 	exit()
 
 ##### IMPLEMENT ANALYZERS #####

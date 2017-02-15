@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, argparse
 import subprocess as bash
 import numpy as np
 import ROOT as R
@@ -6,6 +6,8 @@ import Gif.Analysis.Primitives as Primitives
 import Gif.Analysis.Plotter as Plotter
 import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
+
+R.PyConfig.IgnoreCommandLineOptions = True
 
 # Useful globals
 CMSSW_PATH  = bash.check_output('echo $CMSSW_BASE',shell=True).strip('\n') + '/src/'
@@ -23,37 +25,29 @@ F_ATTENHUT = GITLAB_PATH + 'analysis/datafiles/attenhut'
 F_RUNGRID  = GITLAB_PATH + 'analysis/datafiles/runlumigrid'
 F_GAPDATA  = GITLAB_PATH + 'analysis/datafiles/gapdata'
 
-# Sets module globals; run at the beginning of an analysis script
-def SetFileNames(CONFIG):
-	if sorted(CONFIG.keys()) != sorted(['GIF', 'P5', 'MC']):
-		print 'Only GIF, P5, and MC are allowed keys in CONFIG.'
-		exit()
-	SCRIPTNAME = sys.argv[0]
-	USAGESTRING = 'Usage: python {SCRIPT} MODE[GIF/P5/MC] RECREATE[1,0]'.format(SCRIPT=SCRIPTNAME)
-	if len(sys.argv) < 3:
-		print USAGESTRING
-		exit()
-	else:
-		TYPE = sys.argv[1]
-		if TYPE in CONFIG.keys():
-			OFN = CONFIG[sys.argv[1]]
-		else:
-			print 'Invalid argument;', USAGESTRING
-			exit()
+# Parses command-line arguments; run at the beginning of an analysis script
+def ParseArguments(CONFIG, extraArgs=False):
+	parser = argparse.ArgumentParser()
+	parser.add_argument('TYPE'            , choices=CONFIG.keys()               , help='which data type to use')
+	parser.add_argument('-r', '--recreate', dest='RECREATE', action='store_true', help='whether or not to (re)create an output data file')
+	if extraArgs:
+		parser.add_argument('REMAINDER'   , nargs=argparse.REMAINDER            , help='any remaining custom arguments')
+	args = parser.parse_args()
 
-		RECREATE = sys.argv[2]
-		if RECREATE == '1':
-			FDATA = None
-			print '(Re)creating '+OFN+'...'
-		elif RECREATE == '0':
-			if not os.path.isfile(OFN):
-				print 'Input file', OFN, 'does not exist; exiting now...'
-				exit()
-			FDATA = OFN
-		else:
-			print 'Invalid argument;', USAGESTRING
+	OFN = CONFIG[args.TYPE]
+	if args.RECREATE:
+		FDATA = None
+		print '(Re)creating '+OFN+'...'
+	else:
+		if not os.path.isfile(OFN):
+			print 'Input file', OFN, 'does not exist.'
 			exit()
-	return TYPE, OFN, FDATA
+		FDATA = OFN
+
+	if extraArgs:
+		return args.TYPE, OFN, FDATA, args.REMAINDER
+	else:
+		return args.TYPE, OFN, FDATA
 
 ##### GIF MEGASTRUCT BASE CLASS #####
 class GIFMegaStruct():

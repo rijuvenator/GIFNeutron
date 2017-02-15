@@ -13,15 +13,10 @@ LHC_BUNCHES = 3564
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
-	'GIF' : '',
-	'P5'  : 'gaps.root',
-	'MC'  : ''
+	'P5'  : 'gaps.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
-TYPE, OFN, FDATA = MS.SetFileNames(CONFIG)
-if TYPE != 'P5':
-	print 'This script will only work for P5.'
-	exit()
+TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 
 ##### IMPLEMENT ANALYZERS #####
 def analyze(self, t, PARAMS):

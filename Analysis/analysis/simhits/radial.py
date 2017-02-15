@@ -12,15 +12,10 @@ RINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11'
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
-	'GIF' : 'radial_GIF.root',
-	'P5'  : 'radial_P5.root',
 	'MC'  : 'radial_MC.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
-TYPE, OFN, FDATA = MS.SetFileNames(CONFIG)
-if TYPE != 'MC':
-	print 'This script will only work for MC.'
-	exit()
+TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 
 ##### ANALYZER FUNCTIONS #####
 # runs before file loop; open a file, declare a hist dictionary
