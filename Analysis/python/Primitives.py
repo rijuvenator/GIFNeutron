@@ -15,10 +15,11 @@ class ETree():
 	def __init__(self, t, DecList=('COMP', 'STRIP', 'WIRE', 'RECHIT', 'LCT', 'SEGMENT','CLCT','SIMHIT')):
 		if 'COMP' in DecList:
 			self.comp_cham      = list(t.comp_id)
-			self.comp_layer     = [ord(x) for x in list(t.comp_lay)  ]
-			self.comp_strip     = [ord(x) for x in list(t.comp_strip)]
-			self.comp_comp      = [ord(x) for x in list(t.comp_comp) ]
-			self.comp_timeBin   = [ord(x) for x in list(t.comp_time) ]
+			self.comp_layer     = [ord(x)  for x in list(t.comp_lay)   ]
+			self.comp_strip     = [ord(x)  for x in list(t.comp_strip) ]
+			self.comp_comp      = [ord(x)  for x in list(t.comp_comp)  ]
+			self.comp_timeBin   = [ord(x)  for x in list(t.comp_time)  ]
+			self.comp_timeBins  = [list(x) for x in list(t.comp_timeOn)]
 			# Temporarily not backwards compatible!
 			if hasattr(t, 'comp_pos_x'):
 				self.comp_pos       = (list(t.comp_pos_x), list(t.comp_pos_y))
@@ -118,6 +119,7 @@ class Comp():
 		self.strip     = E.comp_strip[i]
 		self.comp      = E.comp_comp[i]
 		self.timeBin   = E.comp_timeBin[i]
+		self.timeBins  = E.comp_timeBins[i]
 		self.pos       = {'x' : E.comp_pos[0][i], 'y' : E.comp_pos[1][i]}
 		self.globalPos = {'x' : E.comp_globalPos[0][i], 'y' : E.comp_globalPos[1][i], 'z' : E.comp_globalPos[2][i]}
 

@@ -1,5 +1,6 @@
 import ROOT as R
 import numpy as n
+R.PyConfig.IgnoreCommandLineOptions = True
 
 # Imporant note: any functions that manipulate things based on text size assume that
 # the containing pad is wider than it is tall. In this case, the character height is

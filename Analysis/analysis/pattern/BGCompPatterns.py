@@ -7,31 +7,15 @@ import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 
-if len(sys.argv)<3:
-	print 'Usage: python BGCompPatterns.py MODE[GIF/P5] OVERWRITE[1,0]'
-	exit()
-else:
-	if sys.argv[1] == 'GIF':
-		OFN = 'bgpatterns_GIF.root'
-		ISGIF = True
-	elif sys.argv[1] == 'P5':
-		OFN = 'bgpatterns_P5.root'
-		ISGIF = False
-	else:
-		print 'Invalid argument; Usage: python BGCompPatterns.py MODE[GIF/P5] OVERWRITE[1,0]'
-		exit()
-	if sys.argv[2] == '1':
-		FDATA = None
-	elif sys.argv[2] == '0':
-		FDATA = OFN
-	else:
-		print 'Invalid argument; Usage: python BGCompPatterns.py MODE[GIF/P5] OVERWRITE[1,0]'
-		exit()
-
-# make sure the file exists
-if not os.path.isfile(OFN) and FDATA is not None:
-	print 'Input files do not exist; exiting now...'
-	exit()
+#### SETUP SCRIPT #####
+# Output file names
+CONFIG = {
+	'GIF' : 'bgpatterns_GIF.root',
+	'P5'  : 'bgpatterns_P5.root',
+	'MC'  : 'bgpatterns_MC.root'
+}
+# Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
+TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 
 # Pattern ID function
 def PatternID(comp, comps):
@@ -106,6 +90,7 @@ def PatternID(comp, comps):
 
 	return id_
 
+##### ANALYZER FUNCTIONS #####
 # runs before file loop; open a file, declare a hist dictionary
 def setup(self, PARAMS):
 	FN = PARAMS[0]
@@ -116,11 +101,11 @@ def setup(self, PARAMS):
 
 # once per file
 def analyze(self, t, PARAMS):
-	ISGIF = PARAMS[1]
+	TYPE = PARAMS[1]
 	for idx, entry in enumerate(t):
 		print 'Events:', idx, '\r',
 
-		if not ISGIF:
+		if TYPE == 'P5':
 			if      t.Z_mass <= 98. and t.Z_mass >= 84.\
 				and t.nJets20 == 0\
 				and t.Z_pT <= 20.:
@@ -176,20 +161,19 @@ def load(self, PARAMS):
 	self.HIST = f.Get('h')
 	self.HIST.SetDirectory(0)
 
-# override class methods and run analysis!
+##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 R.gROOT.SetBatch(True)
-if ISGIF:
-	MS.GIFAnalyzer.analyze = analyze
-	MS.GIFAnalyzer.load = load
-	MS.GIFAnalyzer.setup = setup
-	MS.GIFAnalyzer.cleanup = cleanup
-	data = MS.GIFAnalyzer (PARAMS=[OFN, ISGIF], F_DATAFILE=FDATA, ATTLIST=[4.6])
-else:
-	MS. P5Analyzer.analyze = analyze
-	MS. P5Analyzer.load = load
-	MS. P5Analyzer.setup = setup
-	MS. P5Analyzer.cleanup = cleanup
-	data = MS.P5Analyzer (PARAMS=[OFN, ISGIF], F_DATAFILE=FDATA, RUNLIST=[282663])
+METHODS = ['analyze', 'load', 'setup', 'cleanup']
+ARGS = {\
+	'PARAMS'     : [OFN, TYPE],
+	'F_DATAFILE' : FDATA
+}
+if TYPE == 'GIF':
+	ARGS['ATTLIST'] = [float('inf')]
+Analyzer = getattr(MS, TYPE+'Analyzer')
+for METHOD in METHODS:
+	setattr(Analyzer, METHOD, locals()[METHOD])
+data = Analyzer(**ARGS)
 
 ##### MAKEPLOT FUNCTIONS #####
 def makePlot(h, ISGIF):

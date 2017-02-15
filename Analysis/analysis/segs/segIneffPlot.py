@@ -223,7 +223,7 @@ for cham in CHAMLIST:
 		cham if cham == 1 else 2,
 		[data.lumiVector(cham, 0)     for cat in range(1,6)],
 		[data.fracVector(cham, cat)   for cat in range(1,6)],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'Fraction of Muon Segments',
 		'all'
 	)

@@ -220,7 +220,7 @@ for cham in CHAMLIST:
 		cham if cham == 1 else 2,
 		[data.lumiVector(cham, 0             ) for dof in [0, 2, 4, 6, 8]],
 		[data.valVector (cham, 0, dof, 'MEAN') for dof in [0, 2, 4, 6, 8]],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'Mean of #chi^{2} Distribution',
 		'mean'
 	)
@@ -228,7 +228,7 @@ for cham in CHAMLIST:
 		cham if cham == 1 else 2,
 		[data.lumiVector(cham, 0             ) for dof in [0, 2, 4, 6, 8]],
 		[data.valVector (cham, 0, dof, 'STDD') for dof in [0, 2, 4, 6, 8]],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'Standard Deviation of #chi^{2} Distribution',
 		'stddev'
 	)

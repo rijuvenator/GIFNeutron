@@ -265,7 +265,7 @@ for CHAM in CHAMLIST:
 		CHAM if CHAM == 1 else 2,
 		[data.lumiVector(CHAM, ff) for ff in pretty.keys()],
 		[data.effVector (CHAM, ff) for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'Comparator-Strip Efficiency',
 		'lumi'
 	)

@@ -243,7 +243,7 @@ for cham in chamlist:
 			[data.lumiVector(cham, ff) for ff in pretty.keys()],
 			[data.clctVector(cham, ff) for ff in pretty.keys()],
 			cham,
-			'Luminosity [Hz/cm^{2}]',
+			'Luminosity [cm^{-2}s^{-1}]',
 			'<N(CLCT layers)>',
 			'lumi'
 			)

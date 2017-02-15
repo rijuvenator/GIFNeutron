@@ -7,12 +7,13 @@ import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 
+import itertools as it
+LHC_BUNCHES = 3564
+
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
-	'GIF' : 'BASIC_GIF.root',
-	'P5'  : 'BASIC_P5.root',
-	'MC'  : 'BASIC_MC.root'
+	'P5'  : 'gaps.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
 TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
@@ -20,27 +21,36 @@ TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 ##### IMPLEMENT ANALYZERS #####
 def analyze(self, t, PARAMS):
 	for idx, entry in enumerate(t):
-		print 'Events:', idx+1, '\r',
-		E = Primitives.ETree(t)
+		print 'Event: ', idx, '\r',
+
+		RUN = t.Event_RunNumber
+		if RUN not in self.HISTS.keys():
+			self.HISTS[RUN] = R.TH1F('h'+str(RUN), '', LHC_BUNCHES, 0, LHC_BUNCHES)
+			self.HISTS[RUN].SetDirectory(0)
+
+		self.HISTS[RUN].Fill(t.Event_BXCrossing)
 
 	self.F_OUT.cd()
-	#self.HISTS[].Write()
+	for RUN in self.HISTS.keys():
+		self.HISTS[RUN].Write()
 
 def load(self, PARAMS):
 	f = R.TFile.Open(self.F_DATAFILE)
+	HNAMES = [i.GetName() for i in list(f.GetListOfKeys())]
 	self.HISTS = {}
-	#self.HISTS[].SetDirectory(0)
+	for NAME in HNAMES:
+		self.HISTS[int(NAME[1:])] = f.Get(NAME)
+		self.HISTS[int(NAME[1:])].SetDirectory(0)
 
 def setup(self, PARAMS):
 	FN = PARAMS[0]
 	self.F_OUT = R.TFile(FN,'RECREATE')
 	self.F_OUT.cd()
 	self.HISTS = {}
-	#self.HISTS[].SetDirectory(0)
 
 def cleanup(self, PARAMS):
-	pass
 	print ''
+	pass
 
 ##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 R.gROOT.SetBatch(True)
@@ -49,18 +59,26 @@ ARGS = {\
 	'PARAMS'     : [OFN, TYPE],
 	'F_DATAFILE' : FDATA
 }
-if TYPE == 'GIF':
-	ARGS['ATTLIST'] = [float('inf')]
 Analyzer = getattr(MS, TYPE+'Analyzer')
 for METHOD in METHODS:
 	setattr(Analyzer, METHOD, locals()[METHOD])
 data = Analyzer(**ARGS)
 
-##### MAKE PLOTS #####
-def makePlot(hist):
-	plot = Plotter.Plot(hist, legName='', legType='felp', option='hist')
-	canvas = Plotter.Canvas(lumi='')
-	canvas.addMainPlot(plot)
-	canvas.makeLegend()
-	canvas.finishCanvas()
-	canvas.save('plot', ['.pdf', '.png'])
+#### FIND BUNCH RANGES #####
+for RUN in data.HISTS.keys():
+	h = data.HISTS[RUN]
+	#print 'RUN', RUN
+	BXList = []
+	Count = 0
+	for BX in range(LHC_BUNCHES):
+		if h.GetBinContent(BX+1) == 0:
+			BXList.append(BX)
+		else:
+			Count += 1
+
+	print RUN, Count
+	continue
+	print '  {:>5s} {:>5s} {:>5s}'.format('SIZE', 'START', 'END')
+	for key, group in it.groupby(enumerate(BXList), lambda (idx, BX) : idx - BX):
+		BXRange = [BX for idx, BX in list(group)]
+		print '  {:5d} {:5d} {:5d}'.format(BXRange[-1]-BXRange[0]+1, BXRange[0], BXRange[-1])

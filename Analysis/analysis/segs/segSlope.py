@@ -299,7 +299,7 @@ for CHAM in CHAMLIST:
 			cham,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.valVector (cham, ff,'dXdZ_mean') for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'dX/dZ mean',
 		'dXdZ_mean'
 	)
@@ -307,7 +307,7 @@ for CHAM in CHAMLIST:
 			cham,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.valVector (cham, ff,'dXdZ_stddev') for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'dX/dZ RMS',
 		'dXdZ_stddev'
 	)
@@ -315,7 +315,7 @@ for CHAM in CHAMLIST:
 			cham,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.valVector (cham, ff,'dYdZ_mean') for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'dY/dZ mean',
 		'dYdZ_mean'
 	)
@@ -323,7 +323,7 @@ for CHAM in CHAMLIST:
 			cham,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.valVector (cham, ff,'dYdZ_stddev') for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'dY/dZ RMS',
 		'dYdZ_stddev'
 	)
@@ -331,7 +331,7 @@ for CHAM in CHAMLIST:
 			cham,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.valVector (cham, ff,'time_mean') for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'mean time [ns]',
 		'time_mean'
 	)
@@ -339,7 +339,7 @@ for CHAM in CHAMLIST:
 			cham,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.valVector (cham, ff,'time_stddev') for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'RMS time [ns]',
 		'time_stddev'
 	)

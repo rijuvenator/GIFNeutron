@@ -309,7 +309,7 @@ for CHAM in CHAMLIST:
 			[data.errUpVector(CHAM, ff) for ff in pretty.keys()],
 			[data.errDownVector(CHAM, ff) for ff in pretty.keys()],
 			CHAM,
-			'Luminosity [Hz/cm^{2}]',
+			'Luminosity [cm^{-2}s^{-1}]',
 			'Comparator Efficiency',
 			'lumi')
 	# Plots with 1/A on x-axis

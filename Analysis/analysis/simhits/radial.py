@@ -12,12 +12,10 @@ RINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11'
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
-	'GIF' : 'radial_GIF.root',
-	'P5'  : 'radial_P5.root',
 	'MC'  : 'radial_MC.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
-TYPE, OFN, FDATA = MS.SetFileNames(CONFIG)
+TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 
 ##### ANALYZER FUNCTIONS #####
 # runs before file loop; open a file, declare a hist dictionary
@@ -92,15 +90,15 @@ data = Analyzer(**kwargs)
 
 ##### MAKEPLOT FUNCTIONS #####
 def makePlots(HISTS):
-	for STATION in ['-4', '-3', '-2', '-1', '+1', '+2', '+3', '+4']:
+	for STATION in ['1', '2', '3', '4']:
 		plots = {}
 		for RING in RINGLIST:
-			if RING[1] == STATION[1]:
+			if RING[1] == STATION:
 				plots[RING] = Plotter.Plot(HISTS[RING], option='hist', legName='ME'+RING.replace('-','#minus'), legType='l')
-		canvas = Plotter.Canvas(logy=True, lumi='ME'+STATION.replace('-','#minus'))
+		canvas = Plotter.Canvas(logy=True, lumi='SimHit Distribution, Station '+STATION)
 		for RING in sorted(plots.keys()): # do 1, 2, [3] in that order
 			canvas.addMainPlot(plots[RING])
-			plots[RING].SetLineColor(R.kRed if RING[0]=='+' else R.kBlue)
+			plots[RING].SetLineColor((R.kRed if RING[0]=='+' else R.kBlue)+int(RING[2])-1)
 		canvas.makeLegend()
 		canvas.firstPlot.setTitles(X='Distance [m]', Y='Counts')
 		canvas.firstPlot.SetMaximum(10**4)

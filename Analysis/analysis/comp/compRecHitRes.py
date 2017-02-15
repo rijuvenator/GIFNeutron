@@ -210,7 +210,7 @@ class MegaStruct():
 
 		# Step 2
 		ATT = str(int(att)) if str(att)!='inf' else 'NS'
-		canvas = Plotter.Canvas('ME'+str(CHAM)+'/1, Ext. Trig., %2.1f'%(lumi)+'#times10^{33} Hz/cm^{2} ('+ATT+')', False, 0., '', 800, 600)
+		canvas = Plotter.Canvas('ME'+str(CHAM)+'/1, Ext. Trig., %2.1f'%(lumi)+'#times10^{33} cm^{-2}s^{-1} ('+ATT+')', False, 0., '', 800, 600)
 
 		# Step 3
 		canvas.makeLegend()
@@ -336,7 +336,7 @@ for CHAM in CHAMLIST:
 			[data.lumiVector(CHAM, ff) for ff in pretty.keys()],
 			[data.resVector(CHAM, ff) for ff in pretty.keys()],
 			CHAM,
-			'Luminosity [Hz/cm^{2}]',
+			'Luminosity [cm^{-2}s^{-1}]',
 			'Comparator Resolution [strip]',
 			'res_lumi',
 			RES=True
@@ -365,7 +365,7 @@ for CHAM in CHAMLIST:
 			[data.lumiVector(CHAM, ff) for ff in pretty.keys()],
 			[data.meanVector(CHAM, ff) for ff in pretty.keys()],
 			CHAM,
-			'Luminosity [Hz/cm^{2}]',
+			'Luminosity [cm^{-2}s^{-1}]',
 			'Comparator Bias [strip]',
 			'mean_lumi'
 			)
