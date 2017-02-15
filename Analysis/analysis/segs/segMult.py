@@ -312,7 +312,7 @@ for CHAM in CHAMLIST:
 			cham,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.valVector (cham, ff,'mult_mean') for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'N(segments) mean',
 		'mult_mean'
 	)
@@ -320,7 +320,7 @@ for CHAM in CHAMLIST:
 			cham,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.valVector (cham, ff,'mult_rms') for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'N(segments) RMS',
 		'mult_rms'
 	)
@@ -328,7 +328,7 @@ for CHAM in CHAMLIST:
 			cham,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.valVector (cham, ff,'multScint_mean') for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'N(segments) mean',
 		'multScint_mean'
 	)
@@ -336,7 +336,7 @@ for CHAM in CHAMLIST:
 			cham,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.valVector (cham, ff,'multScint_rms') for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'N(segments) RMS',
 		'multScint_rms'
 	)
@@ -344,7 +344,7 @@ for CHAM in CHAMLIST:
 			cham,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.valVector (cham, ff,'multMatch_mean') for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'N(segments) mean',
 		'multMatch_mean'
 	)
@@ -352,7 +352,7 @@ for CHAM in CHAMLIST:
 			cham,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.valVector (cham, ff,'multMatch_rms') for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'N(segments) RMS',
 		'multMatch_rms'
 	)

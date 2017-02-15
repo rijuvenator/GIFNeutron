@@ -484,7 +484,7 @@ for cham in CHAMLIST:
 		cham if cham == 1 else 2,
 		[data.lumiVector(cham, 0) for which in ['ML_SD', 'IS_SD']],
 		[data.valVector(cham, 0, which) for which in ['ML_SD', 'IS_SD']],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'Standard Deviation [cm]',
 		'stddev'
 	)
@@ -493,7 +493,7 @@ for cham in CHAMLIST:
 		cham if cham == 1 else 2,
 		[data.lumiVector(cham, 0) for which in ['ML_MU', 'IS_MU']],
 		[data.valVector(cham, 0, which) for which in ['ML_MU', 'IS_MU']],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'Mean [cm]',
 		'mean'
 	)

@@ -175,7 +175,7 @@ class MegaStruct():
 
 		# Step 2
 		ATT = str(int(att)) if str(att)!='inf' else 'NS'
-		canvas = Plotter.Canvas('ME'+str(CHAM)+'/1, Ext. Trig., %2.1f'%(lumi)+'#times10^{33} Hz/cm^{2} ('+ATT+')', False, 0., '', 800, 600)
+		canvas = Plotter.Canvas('ME'+str(CHAM)+'/1, Ext. Trig., %2.1f'%(lumi)+'#times10^{33} cm^{-2}s^{-1} ('+ATT+')', False, 0., '', 800, 600)
 
 		# Step 3
 		canvas.makeLegend()
@@ -240,7 +240,7 @@ class MegaStruct():
 		# Step 2
 		CHAM = 1 if cham==1 else 2
 		ATT = str(int(att)) if str(att)!='inf' else 'NS'
-		canvas = Plotter.Canvas('ME'+str(CHAM)+'/1, Ext. Trig., %2.1f'%(lumi)+'#times10^{33} Hz/cm^{2} ('+ATT+')', False, 0., '', 800, 600)
+		canvas = Plotter.Canvas('ME'+str(CHAM)+'/1, Ext. Trig., %2.1f'%(lumi)+'#times10^{33} cm^{-2}s^{-1} ('+ATT+')', False, 0., '', 800, 600)
 
 		# Step 3
 		#canvas.makeLegend(pos='tr',lWidth=0.35,fontsize=0.03)

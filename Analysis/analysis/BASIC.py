@@ -20,7 +20,7 @@ TYPE, OFN, FDATA = MS.SetFileNames(CONFIG)
 ##### IMPLEMENT ANALYZERS #####
 def analyze(self, t, PARAMS):
 	for idx, entry in enumerate(t):
-		print 'Events:', idx, '\r',
+		print 'Events:', idx+1, '\r',
 		E = Primitives.ETree(t)
 
 	self.F_OUT.cd()

@@ -198,7 +198,7 @@ for cham in CHAMLIST:
 			cham if cham == 1 else 2,
 			[data.lumiVector(cham, ff, quant['castrated']                         ) for ff in pretty.keys()],
 			[data.effVector (cham, ff, quant['num'], quant['denom'], quant['norm']) for ff in pretty.keys()],
-			'Luminosity [Hz/cm^{2}]',
+			'Luminosity [cm^{-2}s^{-1}]',
 			quant['ytitle'],
 			quant['num'] \
 				+ ('' if quant['denom'] is None else '_'+quant['denom']) \

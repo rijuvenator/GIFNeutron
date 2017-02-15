@@ -220,7 +220,7 @@ for CHAM in CHAMLIST:
 		[data.lumiVector(CHAM, ff) for ff in pretty.keys()],
 		[data.valVector(CHAM, ff, 'all') for ff in pretty.keys()],
 		CHAM/110+1,
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'#LT Segment nHits #GT',
 		'lumi_all'
 	)
@@ -228,7 +228,7 @@ for CHAM in CHAMLIST:
 		[data.lumiVector(CHAM, ff) for ff in pretty.keys()],
 		[data.valVector(CHAM, ff, 'muon') for ff in pretty.keys()],
 		CHAM/110+1,
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'#LT Muon Segment nHits #GT',
 		'lumi_muon'
 	)

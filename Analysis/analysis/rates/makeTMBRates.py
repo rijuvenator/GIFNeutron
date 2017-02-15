@@ -205,7 +205,7 @@ def makePlot(x, y, ytit, fn, extra, logy, cham, norm=None, normO=None, pretty=pr
 	canvas.firstPlot.plot.GetYaxis().SetTitleOffset(graphs[0].GetYaxis().GetTitleOffset()*1.4)
 	canvas.firstPlot.plot.GetYaxis().SetTitle(ytit)
 	#canvas.firstPlot.plot.GetXaxis().SetTitle('Mean Current [#muA]')
-	canvas.firstPlot.plot.GetXaxis().SetTitle('Luminosity [Hz/cm^{2}]')
+	canvas.firstPlot.plot.GetXaxis().SetTitle('Luminosity [cm^{-2}s^{-1}]')
 	canvas.firstPlot.plot.SetMinimum(yrange[0]*0.8)
 	canvas.firstPlot.plot.SetMaximum(yrange[1]*1.2)
 	canvas.firstPlot.scaleTitles(0.8)

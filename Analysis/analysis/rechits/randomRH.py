@@ -268,7 +268,7 @@ for cham in CHAMLIST:
 #		cham if cham == 1 else 2,
 #		data.lumiVector(cham, 0),
 #		data.valVector(cham, 0),
-#		'Luminosity [Hz/cm^{2}]',
+#		'Luminosity [cm^{-2}s^{-1}]',
 #		'Standard Deviation [cm]',
 #		'stddev'
 #	)

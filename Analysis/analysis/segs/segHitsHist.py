@@ -226,7 +226,7 @@ for cham in CHAMLIST:
 		cham if cham == 1 else 2,
 		[data.lumiVector(cham, 0)     for nhits in [3, 4, 5, 6]],
 		[data.fracVector(cham, nhits) for nhits in [3, 4, 5, 6]],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'Fraction of LCT-Matched Segments',
 		'all'
 	)

@@ -21,6 +21,7 @@ F_MCDATA     = MCDATA_PATH  + 'ana_neutronMC.root'
 F_MEASGRID = GITLAB_PATH + 'analysis/datafiles/measgrid'
 F_ATTENHUT = GITLAB_PATH + 'analysis/datafiles/attenhut'
 F_RUNGRID  = GITLAB_PATH + 'analysis/datafiles/runlumigrid'
+F_GAPDATA  = GITLAB_PATH + 'analysis/datafiles/gapdata'
 
 # Sets module globals; run at the beginning of an analysis script
 def SetFileNames(CONFIG):
@@ -172,6 +173,7 @@ class GIFAnalyzer(GIFMegaStruct):
 class P5MegaStruct():
 	def __init__(self):
 		self.fillRunLumi()
+		self.fillGaps()
 	
 	# general fill run and lumi data function
 	def fillRunLumi(self):
@@ -187,9 +189,37 @@ class P5MegaStruct():
 			self.RUNLUMIDATA[RUN][LS] = ILUMI
 		f.close()
 
+	# general fill gap data function
+	def fillGaps(self):
+		f = open(F_GAPDATA)
+		self.GAPDATA = {}
+		for line in f:
+			cols = line.strip('\n').split()
+			if cols[0] == 'RUN':
+				RUN = int(cols[1])
+				self.GAPDATA[RUN] = {}
+			elif cols[0] == 'SIZE':
+				pass
+			else:
+				SIZE = int(cols[0])
+				START = int(cols[1])
+				END = int(cols[2])
+				if SIZE not in self.GAPDATA[RUN].keys():
+					self.GAPDATA[RUN][SIZE] = []
+				self.GAPDATA[RUN][SIZE].append((START, END))
+
 	# get a luminosity given a run and lumisection
 	def lumi(self, run, ls):
 		return self.RUNLUMIDATA[run][ls]
+
+	# determine if a BX is after a gap
+	def afterGapSize(self, run, bx, minSize=1, maxSize=3564):
+		for size in self.GAPDATA[run].keys():
+			if size < minSize or size > maxSize: continue
+			for bxrange in self.GAPDATA[run][size]:
+				if bx == bxrange[1] + 1:
+					return size
+		return 0
 
 ##### P5 ANALYZER CLASS #####
 class P5Analyzer(P5MegaStruct):

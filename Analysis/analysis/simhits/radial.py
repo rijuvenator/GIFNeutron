@@ -18,6 +18,9 @@ CONFIG = {
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
 TYPE, OFN, FDATA = MS.SetFileNames(CONFIG)
+if TYPE != 'MC':
+	print 'This script will only work for MC.'
+	exit()
 
 ##### ANALYZER FUNCTIONS #####
 # runs before file loop; open a file, declare a hist dictionary

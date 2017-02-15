@@ -280,7 +280,7 @@ for cham in CHAMLIST:
 		cham if cham == 1 else 2,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.resVector (cham, ff) for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'Comparator-Segment Resolution',
 		'lumi',
 		'Res'
@@ -289,7 +289,7 @@ for cham in CHAMLIST:
 		cham if cham == 1 else 2,
 		[data.lumiVector(cham, ff) for ff in pretty.keys()],
 		[data.meanValueVector (cham, ff) for ff in pretty.keys()],
-		'Luminosity [Hz/cm^{2}]',
+		'Luminosity [cm^{-2}s^{-1}]',
 		'Comparator-Segment Mean',
 		'lumi',
 		'Mean'
