@@ -104,11 +104,11 @@ class Canvas():
 			self.width   = 800
 			self.height  = 600
 			self.numPads = 3
-		elif self.mode == 'rechits':
+		elif self.mode == 'rechits' or 'simhits':
 			self.width   = 800
 			self.height  = 600
 			self.numPads = 3
-		elif self.mode == 'origrechits':
+		elif self.mode == 'origrechits' or 'origsimhits':
 			self.width   = 800
 			self.height  = 400
 			self.numpads = 2
