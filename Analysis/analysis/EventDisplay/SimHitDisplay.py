@@ -100,15 +100,71 @@ for FILE,TYPE in CONFIG.keys():
 			else:
 				canvas = ED.Canvas('simhits' if not ORIGFORMAT else 'origsimhits')
 
-			shL = { 'all' : [8.                ] }
-			shS = { 'all' : [float(HS_MAX)     ] }
-			shW = { 'all' : [float(WIRE_MAX+10)] }
+			'''
+			shL = { 'all'      : [8.],
+					'electron' : [8.],
+					'muon'     : [8.],
+					'proton'   : [8.],
+					'pion'     : [8.],
+					'other'    : [8.]
+					}
+			shS = { 'all' : [float(HS_MAX)],
+					'electron' : [float(HS_MAX)],
+					'muon' : [float(HS_MAX)],
+					'proton' : [float(HS_MAX)],
+					'pion' : [float(HS_MAX)],
+					'other' : [float(HS_MAX)]}
+			shW = { 'all' : [float(WIRE_MAX)+10],
+					'electron' : [float(WIRE_MAX)+10],
+					'muon' : [float(WIRE_MAX)+10],
+					'proton' : [float(WIRE_MAX)+10],
+					'pion' : [float(WIRE_MAX)+10],
+					'other' : [float(WIRE_MAX)+10]}
+			'''
+
+			particleList = ['all','electron','muon','proton','pion','other']
+			shL = {particle:[8.] for particle in particleList}
+			shS = {particle:[float(HS_MAX)] for particle in particleList}
+			shW = {particle:[float(WIRE_MAX)+10] for particle in particleList}
+
 			for sh in simhits:
 				if sh.cham != CHAM: continue
 				shS['all'].append(float(sh.stripPos)  + 0.5)
 				shW['all'].append(float(sh.wirePos)   + 0.5)
 				shL['all'].append(float(sh.layer)     + 0.5)
+				if abs(sh.particleID)==11:
+					shS['electron'].append(float(sh.stripPos)  + 0.5)
+					shW['electron'].append(float(sh.wirePos)   + 0.5)
+					shL['electron'].append(float(sh.layer)     + 0.5)
+				elif abs(sh.particleID)==13:
+					print '***** Found Muon!!! *****'
+					shS['muon'].append(float(sh.stripPos)  + 0.5)
+					shW['muon'].append(float(sh.wirePos)   + 0.5)
+					shL['muon'].append(float(sh.layer)     + 0.5)
+				elif abs(sh.particleID)==2212:
+					print '***** Found Proton!!! *****'
+					shS['proton'].append(float(sh.stripPos)  + 0.5)
+					shW['proton'].append(float(sh.wirePos)   + 0.5)
+					shL['proton'].append(float(sh.layer)     + 0.5)
+				elif abs(sh.particleID)==221:
+					print '***** Found Pion!!! *****'
+					shS['pion'].append(float(sh.stripPos)  + 0.5)
+					shW['pion'].append(float(sh.wirePos)   + 0.5)
+					shL['pion'].append(float(sh.layer)     + 0.5)
+				else:
+					print '***** Found Other!!! *****'
+					shS['other'].append(float(sh.stripPos)  + 0.5)
+					shW['other'].append(float(sh.wirePos)   + 0.5)
+					shL['other'].append(float(sh.layer)     + 0.5)
 
+
+			particleDict = {
+					'electron':R.kBlack,
+					'muon':R.kRed,
+					'proton':R.kBlue,
+					'pion':R.kGreen,
+					'other':R.kOrange+1,
+			}
 			gSHS = R.TGraph(len(shS['all']), np.array(shS['all']), np.array(shL['all']))
 			canvas.pads[1 if DOENERGY else 0].cd()
 			gSHS.Draw('AP')
@@ -132,6 +188,20 @@ for FILE,TYPE in CONFIG.keys():
 			gSHW.GetXaxis().SetLimits(1., WIRE_MAX+1.)
 			gSHW.Draw('AP')
 			canvas.canvas.Update()
+
+			particleGraphs = []
+			for particle in particleDict.keys():
+				gSRHS = R.TGraph(len(shS[particle]), np.array(shS[particle]), np.array(shL[particle]))
+				canvas.pads[1 if DOENERGY else 0].cd()
+				gSRHS.Draw('P')
+				gSRHS.SetMarkerColor(particleDict[particle])
+				gSRHW = R.TGraph(len(shW[particle]), np.array(shW[particle]), np.array(shL[particle]))
+				canvas.pads[2 if not ORIGFORMAT else 1].cd()
+				gSRHW.Draw('P')
+				gSRHW.SetMarkerColor(particleDict[particle])
+				particleGraphs.append(gSRHS)
+				particleGraphs.append(gSRHW)
+
 
 			if DOENERGY:
 				# SimHit energy loss histogram: 2D, staggered strip vs. layer, weighted by simhit energy loss

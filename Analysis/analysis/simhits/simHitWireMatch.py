@@ -7,18 +7,20 @@ import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 import Gif.Analysis.roottools as roottools
+# 
+import simHitCluster as SH
 
 RINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11', '+12', '+13', '+21', '+22', '+31', '+32', '+41', '+42']
 
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
-	'GIF' : 'compMatch_GIF.root',
-	'P5'  : 'compMatch_P5.root',
-	'MC'  : 'compMatch_MC.root'
+	'GIF' : 'wireMatch_GIF.root',
+	'P5'  : 'wireMatch_P5.root',
+	'MC'  : 'wireMatch_MC.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
-TYPE, OFN, FDATA = MS.SetFileNames(CONFIG)
+TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 
 if TYPE != 'MC':
 	print 'Why are you trying to do a SimHit analysis on real data?'
@@ -35,37 +37,6 @@ def setup(self, PARAMS):
 	self.HISTS['Match'] = R.TH1F('hMatch', '', 200, 0, 200*10**-6)
 	self.HISTS['NoMatch'] = R.TH1F('hNoMatch', '', 200, 0, 200*10**-6)
 
-# SimHit Cluster Class
-class simHitCluster():
-	def __init__(self, groupOfSimHits):
-		self.groupOfSimHits = groupOfSimHits
-		self.matchedComps = []
-		self._strips = self._getStrips()
-		self._energy = self._getEnergy()
-
-	def strips(self):
-		return self._strips
-	def energy(self):
-		return self._energy
-
-	def _getStrips(self):
-		strips = []
-		for simhit in self.groupOfSimHits:
-			strips.append(int(simhit.stripPos))
-		return strips
-	def _getEnergy(self):
-		energy = 0
-		for simhit in self.groupOfSimHits:
-			energy += simhit.energyLoss
-		return energy
-
-	def match(self,comp):
-		compPos = comp.halfStrip/2.
-		if  compPos >= self._strips[0]-0.5 and \
-			compPos <= self._strips[-1]+1.5:
-			return True
-		else:
-			return False
 
 # once per file
 def analyze(self, t, PARAMS):
@@ -73,51 +44,27 @@ def analyze(self, t, PARAMS):
 		#if idx == 1000: break
 		print 'Events:', idx, '\r',
 
-		E = Primitives.ETree(t, DecList=['SIMHIT','COMP'])
+		E = Primitives.ETree(t, DecList=['SIMHIT','WIRE'])
 		simhits  = [Primitives.SimHit(E, i) for i in range(len(E.sim_cham))]
-		comps  = [Primitives.Comp(E, i) for i in range(len(E.comp_cham))]
+		wires  = [Primitives.Wire(E, i) for i in range(len(E.wire_cham))]
 
 		# Make simhit cluster objects
 		uniqueChamList = list(set(E.sim_cham))
 		for cham in uniqueChamList:
-			simhitClusters = {layer:[] for layer in [1,2,3,4,5,6]}
-			simhitLayers = {layer:[] for layer in [1,2,3,4,5,6]}
+			# Get SimHit Clusters
+			simHitClusters = SH.findSimHitClusters(simhits,cham)
 			for layer in [1,2,3,4,5,6]:
-				for simhit in simhits:
-					# Make dict of simhits by layer
-					if simhit.cham!=cham: continue
-					if simhit.layer!=layer: continue
-					simhitLayers[layer].append(simhit)
-				# Skip layer if no simhits
-				if len(simhitLayers[layer])==0: continue
-				# Sort dict by strip position
-				simhitLayers[layer] = sorted(simhitLayers[layer], key=lambda simhit: simhit.stripPos)
-				# Make strip difference list (initialized to two so that the first
-				# simhit gets a blank cluster
-				diffList = [2] + [int(simhitLayers[layer][idx].stripPos) - int(simhitLayers[layer][idx-1].stripPos) for idx in range(1,len(simhitLayers[layer]))]
-				# Group simhits by contiguous strip numbers
-				groupOfSimHits = []
-				for idx,diff in enumerate(diffList):
-					if diff >= 2 and idx!=0:
-						cluster = simHitCluster(groupOfSimHits)
-						simhitClusters[layer].append(cluster)
-						groupOfSimHits = []
-					groupOfSimHits.append(simhitLayers[layer][idx])
-				# Make the last cluster
-				cluster = simHitCluster(groupOfSimHits)
-				simhitClusters[layer].append(cluster)
-
-				# Compare comparators to clusters
-				for cluster in simhitClusters[layer]:
+				for cluster in simHitClusters[layer]:
+					# Compare Wire groups to clusters
 					# Fill All energy histogram
 					self.HISTS['All'].Fill(cluster.energy())
-					# Find matching comparators
-					for comp in comps:
-						if comp.cham!=cham: continue
-						if comp.layer!=layer: continue
-						if cluster.match(comp): 
-							cluster.matchedComps.append(comp)
-					if len(cluster.matchedComps)>0:
+					# Find matching wire groups
+					for wire in wires:
+						if wire.cham!=cham: continue
+						if wire.layer!=layer: continue
+						if cluster.matchWire(wire): 
+							cluster.matchedWires.append(wire)
+					if len(cluster.matchedWires)>0:
 						# Fill Matched energy histogram 
 						self.HISTS['Match'].Fill(cluster.energy())
 					else:
@@ -163,45 +110,44 @@ def makePlots(HISTS):
 			title = 'All SimHit Clusters'
 			color = R.kOrange+1
 		elif match=='Match':
-			title = 'SimHit Clusters Matched to Comparators'
+			title = 'SimHit Clusters Matched to Wire Groups'
 			color = R.kRed
 		else:
-			title = 'SimHit Clusters Not Matched to Comparators'
+			title = 'SimHit Clusters Not Matched to Wire Groups'
 			color = R.kBlue
 		hist = roottools.DrawOverflow(HISTS[match])
 		plot = Plotter.Plot(hist,option='HIST')
 		plot.SetFillColor(color)
-		plot.setTitles(X='SimHit Energy Deposited on Strip [GeV]',Y='Counts')
+		plot.setTitles(X='SimHit Energy Loss [GeV]',Y='Counts')
 		for logy in [True,False]:
 			canvas = Plotter.Canvas(lumi=title,logy=logy)
 			canvas.addMainPlot(plot)
 			canvas.makeTransparent()
 			canvas.finishCanvas()
-			canvas.save('pdfs/simHitEnergy_'+match+ ('_logy' if logy else '') + '.pdf')
+			canvas.save('pdfs/simHitEnergy_wire'+match+ ('_logy' if logy else '') + '.pdf')
 			canvas.deleteCanvas()
 
 def makeStack(HISTS):
 	stack = R.THStack('stack','')
-	#stackPlot.setTitles(X='RecHit Energy Deposited on Strip [GeV]',Y='Counts')
 	plotList = []
 	for match in ['Match','NoMatch']:
 		if match=='Match':
-			title = 'Matched to Comparator'
+			title = 'Matched to Wire Group'
 			color = R.kRed
 		else:
-			title = 'Not Matched to Comparator'
+			title = 'Not Matched to Wire Group'
 			color = R.kBlue
 		hist = roottools.DrawOverflow(HISTS[match])
 		plot = Plotter.Plot(hist,legName=title,option='HIST',legType='f')
 		plot.SetFillColor(color)
-		plot.setTitles(X='RecHit Energy Deposited on Strip [GeV]',Y='Counts')
+		plot.setTitles(X='RecHit Energy Loss [GeV]',Y='Counts')
 		plotList.append(plot)
 		stack.Add(hist)
 	stackPlot = Plotter.Plot(stack,option='HIST')
 	for logy in [True,False]:
-		canvas = Plotter.Canvas(lumi='Energy Deposited by SimHit Clusters',logy=logy)
+		canvas = Plotter.Canvas(lumi='Energy Loss by SimHit Clusters',logy=logy)
 		canvas.addMainPlot(stackPlot,addToPlotList=False)
-		stackPlot.setTitles(X='SimHit Energy Deposited on Strip [GeV]',Y='Counts')
+		stackPlot.setTitles(X='SimHit Energy Loss [GeV]',Y='Counts')
 		canvas.makeLegend(pos='tr',autoOrder=False)
 		for plot in plotList:
 			canvas.addLegendEntry(plot)
@@ -209,7 +155,7 @@ def makeStack(HISTS):
 		canvas.legend.resizeHeight()
 		canvas.makeTransparent()
 		canvas.finishCanvas()
-		canvas.save('pdfs/simHitEnergy_stack'+ ('_logy' if logy else '') + '.pdf')
+		canvas.save('pdfs/simHitEnergy_wire_stack'+ ('_logy' if logy else '') + '.pdf')
 		canvas.deleteCanvas()
 
 makePlots(data.HISTS)
