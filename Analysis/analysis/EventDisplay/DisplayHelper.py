@@ -8,13 +8,10 @@ import ROOT as R
 ##########
 
 def setStyle(mode):
-	if mode == 'primitives':
+	if mode == 'primitives' or 'rechits' or 'simhits':
 		width   = 800
 		height  = 600
-	elif mode == 'rechits':
-		width   = 800
-		height  = 600
-	elif mode == 'origrechits':
+	elif mode == 'origrechits' or 'origsimhits':
 		width   = 800
 		height  = 400
 
@@ -100,11 +97,7 @@ def setStyle(mode):
 class Canvas():
 	def __init__(self, mode):
 		self.mode = mode
-		if self.mode == 'primitives':
-			self.width   = 800
-			self.height  = 600
-			self.numPads = 3
-		elif self.mode == 'rechits' or 'simhits':
+		if self.mode == 'primitives' or 'rechits' or 'simhits':
 			self.width   = 800
 			self.height  = 600
 			self.numPads = 3

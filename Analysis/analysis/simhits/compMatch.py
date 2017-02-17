@@ -13,16 +13,10 @@ RINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11'
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
-	'GIF' : 'compMatch_GIF.root',
-	'P5'  : 'compMatch_P5.root',
 	'MC'  : 'compMatch_MC.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
-TYPE, OFN, FDATA = MS.SetFileNames(CONFIG)
-
-if TYPE != 'MC':
-	print 'Why are you trying to do a SimHit analysis on real data?'
-	exit()
+TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 
 ##### ANALYZER FUNCTIONS #####
 # runs before file loop; open a file, declare a hist dictionary
