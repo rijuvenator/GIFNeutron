@@ -12,7 +12,11 @@ RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
-	'P5'  : 'BGComp_P5.root',
+	#'P5'  : 'BGComp_P5_noGap.root',
+	#'P5'  : 'BGComp_P5_Gap8.root',
+	#'P5'  : 'BGComp_P5_Gap11.root',
+	#'P5'  : 'BGComp_P5_Gap35.root',
+	'P5'  : 'BGComp_P5_Gap35_NoZJetCut.root',
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
 TYPE, OFN, FDATA, REMAINDER = MS.ParseArguments(CONFIG, extraArgs=True)
@@ -29,19 +33,19 @@ else:
 def analyze(self, t, PARAMS):
 	DOGAP = PARAMS[2]
 	for idx, entry in enumerate(t):
-		print 'Events    :', idx+1, '\r',
+		#print 'Events    :', idx+1, '\r',
 
 		# Z and jet cuts
-		if      t.Z_mass <= 98. and t.Z_mass >= 84.\
-			and t.nJets20 == 0\
-			and t.Z_pT <= 20.:
-			pass
-		else:
-			continue
+		#if      t.Z_mass <= 98. and t.Z_mass >= 84.\
+		#	and t.nJets20 == 0\
+		#	and t.Z_pT <= 20.:
+		#	pass
+		#else:
+		#	continue
 
 		if DOGAP:
 			# Only after gap BXs
-			size = self.afterGapSize(t.Event_RunNumber, t.Event_BXCrossing, minSize=8)
+			size = self.afterGapSize(t.Event_RunNumber, t.Event_BXCrossing, minSize=35)
 			if size not in self.COUNTS.keys():
 				self.COUNTS[size] = 0
 			self.COUNTS[size] += 1
@@ -83,6 +87,7 @@ def analyze(self, t, PARAMS):
 						if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
 							self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
 							if comp.timeBin >= 1 and comp.timeBin <= 5:
+								print idx, cham.id, size, comp.timeBin
 								nComp += 1
 					self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
 					self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
@@ -161,7 +166,7 @@ def makeTimePlot(h, ring):
 	canvas.firstPlot.plot.SetMinimum(0)
 	#canvas.firstPlot.plot.SetMinimum(0.00001)
 	canvas.finishCanvas()
-	canvas.save('pdfs/BGCompTimeNew'+'_'+ring+'.pdf')
+	canvas.save('pdfs/BGCompTime'+'_'+ring+'.pdf')
 	R.SetOwnership(canvas, False)
 
 def makeLumiPlot(h1, h2, ring):
@@ -187,7 +192,7 @@ def makeLumiPlot(h1, h2, ring):
 	canvas.firstPlot.scaleLabels(0.8)
 	canvas.firstPlot.scaleTitleOffsets(1.2)
 	canvas.finishCanvas()
-	canvas.save('pdfs/BGCompAvgNNew'+'_'+ring+'.pdf')
+	canvas.save('pdfs/BGCompAvgN'+'_'+ring+'.pdf')
 	R.SetOwnership(canvas, False)
 
 def makeNumDum(h, ring, which):
@@ -198,7 +203,7 @@ def makeNumDum(h, ring, which):
 	canvas.scaleMargins(1.25, 'R')
 	canvas.firstPlot.setTitles(X='Luminosity [cm^{-2}s^{-1}]', Y='Number of Background Comparators' if which == 'ncomp' else 'Counts')
 	canvas.finishCanvas()
-	canvas.save('pdfs/BGCompAvgNNew'+'_'+ring+'_'+which+'.pdf')
+	canvas.save('pdfs/BGCompAvgN'+'_'+ring+'_'+which+'.pdf')
 	R.SetOwnership(canvas, False)
 
 for ring in RINGLIST:
@@ -206,3 +211,19 @@ for ring in RINGLIST:
 	makeLumiPlot(data.HISTS[ring]['lumi'], data.HISTS[ring]['totl'], ring)
 	makeNumDum(data.HISTS[ring]['lumi'], ring, 'ncomp')
 	makeNumDum(data.HISTS[ring]['totl'], ring, 'lumi')
+
+def makeAllTimePlot():
+	h = data.HISTS[RINGLIST[0]]['time'].Clone()
+	for ring in RINGLIST[1:]:
+		h.Add(data.HISTS[ring]['time'])
+	plot = Plotter.Plot(h, option='hist')
+	canvas = Plotter.Canvas(lumi='All Stations', logy=False)
+	canvas.addMainPlot(plot)
+	canvas.makeTransparent()
+	#canvas.firstPlot.plot.SetMaximum(1.05)
+	canvas.firstPlot.plot.SetMinimum(0)
+	#canvas.firstPlot.plot.SetMinimum(0.00001)
+	canvas.finishCanvas()
+	canvas.save('pdfs/BGCompTimeNewAll.pdf')
+	R.SetOwnership(canvas, False)
+makeAllTimePlot()

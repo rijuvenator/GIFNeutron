@@ -6,7 +6,7 @@ import DisplayHelper as ED # "Event Display"
 import Patterns
 import argparse
 import Gif.Analysis.ChamberHandler as CH
-from Gif.Analysis.MegaStruct import F_GIFDATA, F_P5DATA, F_MCDATA
+from Gif.Analysis.MegaStruct import F_MCDATA
 
 ##########
 # This file gets the data, makes the histograms, makes the objects, and makes the plots
@@ -15,7 +15,7 @@ from Gif.Analysis.MegaStruct import F_GIFDATA, F_P5DATA, F_MCDATA
 ##########
 
 R.gROOT.SetBatch(True)
-ED.setStyle('rechits') # holy crap! setStyle was taking up 99% of the computation time!
+ED.setStyle('simhits') # holy crap! setStyle was taking up 99% of the computation time!
 
 ##### COMMAND LINE PARAMETERS
 parser = argparse.ArgumentParser(description='Makes event displays')
@@ -36,14 +36,9 @@ for line in F_CONFIG:
 	if cols[0] == 'GIF':
 		print "Cannot make SimHits at GIF++ !"
 		exit()
-		MEAS = cols[1]
-		KEY = (F_GIFDATA.replace('XXXX',MEAS), 'GIF')
-		CONFIG[KEY] = {}
 	elif cols[0] == 'P5':
 		print "Cannot make SimHits at P5 !"
 		exit()
-		KEY = (F_P5DATA,'P5')
-		CONFIG[KEY] = {}
 	elif cols[0] == 'MC':
 		KEY = (F_MCDATA,'MC')
 		CONFIG[KEY] = {}
@@ -77,7 +72,7 @@ for FILE,TYPE in CONFIG.keys():
 		DecList = ['SIMHIT']
 
 		E = Primitives.ETree(t, DecList)
-		simhits = [Primitives.SimHit (E, i) for i in range(len(E.sim_cham   ))]
+		simhits = [Primitives.SimHit (E, i) for i in range(len(E.sim_cham))]
 
 		for CHAM in CONFIG[(FILE,TYPE)][ENTRY]:
 			CHAMBER = CH.Chamber(CHAM)
@@ -222,28 +217,7 @@ for FILE,TYPE in CONFIG.keys():
 				pad.cd()
 				pad.RedrawAxis()
 
-			if TYPE == 'P5':
-				# lumi text
-				RUN = t.Event_RunNumber
-				LS  = t.Event_LumiSection
-				canvas.drawLumiText('{CS}, RLE = ({R}, {L}, {E})'.format(CS=CHAMBER.display('ME{E}{S}/{R}/{C}'), R=str(RUN), E=str(EVENT), L=str(LS)))
-
-				# save as
-				canvas.canvas.SaveAs('{}/SH_P5_{}_{}.pdf'.format(OUTDIR, CHAMBER.display('ME{E}{S}{R}{C}'), EVENT))
-				R.SetOwnership(canvas.canvas, False)
-				print '\033[1;31m'          + 'P5 ENTRY {} CHAMBER {}'.format(ENTRY, CHAMBER.id)                        + '\033[m'
-				print '\033[1mFILE \033[32m'+ 'SH_P5_{}_{}.pdf'       .format(CHAMBER.display('ME{E}{S}{R}{C}'), EVENT) + '\033[30m CREATED\033[0m'
-			elif TYPE == 'GIF':
-				# lumi text
-				MEAS = FILE[-9:-5]
-				canvas.drawLumiText('m#{MEAS}, {CS}, Event #{EVENT}'.format(MEAS=MEAS, CS=CHAMBER.display('ME{S}/{R}'), EVENT=EVENT))
-
-				# save as
-				canvas.canvas.SaveAs('{}/SH_GIF_{}_{}_{}.pdf'.format(OUTDIR, MEAS, CHAMBER.display('ME{S}{R}'), EVENT))
-				R.SetOwnership(canvas.canvas, False)
-				print '\033[1;31m'           + 'GIF ENTRY {} CHAMBER {}'.format(ENTRY, CHAMBER.id)                        + '\033[m'
-				print '\033[1mFILE \033[32m' + 'SH_GIF_{}_{}_{}.pdf'    .format(MEAS, CHAMBER.display('ME{S}{R}'), EVENT) + '\033[30m CREATED\033[0m'
-			elif TYPE == 'MC':
+			if TYPE == 'MC':
 				# lumi text
 				canvas.drawLumiText('{CS}, Event #{EVENT}'.format(CS=CHAMBER.display('ME{E}{S}/{R}/{C}'), EVENT=EVENT))
 
@@ -254,6 +228,7 @@ for FILE,TYPE in CONFIG.keys():
 				print '\033[1mFILE \033[32m'+ 'SH_MC_{}_{}.pdf'       .format(CHAMBER.display('ME{E}{S}{R}{C}'), EVENT) + '\033[30m CREATED\033[0m'
 
 			del gSHS, gSHW
+			if DOENERGY: del hEDep
 			canvas.deleteCanvas()
 
 	f.Close()
