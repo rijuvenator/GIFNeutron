@@ -161,7 +161,7 @@ def makeTimePlot(h, ring):
 	canvas.firstPlot.plot.SetMinimum(0)
 	#canvas.firstPlot.plot.SetMinimum(0.00001)
 	canvas.finishCanvas()
-	canvas.save('pdfs/BGCompTimeNew'+'_'+ring+'.pdf')
+	canvas.save('pdfs/BGCompTime'+'_'+ring+'.pdf')
 	R.SetOwnership(canvas, False)
 
 def makeLumiPlot(h1, h2, ring):
@@ -187,7 +187,7 @@ def makeLumiPlot(h1, h2, ring):
 	canvas.firstPlot.scaleLabels(0.8)
 	canvas.firstPlot.scaleTitleOffsets(1.2)
 	canvas.finishCanvas()
-	canvas.save('pdfs/BGCompAvgNNew'+'_'+ring+'.pdf')
+	canvas.save('pdfs/BGCompAvgN'+'_'+ring+'.pdf')
 	R.SetOwnership(canvas, False)
 
 def makeNumDum(h, ring, which):
@@ -198,7 +198,7 @@ def makeNumDum(h, ring, which):
 	canvas.scaleMargins(1.25, 'R')
 	canvas.firstPlot.setTitles(X='Luminosity [cm^{-2}s^{-1}]', Y='Number of Background Comparators' if which == 'ncomp' else 'Counts')
 	canvas.finishCanvas()
-	canvas.save('pdfs/BGCompAvgNNew'+'_'+ring+'_'+which+'.pdf')
+	canvas.save('pdfs/BGCompAvgN'+'_'+ring+'_'+which+'.pdf')
 	R.SetOwnership(canvas, False)
 
 for ring in RINGLIST:
@@ -206,3 +206,19 @@ for ring in RINGLIST:
 	makeLumiPlot(data.HISTS[ring]['lumi'], data.HISTS[ring]['totl'], ring)
 	makeNumDum(data.HISTS[ring]['lumi'], ring, 'ncomp')
 	makeNumDum(data.HISTS[ring]['totl'], ring, 'lumi')
+
+def makeAllTimePlot():
+	h = data.HISTS[RINGLIST[0]]['time'].Clone()
+	for ring in RINGLIST[1:]:
+		h.Add(data.HISTS[ring]['time'])
+	plot = Plotter.Plot(h, option='hist')
+	canvas = Plotter.Canvas(lumi='All Stations', logy=False)
+	canvas.addMainPlot(plot)
+	canvas.makeTransparent()
+	#canvas.firstPlot.plot.SetMaximum(1.05)
+	canvas.firstPlot.plot.SetMinimum(0)
+	#canvas.firstPlot.plot.SetMinimum(0.00001)
+	canvas.finishCanvas()
+	canvas.save('pdfs/BGCompTimeNewAll.pdf')
+	R.SetOwnership(canvas, False)
+makeAllTimePlot()
