@@ -8,7 +8,7 @@ import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 import Gif.Analysis.roottools as roottools
 # 
-import simHitCluster as SH
+import Cluster as SH
 
 RINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11', '+12', '+13', '+21', '+22', '+31', '+32', '+41', '+42']
 
@@ -57,7 +57,7 @@ def analyze(self, t, PARAMS):
 				for cluster in simHitClusters[layer]:
 					# Compare Wire groups to clusters
 					# Fill All energy histogram
-					self.HISTS['All'].Fill(cluster.energy())
+					self.HISTS['All'].Fill(cluster.energy)
 					# Find matching wire groups
 					for wire in wires:
 						if wire.cham!=cham: continue
@@ -66,10 +66,10 @@ def analyze(self, t, PARAMS):
 							cluster.matchedWires.append(wire)
 					if len(cluster.matchedWires)>0:
 						# Fill Matched energy histogram 
-						self.HISTS['Match'].Fill(cluster.energy())
+						self.HISTS['Match'].Fill(cluster.energy)
 					else:
 						# Fill Not Matched energy histogram
-						self.HISTS['NoMatch'].Fill(cluster.energy())
+						self.HISTS['NoMatch'].Fill(cluster.energy)
 
 	self.F_OUT.cd()
 	self.HISTS['All'].Write()

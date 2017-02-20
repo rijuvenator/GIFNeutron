@@ -273,7 +273,7 @@ class MCAnalyzer(MCMegaStruct):
 		if self.F_DATAFILE is None:
 			self.setup(self.PARAMS)
 			f = R.TFile.Open(F_MCDATA)
-			t = f.Get('GIFTree/NeutronDigiTree')
+			t = f.Get('GIFTree/GIFDigiTree')
 			self.analyze(t, self.PARAMS)
 			self.cleanup(self.PARAMS)
 		# for obtaining data dictionary from a file

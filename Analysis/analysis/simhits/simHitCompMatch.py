@@ -8,7 +8,7 @@ import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 import Gif.Analysis.roottools as roottools
 # 
-import simHitCluster as SH
+import Cluster as SH
 
 RINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11', '+12', '+13', '+21', '+22', '+31', '+32', '+41', '+42']
 
@@ -16,6 +16,8 @@ RINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11'
 # Output file names
 CONFIG = {
 	'MC'  : 'compMatch_MC.root'
+	#'MC'  : 'compMatchDeltaZ_MC.root'
+	#'MC'  : 'compMatchOnlyDeltaZGT0P1_MC.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
 TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
@@ -49,9 +51,15 @@ def analyze(self, t, PARAMS):
 			simHitClusters = SH.findSimHitClusters(simhits,cham)
 			for layer in [1,2,3,4,5,6]:
 				for cluster in simHitClusters[layer]:
+					'''
+					skip = False
+					for dz in cluster.deltaZ:
+						if abs(dz) < 0.1: skip = True
+					if skip: continue
+					'''
 					# Compare comparators to clusters
 					# Fill All energy histogram
-					self.HISTS['All'].Fill(cluster.energy())
+					self.HISTS['All'].Fill(cluster.energy)
 					# Find matching comparators
 					for comp in comps:
 						if comp.cham!=cham: continue
@@ -60,10 +68,10 @@ def analyze(self, t, PARAMS):
 							cluster.matchedComps.append(comp)
 					if len(cluster.matchedComps)>0:
 						# Fill Matched energy histogram 
-						self.HISTS['Match'].Fill(cluster.energy())
+						self.HISTS['Match'].Fill(cluster.energy)
 					else:
 						# Fill Not Matched energy histogram
-						self.HISTS['NoMatch'].Fill(cluster.energy())
+						self.HISTS['NoMatch'].Fill(cluster.energy)
 
 	self.F_OUT.cd()
 	self.HISTS['All'].Write()
@@ -149,7 +157,7 @@ def makeStack(HISTS):
 		canvas.legend.resizeHeight()
 		canvas.makeTransparent()
 		canvas.finishCanvas()
-		canvas.save('pdfs/simHitEnergy_comp_stack'+ ('_logy' if logy else '') + '.pdf')
+		canvas.save('pdfs/simHitEnergy_comp_stack'+ ('_logy' if logy else '') + '_OnlyDeltaZGT0P1' ,['.pdf'])
 		canvas.deleteCanvas()
 
 makePlots(data.HISTS)

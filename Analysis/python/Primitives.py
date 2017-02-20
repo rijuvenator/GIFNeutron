@@ -99,17 +99,18 @@ class ETree():
 
 		if 'SIMHIT' in DecList:
 			if hasattr(t, 'sim_id'):
-				self.sim_cham        = list(t.sim_id)
-				self.sim_particle_id = list(t.sim_particle_id)
-				self.sim_layer       = [ord(x) for x in list(t.sim_lay)]
-				self.sim_pos         = (list(t.sim_pos_x), list(t.sim_pos_y))
-				self.sim_tof         = list(t.sim_tof)
-				self.sim_energyLoss  = list(t.sim_energyLoss )
-				self.sim_entry       = (list(t.sim_entry_x), list(t.sim_entry_y))
-				self.sim_exit        = (list(t.sim_exit_x), list(t.sim_exit_y))
-				self.sim_stripPos    = list(t.sim_pos_strip)
-				self.sim_wirePos     = list(t.sim_pos_wire)
-				self.sim_globalPos   = (list(t.sim_pos_glb_x), list(t.sim_pos_glb_y), list(t.sim_pos_glb_z))
+				self.sim_cham         = list(t.sim_id)
+				self.sim_particle_id  = list(t.sim_particle_id)
+				self.sim_process_type = list(t.sim_process_type)
+				self.sim_layer        = [ord(x) for x in list(t.sim_lay)]
+				self.sim_pos          = (list(t.sim_pos_x), list(t.sim_pos_y), list(t.sim_pos_z))
+				self.sim_tof          = list(t.sim_tof)
+				self.sim_energyLoss   = list(t.sim_energyLoss )
+				self.sim_entry        = (list(t.sim_entry_x), list(t.sim_entry_y), list(t.sim_entry_z))
+				self.sim_exit         = (list(t.sim_exit_x), list(t.sim_exit_y), list(t.sim_exit_z))
+				self.sim_stripPos     = list(t.sim_pos_strip)
+				self.sim_wirePos      = list(t.sim_pos_wire)
+				self.sim_globalPos    = (list(t.sim_pos_glb_x), list(t.sim_pos_glb_y), list(t.sim_pos_glb_z))
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 class Comp():
@@ -170,12 +171,13 @@ class SimHit():
 	def __init__(self, E, i):
 		self.cham        = E.sim_cham[i]
 		self.particleID  = E.sim_particle_id[i]
+		self.processType = E.sim_process_type[i]
 		self.layer       = E.sim_layer[i]
-		self.pos         = {'x' : E.sim_pos[0][i], 'y' : E.sim_pos[1][i]}
+		self.pos         = {'x' : E.sim_pos[0][i], 'y' : E.sim_pos[1][i], 'z' : E.sim_pos[2][i]}
 		self.tof         = E.sim_tof[i]
 		self.energyLoss  = E.sim_energyLoss[i]
-		self.entryPos    = {'x' : E.sim_entry[0][i], 'y' : E.sim_entry[1][i]}
-		self.exitPos     = {'x' : E.sim_exit[0][i] , 'y' : E.sim_exit[1][i]}
+		self.entryPos    = {'x' : E.sim_entry[0][i], 'y' : E.sim_entry[1][i], 'z' : E.sim_entry[2][i]}
+		self.exitPos     = {'x' : E.sim_exit[0][i] , 'y' : E.sim_exit[1][i] , 'z' : E.sim_exit[2][i]}
 		self.stripPos    = E.sim_stripPos[i]
 		self.wirePos     = E.sim_wirePos[i]
 		self.globalPos   = {'x' : E.sim_globalPos[0][i], 'y' : E.sim_globalPos[1][i], 'z' : E.sim_globalPos[2][i]}
