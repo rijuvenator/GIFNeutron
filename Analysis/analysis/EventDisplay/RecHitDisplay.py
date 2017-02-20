@@ -62,7 +62,7 @@ DOSCINT    = True
 for FILE,TYPE in CONFIG.keys():
 	# Get file and tree
 	f = R.TFile.Open(FILE)
-	TREENAME = 'GIFTree/GIFDigiTree' if TYPE != 'MC' else 'GIFTree/NeutronDigiTree'
+	TREENAME = 'GIFTree/GIFDigiTree'
 	t = f.Get(TREENAME)
 
 	for ENTRY in CONFIG[(FILE,TYPE)].keys():

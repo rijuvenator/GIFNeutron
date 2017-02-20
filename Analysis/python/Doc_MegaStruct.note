@@ -39,8 +39,6 @@
 # It can be any type; since analyze() and load() are fully implemented externally,
 # do as you will with PARAMS. It can be a flag, a file name, a whole class, whatever
 # 
-# Note that the tree is named GIFTree/GIFDigiTree for GIF, P5
-# while it is named GIFTree/NeutronDigiTree for MC
 
 _GLOBAL VARIABLES_
 # Useful paths and file names -- import from MegaStruct to use
@@ -55,12 +53,13 @@ _GLOBAL VARIABLES_
 	* F_MEASGRID
 	* F_ATTENHUT
 	* F_RUNGRID
+	* F_GAPDATA
 
 # returns TYPE, OFN, and FDATA based on some command-line parameters
 # set up a CONFIG dictionary with file names and pass it to this function
 # then use the resulting output to construct the analyzers
 # No more messing around with None and commenting file names and etc.
-	* TYPE, OFN, FDATA = SetFileNames (CONFIG)
+	* TYPE, OFN, FDATA, [REMAINDER] = ParseArguments (CONFIG, extraArgs=False)
 
 == GIFMegaStruct
 _Class Members_
