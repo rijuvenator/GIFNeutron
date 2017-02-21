@@ -40,7 +40,9 @@ def analyze(self, t, PARAMS):
 	DOGAP = PARAMS[2]
 	DOZJETS = PARAMS[3]
 	GAP = PARAMS[4]
+	Primitives.SelectBranches(t, DecList=['LCT', 'COMP'])
 	for idx, entry in enumerate(t):
+		if idx == 10000: break
 		#print 'Events    :', idx+1, '\r',
 
 		# Z and jet cuts
@@ -96,7 +98,7 @@ def analyze(self, t, PARAMS):
 						if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
 							self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
 							if comp.timeBin >= 1 and comp.timeBin <= 5:
-								print idx, cham.id, size, comp.timeBin
+								#print idx, cham.id, size, comp.timeBin
 								nComp += 1
 					self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
 					self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))

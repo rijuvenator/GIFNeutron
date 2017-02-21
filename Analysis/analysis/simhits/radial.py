@@ -32,6 +32,7 @@ def setup(self, PARAMS):
 # once per file
 def analyze(self, t, PARAMS):
 	TYPE = PARAMS[1]
+	Primitives.SelectBranches(t, DecList=['SIMHIT'])
 	for idx, entry in enumerate(t):
 		#if idx == 1000: break
 		print 'Events:', idx, '\r',
@@ -104,6 +105,7 @@ def makePlots(HISTS):
 		canvas.firstPlot.SetMaximum(10**4)
 		canvas.firstPlot.SetMinimum(0.1)
 		canvas.scaleMargins(0.8, 'L')
+		canvas.makeTransparent()
 		canvas.finishCanvas()
 		canvas.save('pdfs/Radial_ME'+STATION+'.pdf')
 

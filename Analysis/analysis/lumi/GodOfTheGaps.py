@@ -20,6 +20,7 @@ TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 
 ##### IMPLEMENT ANALYZERS #####
 def analyze(self, t, PARAMS):
+	Primitives.SelectBranches(t, branches=['Event_RunNumber', 'Event_BXCrossing'])
 	for idx, entry in enumerate(t):
 		print 'Event: ', idx, '\r',
 
@@ -82,3 +83,17 @@ for RUN in data.HISTS.keys():
 	for key, group in it.groupby(enumerate(BXList), lambda (idx, BX) : idx - BX):
 		BXRange = [BX for idx, BX in list(group)]
 		print '  {:5d} {:5d} {:5d}'.format(BXRange[-1]-BXRange[0]+1, BXRange[0], BXRange[-1])
+
+def makePlot(RUN):
+	h = data.hists[RUN]
+	plot = Plotter.Plot(h)
+	canvas = Plotter.Canvas(lumi='Run '+str(RUN))
+	canvas.addMainPlot(plot)
+	plot.setTitles(X='Bunch Crossing', Y='Counts')
+	plot.SetLineWidth(0)
+	plot.scaleTitleOffsets(1.2, 'X')
+	plot.SetFillColor(R.kOrange)
+	canvas.makeTransparent()
+	canvas.finishCanvas()
+	canvas.save('BX.pdf')
+#makePlot(283408)
