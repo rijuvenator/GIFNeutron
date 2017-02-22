@@ -217,6 +217,7 @@ def makeAllTimePlot():
 	for ring in RINGLIST[1:]:
 		h.Add(data.HISTS[ring]['time'])
 	plot = Plotter.Plot(h, option='hist')
+	plot.setTitles(X='Comparator Time [BX]',Y='Counts')
 	canvas = Plotter.Canvas(lumi='All Stations', logy=False)
 	canvas.addMainPlot(plot)
 	canvas.makeTransparent()

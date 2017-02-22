@@ -120,7 +120,7 @@ def makePlots(HISTS):
 		hist = roottools.DrawOverflow(HISTS[match])
 		plot = Plotter.Plot(hist,option='HIST')
 		plot.SetFillColor(color)
-		plot.setTitles(X='SimHit Energy Loss [GeV]',Y='Counts')
+		plot.setTitles(X='SimHit Cluster Energy Loss [GeV]',Y='Counts')
 		for logy in [True,False]:
 			canvas = Plotter.Canvas(lumi=title,logy=logy)
 			canvas.addMainPlot(plot)
@@ -129,27 +129,21 @@ def makePlots(HISTS):
 			canvas.save('pdfs/simHitEnergy_comp'+match+ ('_logy' if logy else '') + '.pdf')
 			canvas.deleteCanvas()
 
-def makeStack(HISTS):
+def makeStack(HISTS,histDict):
 	stack = R.THStack('stack','')
 	plotList = []
 	for match in ['Match','NoMatch']:
-		if match=='Match':
-			title = 'Matched to Comparator'
-			color = R.kRed
-		else:
-			title = 'Not Matched to Comparator'
-			color = R.kBlue
 		hist = roottools.DrawOverflow(HISTS[match])
-		plot = Plotter.Plot(hist,legName=title,option='HIST',legType='f')
-		plot.SetFillColor(color)
-		plot.setTitles(X='SimHit Energy Loss [GeV]',Y='Counts')
+		plot = Plotter.Plot(hist,legName=histDict[match]['title'],option='HIST',legType='f')
+		plot.SetFillColor(histDict[match]['color'])
+		plot.setTitles(X='SimHit Cluster Energy Loss [GeV]',Y='Counts')
 		plotList.append(plot)
 		stack.Add(hist)
 	stackPlot = Plotter.Plot(stack,option='HIST')
 	for logy in [True,False]:
 		canvas = Plotter.Canvas(lumi='Energy Deposited by SimHit Clusters',logy=logy)
 		canvas.addMainPlot(stackPlot,addToPlotList=False)
-		stackPlot.setTitles(X='SimHit Energy Loss [GeV]',Y='Counts')
+		stackPlot.setTitles(X='SimHit Cluster Energy Loss [GeV]',Y='Counts')
 		canvas.makeLegend(pos='tr',autoOrder=False)
 		for plot in plotList:
 			canvas.addLegendEntry(plot)
@@ -157,8 +151,39 @@ def makeStack(HISTS):
 		canvas.legend.resizeHeight()
 		canvas.makeTransparent()
 		canvas.finishCanvas()
-		canvas.save('pdfs/simHitEnergy_comp_stack'+ ('_logy' if logy else '') + '_OnlyDeltaZGT0P1' ,['.pdf'])
+		canvas.save('pdfs/simHitEnergy_comp_stack'+ ('_logy' if logy else '') ,['.pdf'])
 		canvas.deleteCanvas()
 
+def makeComparison(HISTS,histDict):
+	matchList = ['NoMatch','Match']
+	for logy in [True,False]:
+		plotList = []
+		for match in matchList:
+			hist = roottools.DrawOverflow(HISTS[match])
+			plot = Plotter.Plot(hist,legName=histDict[match]['title'],option='HIST',legType='l')
+			plotList.append(plot)
+		canvas = Plotter.Canvas(lumi='Energy Deposited by SimHit Clusters',logy=logy)
+		canvas.makeLegend(pos='tr')
+		for match,plot in zip(matchList,plotList): canvas.addMainPlot(plot)
+		for match,plot in zip(matchList,plotList): 
+			plot.SetLineColor(histDict[match]['color'])
+			plot.setTitles(X='SimHit Cluster Energy Loss [GeV]',Y='Counts')
+			canvas.addLegendEntry(plot)
+		canvas.legend.moveLegend(X=-0.25,Y=-0.1)
+		canvas.legend.resizeHeight()
+		canvas.makeTransparent()
+		canvas.finishCanvas()
+		canvas.save('pdfs/simHitEnergy_comp'+ ('_logy' if logy else '') ,['.pdf'])
+		canvas.deleteCanvas()
+
+histDict = {'NoMatch':{
+				'color':R.kBlue,
+				'title':'Not Matched to Comparator'},
+			'Match':{
+				'color':R.kRed,
+				'title':'Matched to Comparator'}
+			}
+
 makePlots(data.HISTS)
-makeStack(data.HISTS)
+makeStack(data.HISTS,histDict)
+makeComparison(data.HISTS,histDict)
