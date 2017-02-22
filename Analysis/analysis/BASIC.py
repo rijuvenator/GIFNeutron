@@ -19,6 +19,7 @@ TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 
 ##### IMPLEMENT ANALYZERS #####
 def analyze(self, t, PARAMS):
+	#Primitives.SelectBranches(t, DecList=[], branches=['*'])
 	for idx, entry in enumerate(t):
 		print 'Events:', idx+1, '\r',
 		E = Primitives.ETree(t)

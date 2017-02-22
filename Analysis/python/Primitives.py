@@ -6,6 +6,26 @@ import Gif.Analysis.ChamberHandler as CH
 # Line breaks are meta-computation -- things you can't get directly from the trees.
 ##########
 
+# Select Branches: 2-5x speedup
+def SelectBranches(t, DecList=(), branches=()):
+	t.SetBranchStatus('*', 0)
+	Branches = [br for br in branches]
+	BranchList = [str(br) for br in list(t.GetListOfBranches())]
+	BranchHead = {
+		'COMP'   : 'comp_' ,
+		'STRIP'  : 'strip_',
+		'WIRE'   : 'wire_' ,
+		'RECHIT' : 'rh_'   ,
+		'LCT'    : 'lct_'  ,
+		'SEGMENT': 'seg_'  ,
+		'CLCT'   : 'clct_' ,
+		'SIMHIT' : 'sim_'
+	}
+	for KEY in DecList:
+		Branches.extend([br for br in BranchList if BranchHead[KEY] in br])
+	for branch in Branches:
+		t.SetBranchStatus(branch, 1)
+
 # "EventTree", purely for speed purposes. Making lists from ROOT vectors is slow.
 # It should only be done once per event, not once per object! So create this,
 # then pass it to the classes (which used to take addressed trees; they now take this)

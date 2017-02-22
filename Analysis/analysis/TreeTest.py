@@ -14,9 +14,9 @@ import Gif.Analysis.MegaStruct as MS
 statusMsg('All modules imported.')
 
 datalist = (\
-	('GIF 3284', MS.F_GIFDATA.replace('XXXX','3284'), 'GIFDigi'    , 3 ),
-	('P5'      , MS.F_P5DATA                        , 'GIFDigi'    , 1 ),
-	('MC'      , MS.F_MCDATA                        , 'NeutronDigi', 93)
+	('GIF 3284', MS.F_GIFDATA.replace('XXXX','3284'), 'GIFDigi', 3 ),
+	('P5'      , MS.F_P5DATA                        , 'GIFDigi', 1 ),
+	('MC'      , MS.F_MCDATA                        , 'GIFDigi', 93)
 )
 
 for NAME, FN, TN, ENTRY in datalist:

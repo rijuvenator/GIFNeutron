@@ -95,6 +95,7 @@ def setup(self, PARAMS):
 # once per file
 def analyze(self, t, PARAMS):
 	TYPE = PARAMS[1]
+	Primitives.SelectBranches(t, DecList=['LCT','COMP','WIRE'])
 	for idx, entry in enumerate(t):
 		print 'Events:', idx, '\r',
 

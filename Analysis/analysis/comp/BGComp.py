@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, argparse
 import numpy as np
 import ROOT as R
 import Gif.Analysis.Primitives as Primitives
@@ -12,40 +12,51 @@ RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
+	'P5'  : 'BGComp_P5.root'
 	#'P5'  : 'BGComp_P5_noGap.root',
 	#'P5'  : 'BGComp_P5_Gap8.root',
 	#'P5'  : 'BGComp_P5_Gap11.root',
 	#'P5'  : 'BGComp_P5_Gap35.root',
-	'P5'  : 'BGComp_P5_Gap35_NoZJetCut.root',
+	#'P5'  : 'BGComp_P5_Gap35_NoZJetCut.root',
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
 TYPE, OFN, FDATA, REMAINDER = MS.ParseArguments(CONFIG, extraArgs=True)
 
-if REMAINDER == []:
-	DOGAP = False
-elif REMAINDER == ['-g'] or REMAINDER == ['--gap']:
-	DOGAP = True
-else:
-	print 'Not a valid option.'
-	exit()
+parser = argparse.ArgumentParser()
+parser.add_argument('-ng', '--nogap'     , action='store_false', dest='NOGAP')
+parser.add_argument('-nz', '--nozjetcuts', action='store_false', dest='NOZJETS')
+parser.add_argument('-f' , '--file'      , default=''          , dest='FILE')
+parser.add_argument('-g' , '--gapsize'   , default='35'        , dest='GAP')
+args = parser.parse_args(REMAINDER)
+
+DOGAP   = args.NOGAP
+DOZJETS = args.NOZJETS
+GAP     = int(args.GAP)
+OFN = 'BGComp_P5' + ('' if args.FILE == '' else '_') + args.FILE + '.root'
+if FDATA is not None: FDATA = OFN
 
 ##### IMPLEMENT ANALYZERS #####
 def analyze(self, t, PARAMS):
 	DOGAP = PARAMS[2]
+	DOZJETS = PARAMS[3]
+	GAP = PARAMS[4]
+	Primitives.SelectBranches(t, DecList=['LCT', 'COMP'])
 	for idx, entry in enumerate(t):
+		if idx == 10000: break
 		#print 'Events    :', idx+1, '\r',
 
 		# Z and jet cuts
-		#if      t.Z_mass <= 98. and t.Z_mass >= 84.\
-		#	and t.nJets20 == 0\
-		#	and t.Z_pT <= 20.:
-		#	pass
-		#else:
-		#	continue
+		if DOZJETS:
+			if      t.Z_mass <= 98. and t.Z_mass >= 84.\
+				and t.nJets20 == 0\
+				and t.Z_pT <= 20.:
+				pass
+			else:
+				continue
 
 		if DOGAP:
 			# Only after gap BXs
-			size = self.afterGapSize(t.Event_RunNumber, t.Event_BXCrossing, minSize=35)
+			size = self.afterGapSize(t.Event_RunNumber, t.Event_BXCrossing, minSize=GAP)
 			if size not in self.COUNTS.keys():
 				self.COUNTS[size] = 0
 			self.COUNTS[size] += 1
@@ -87,7 +98,7 @@ def analyze(self, t, PARAMS):
 						if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
 							self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
 							if comp.timeBin >= 1 and comp.timeBin <= 5:
-								print idx, cham.id, size, comp.timeBin
+								#print idx, cham.id, size, comp.timeBin
 								nComp += 1
 					self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
 					self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
@@ -145,7 +156,7 @@ def cleanup(self, PARAMS):
 R.gROOT.SetBatch(True)
 METHODS = ['analyze', 'load', 'setup', 'cleanup']
 ARGS = {\
-	'PARAMS'     : [OFN, TYPE, DOGAP],
+	'PARAMS'     : [OFN, TYPE, DOGAP, DOZJETS, GAP],
 	'F_DATAFILE' : FDATA
 }
 if TYPE == 'GIF':
