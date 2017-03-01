@@ -1,4 +1,5 @@
 import Gif.Analysis.ChamberHandler as CH
+import re
 
 ##########
 # This file defines the Primitives classes for ease of access and idiomatic analysis code.
@@ -10,7 +11,7 @@ import Gif.Analysis.ChamberHandler as CH
 def SelectBranches(t, DecList=(), branches=()):
 	t.SetBranchStatus('*', 0)
 	Branches = [br for br in branches]
-	BranchList = [str(br) for br in list(t.GetListOfBranches())]
+	BranchList = [str(br.GetName()) for br in list(t.GetListOfBranches())]
 	BranchHead = {
 		'COMP'   : 'comp_' ,
 		'STRIP'  : 'strip_',
@@ -22,7 +23,7 @@ def SelectBranches(t, DecList=(), branches=()):
 		'SIMHIT' : 'sim_'
 	}
 	for KEY in DecList:
-		Branches.extend([br for br in BranchList if BranchHead[KEY] in br])
+		Branches.extend([br for br in BranchList if re.match(BranchHead[KEY], br)])
 	for branch in Branches:
 		t.SetBranchStatus(branch, 1)
 
