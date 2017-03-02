@@ -11,15 +11,14 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 	cmssw_base = commands.getoutput('echo $CMSSW_BASE')
 
 	baseDir = cmssw_base+'/src/Gif/Production/run/'
-	#inDir = cmssw_base+'/src/Gif/Production/GenerateNeutronMC/crab/crab_MinBiasNeutron_test_1/'
-	inDir =     '/store/user/cschnaib/Neutron/MinBiasNeutron/MinBiasNeutronSim/170207_135404/0000/'
-	inDir1000 = '/store/user/cschnaib/Neutron/MinBiasNeutron/MinBiasNeutronSim/170207_135404/0001/'
-	outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/Neutron_with_global_pos_and_sim_id_fix/'
-	#outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/NeutronSimTrees/'
+	inDir = '/store/user/cschnaib/Neutron/MinBiasNeutron/MinBiasNeutronSim/170220_165229/0000/'
+	inDir1000 = '/store/user/cschnaib/Neutron/MinBiasNeutron/MinBiasNeutronSim/170220_165229/0001/'
+	outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/Neutron_20Feb/'
 
 	if not os.path.isdir(outDir):
 		print "Directory", outDir, "does not exist; exiting."
 		exit()
+		
 	dryrun = 'dryrun' in sys.argv
 
 	nFiles = 1000

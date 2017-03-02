@@ -8,8 +8,8 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 	user = commands.getoutput('echo $USER')
 	cmssw_base = commands.getoutput('echo $CMSSW_BASE')
 
-	inDir = cmssw_base+'/src/Gif/Production/GenerateNeutronMC/crab/crab_MinBiasProduction_test_1/results/'
 	outDir = cmssw_base+'/src/Gif/Production/run/output/'
+	inDir = '/store/user/cschnaib/Neutron/MinBiasNeutron/MinBiasNeutronSim/170220_165229/0000/'
 	#outDir = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/Neutron/6Feb/'
 	#plotsDir = cmssw_base+'/src/Gif/Production/analysis/MakeHistosAndTree/'
 
@@ -17,10 +17,11 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 
 	gif_py = open('GifAnalysis.py').read()
 
-	nFiles = 10
+	nFiles = 1000
 	#inputMCfile = 'mb_13TeV_mu_ALL_xs_test.root'
 	for i in range(1,nFiles+1):
-		inputMCfile = 'mb_13TeV_mu_ALL_xs_test_'+str(i)+'.root'
+
+		inputMCfile = 'mb_13TeV_mu_ALL_xs_'+str(i)+'.root'
 		inPath = inDir + inputMCfile
 
 		outFile = 'test_'+str(i)+'.root'
@@ -30,7 +31,7 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 		# customizations for a particular submission
 		gif_py = open('GifAnalysis.py').read()
 		gif_py += '''
-process.source.fileNames  = cms.untracked.vstring('file:%(inPath)s')
+process.source.fileNames  = cms.untracked.vstring('%(inPath)s')
 process.TFileService.fileName = cms.string('%(outPath)s')
 ''' % locals()
 

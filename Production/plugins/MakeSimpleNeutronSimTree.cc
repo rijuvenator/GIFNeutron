@@ -52,7 +52,7 @@ class MakeSimpleNeutronSimTree : public edm::EDAnalyzer {
 };
 
 MakeSimpleNeutronSimTree::MakeSimpleNeutronSimTree(const edm::ParameterSet& iConfig) :
-    tree("NeutronDigiTree","Tree holding CSCDigis"/*,"test.root"*/)
+    tree("GIFDigiTree","Tree holding CSCDigis"/*,"test.root"*/)
   , eventInfo(tree)
   , recHitInfo(tree)
   , recStripInfo(tree)
