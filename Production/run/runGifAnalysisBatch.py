@@ -44,7 +44,6 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 
 			gif_py = open('GifAnalysis.py').read()
 			gif_py += '''
-doTree(process)
 process.source.lumisToProcess = LumiList.LumiList(filename = '%(lumiList)s').getVLuminosityBlockRange()
 process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v14'
 process.source.fileNames  = cms.untracked.vstring(%(runFile)s)

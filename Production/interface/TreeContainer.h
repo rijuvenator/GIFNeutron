@@ -42,6 +42,7 @@
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
+#include <DataFormats/GeometryVector/interface/GlobalPoint.h>
 
 #include "TFile.h"
 #include "TTree.h"

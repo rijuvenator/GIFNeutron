@@ -283,6 +283,10 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	std::cout << std::endl;
 	*/
 
+	edm::ESHandle<CSCGeometry> cscGeom;
+	iSetup.get<MuonGeometryRecord>().get(cscGeom);
+	theCSC = cscGeom.product();
+
 	eventInfo.fill(iEvent);
 	//p5Info.fill(0., nJets0, nJets10, nJets20, Ht0, Ht10, Ht20, met);
 	p5Info.fill(0., nJets0, nJets10, nJets20, Ht0, Ht10, Ht20);
@@ -293,7 +297,7 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
 	edm::Handle<CSCRecHit2DCollection> recHits;
 	iEvent.getByToken( rh_token, recHits );
-	recHitInfo.fill(*recHits,muonInfo.muon_chamlist);
+	recHitInfo.fill(theCSC,*recHits,muonInfo.muon_chamlist);
 
 	edm::Handle<CSCStripDigiCollection> cscStripDigi;
 	iEvent.getByToken(sd_token,cscStripDigi);
@@ -305,19 +309,16 @@ MakeSimpleGIFTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
 	edm::Handle<CSCComparatorDigiCollection> compDigi;
 	iEvent.getByToken(cod_token, compDigi);
-	compInfo.fill(*compDigi,muonInfo.muon_chamlist);
+	compInfo.fill(theCSC, *compDigi,muonInfo.muon_chamlist);
 
 	edm::Handle<CSCWireDigiCollection> cscWireDigi;
 	iEvent.getByToken(wd_token,cscWireDigi);
-	wireInfo.fill(*cscWireDigi,muonInfo.muon_chamlist);
+	wireInfo.fill(theCSC, *cscWireDigi,muonInfo.muon_chamlist);
 
 	edm::Handle<CSCCorrelatedLCTDigiCollection> cscLCTDigi;
 	iEvent.getByToken(ld_token, cscLCTDigi);
 	lctInfo.fill(*cscLCTDigi,muonInfo.muon_chamlist);
 
-	edm::ESHandle<CSCGeometry> cscGeom;
-	iSetup.get<MuonGeometryRecord>().get(cscGeom);
-	theCSC = cscGeom.product();
 	edm::Handle<CSCSegmentCollection> cscSegments;
 	iEvent.getByToken(seg_token, cscSegments);
 	segmentInfo.fill(theCSC,*cscSegments,&(*recHits),muonInfo.muon_chamlist);

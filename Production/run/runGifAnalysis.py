@@ -14,7 +14,7 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 	cmssw_base = commands.getoutput('echo $CMSSW_BASE')
 	plotsDir = cmssw_base+'/src/Gif/Production/run/'
 	#outPath = '/afs/cern.ch/work/'+user[0]+'/'+user+'/public/GIF/23Jan/'
-	outPath = plotsDir
+	outPath = plotsDir+'output/'
 	dryrun = 'dryrun' in sys.argv
 
 	gif_py = open('GifAnalysis.py').read()
@@ -31,7 +31,7 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 	runs5386 = [282663]
 	runList = runs5423 + runs5405 + runs5443 + runs5338 + runs5386
 
-	for run in runList:
+	for run in runs5386:
 		run_fn = open('runFiles/'+str(run)+'.txt')
 		for i,line in enumerate(run_fn):
 			if i>0: break
@@ -48,7 +48,6 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 			# customizations for a particular submission
 			gif_py = open('GifAnalysis.py').read()
 			gif_py += '''
-doTree(process)
 process.source.lumisToProcess = LumiList.LumiList(filename = '%(lumiList)s').getVLuminosityBlockRange()
 process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v14'
 process.source.fileNames  = cms.untracked.vstring('%(runFile)s')
@@ -61,7 +60,7 @@ process.TFileService.fileName = cms.string('%(output)s')
 				print 'AOD file : ',runFile
 				print 'RAW files : ',parent_fn
 				print 'Lumi List : ',lumiList
-				print 'Output : ',outPath
+				print 'Output : ',output
 				print 'cmsRun submit_GifAnalysis.py'
 				print
 			else: 

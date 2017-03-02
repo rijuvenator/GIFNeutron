@@ -34,24 +34,23 @@ process.p*=process.ak4PFCHSL1FastjetCorrector * process.ak4PFCHSL2RelativeCorrec
 #process.p*=process.pfMetT1
 
 
-def doTree(process):
-    process.GIFTree = cms.EDAnalyzer('MakeSimpleGIFTree',
-							# Physics
-							vertexCollection = cms.InputTag('offlinePrimaryVertices'),
-							muonCollection = cms.InputTag('muons'),
-							electronCollection = cms.InputTag('gedGsfElectrons'),
-							photonCollection = cms.InputTag('gedPhotons'),
-							#metCollection = cms.InputTag('pfMetT1'),
-							jetCollection = cms.InputTag('ak4PFJetsCHS'),
-							jetCorrection = cms.InputTag('ak4PFCHSL1FastL2L3ResidualCorrector'),
-							# CSC
-                            wireDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCWireDigi'),
-                            stripDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCStripDigi'),
-                            alctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCALCTDigi'),
-                            clctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCCLCTDigi'),
-                            lctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCCorrelatedLCTDigi'),
-                            compDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCComparatorDigi'),
-                            segmentTag = cms.InputTag('cscSegments'),
-                            recHitTag = cms.InputTag('csc2DRecHits'),
-    )
-    process.p *= process.GIFTree
+process.GIFTree = cms.EDAnalyzer('MakeSimpleGIFTree',
+						# Physics
+						vertexCollection = cms.InputTag('offlinePrimaryVertices'),
+						muonCollection = cms.InputTag('muons'),
+						electronCollection = cms.InputTag('gedGsfElectrons'),
+						photonCollection = cms.InputTag('gedPhotons'),
+						#metCollection = cms.InputTag('pfMetT1'),
+						jetCollection = cms.InputTag('ak4PFJetsCHS'),
+						jetCorrection = cms.InputTag('ak4PFCHSL1FastL2L3ResidualCorrector'),
+						# CSC
+						wireDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCWireDigi'),
+						stripDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCStripDigi'),
+						alctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCALCTDigi'),
+						clctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCCLCTDigi'),
+						lctDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCCorrelatedLCTDigi'),
+						compDigiTag = cms.InputTag('muonCSCDigis', 'MuonCSCComparatorDigi'),
+						segmentTag = cms.InputTag('cscSegments'),
+						recHitTag = cms.InputTag('csc2DRecHits'),
+)
+process.p *= process.GIFTree

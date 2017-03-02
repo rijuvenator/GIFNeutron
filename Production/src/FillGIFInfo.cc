@@ -16,17 +16,24 @@ void FillGIFEventInfo::fill(const edm::Event& iEvent){
 }
 
 
-void FillGIFRecHitInfo::fill(const CSCRecHit2DCollection& recHits, std::vector<std::vector<unsigned short int>> &chamlist){
+void FillGIFRecHitInfo::fill(const CSCGeometry * theCSC,const CSCRecHit2DCollection& recHits, std::vector<std::vector<unsigned short int>> &chamlist){
   reset();
   for (CSCRecHit2DCollection::const_iterator hiti=recHits.begin(); hiti!=recHits.end(); hiti++)
   {
       DetId idd = (hiti)->geographicalId();
       CSCDetId hitID(idd.rawId());
 	  if (!isInChamlist(GIFHelper::chamberSerial(hitID), chamlist)) continue;
+	  CSCDetId id = hiti->cscDetId();
+	  const CSCLayer *rhLayer = theCSC->layer(id);
+	  GlobalPoint rhGlobalPos = rhLayer->toGlobal(hiti->localPosition());
+
       rh_id          .push_back(GIFHelper::chamberSerial(hitID));
       rh_lay         .push_back(GIFHelper::convertTo<size8>(hitID.layer(),"rh_lay"));
       rh_pos_x       .push_back(hiti->localPosition().x());
       rh_pos_y       .push_back(hiti->localPosition().y());
+      rh_pos_glb_x       .push_back(rhGlobalPos.x());
+      rh_pos_glb_y       .push_back(rhGlobalPos.y());
+      rh_pos_glb_z       .push_back(rhGlobalPos.z());
       rh_strip_1 .push_back(GIFHelper::convertTo<size8>(hiti->channels(0),"rh_strip_1"));
       rh_strip_2 .push_back(GIFHelper::convertTo<size8>(hiti->channels(1),"rh_strip_2"));
       rh_strip_3 .push_back(GIFHelper::convertTo<size8>(hiti->channels(2),"rh_strip_3"));
@@ -98,7 +105,7 @@ void FillGIFStripInfo::fill(const CSCStripDigiCollection& strips, std::vector<st
   } // end strip loop
 }
 
-void FillGIFCompInfo::fill(const CSCComparatorDigiCollection& comps, std::vector<std::vector<unsigned short int>> &chamlist){
+void FillGIFCompInfo::fill(const CSCGeometry * theCSC,const CSCComparatorDigiCollection& comps, std::vector<std::vector<unsigned short int>> &chamlist){
   reset();
   for (CSCComparatorDigiCollection::DigiRangeIterator chamber=comps.begin(); chamber!=comps.end(); chamber++)
   {
@@ -114,12 +121,22 @@ void FillGIFCompInfo::fill(const CSCComparatorDigiCollection& comps, std::vector
       comp_comp  .push_back(GIFHelper::convertTo<size8>((*digiItr).getComparator(),"comp_comp"));
       comp_time  .push_back(GIFHelper::convertTo<size8>((*digiItr).getTimeBin(),"comp_time"));
       comp_timeOn.push_back((*digiItr).getTimeBinsOn());
+	  CSCDetId chamberId(id.rawId());
+	  const CSCChamber *compChamber = theCSC->chamber(chamberId);
+	  const CSCLayer *compLay = compChamber->layer(id.layer());
+	  GlobalPoint compGlbPoint = compLay->centerOfStrip((*digiItr).getStrip());
+	  LocalPoint compLocalPoint = compLay->toLocal(compGlbPoint);
+	  comp_pos_x.push_back(compLocalPoint.x());
+	  comp_pos_y.push_back(compLocalPoint.y());
+	  comp_pos_glb_x.push_back(compGlbPoint.x());
+	  comp_pos_glb_y.push_back(compGlbPoint.y());
+	  comp_pos_glb_z.push_back(compGlbPoint.z());
     }
   }
 
 }
 
-void FillGIFWireInfo::fill(const CSCWireDigiCollection& wires, std::vector<std::vector<unsigned short int>> &chamlist){
+void FillGIFWireInfo::fill(const CSCGeometry * theCSC,const CSCWireDigiCollection& wires, std::vector<std::vector<unsigned short int>> &chamlist){
   reset();
   // lay is array of layer occupancy indexed by layer
   int lay[6] = {0,0,0,0,0,0};
@@ -138,6 +155,16 @@ void FillGIFWireInfo::fill(const CSCWireDigiCollection& wires, std::vector<std::
         wire_grp .push_back(GIFHelper::convertTo<size8>((*digiItr).getWireGroup(),"wire_grp"));
         wire_time.push_back(GIFHelper::convertTo<size8>((*digiItr).getTimeBin(),"wire_time"));
 		wire_bx  .push_back(GIFHelper::convertTo<int>((*digiItr).getWireGroupBX(),"wire_bx"));
+	    CSCDetId chamberId(id.rawId());
+	    const CSCChamber *wireChamber = theCSC->chamber(chamberId);
+	    const CSCLayer *wireLay = wireChamber->layer(id.layer());
+	    GlobalPoint wireGlbPoint = wireLay->centerOfWireGroup((*digiItr).getWireGroup());
+	    LocalPoint wireLocalPoint = wireLay->toLocal(wireGlbPoint);
+	    wire_pos_x.push_back(wireLocalPoint.x());
+	    wire_pos_y.push_back(wireLocalPoint.y());
+	    wire_pos_glb_x.push_back(wireGlbPoint.x());
+	    wire_pos_glb_y.push_back(wireGlbPoint.y());
+	    wire_pos_glb_z.push_back(wireGlbPoint.z());
       }
   }
   // loop on layers in occupancy array

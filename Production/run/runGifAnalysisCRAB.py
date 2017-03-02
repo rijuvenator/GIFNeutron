@@ -7,18 +7,13 @@ import commands
 if __name__ == '__main__' and 'submit' in sys.argv:
 	user = commands.getoutput('echo $USER')
 	cmssw_base = commands.getoutput('echo $CMSSW_BASE')
-	plotsDir = cmssw_base+'/src/Gif/Production/run/'
 	dryrun = 'dryrun' in sys.argv
 
 	gif_py = open('GifAnalysis.py').read()
 
-	#lumi_mask = plotsDir+'json/MuonPhys2016_lowPU.json'
-	#lumi_mask = plotsDir+'json/MuonPhys2016.json'
-
 	# customizations for a particular submission
 	gif_py = open('GifAnalysis.py').read()
 	gif_py += '''
-doTree(process)
 process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v14'
 process.TFileService.fileName = cms.string('ana_P5_Run2016H.root')
 '''
@@ -29,7 +24,7 @@ process.TFileService.fileName = cms.string('ana_P5_Run2016H.root')
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'tree_1'
+config.General.requestName = 'ana_CSCDigis_P5_2'
 config.General.workArea = 'crab'
 config.General.transferOutputs = True
 # transferLogs to true to get all cmsRun output
@@ -37,14 +32,16 @@ config.General.transferLogs = False
 
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'submit_GifAnalysis_crab.py'
+config.JobType.maxMemoryMB = 8000
 
 config.Data.inputDBS = 'global'
 config.Data.inputDataset = '/SingleMuon/Run2016H-PromptReco-v2/AOD'
 config.Data.useParent = True
 config.Data.splitting = 'LumiBased'
-config.Data.unitsPerJob = 200
+config.Data.unitsPerJob = 50
 config.Data.totalUnits = -1
-config.Data.lumiMask = 'json/MuonPhys2016.json'
+#config.Data.lumiMask = 'json/MuonPhys2016.json'
+config.Data.lumiMask = 'crab/crab_ana_CSCDigis_P5/results/notFinishedLumis.json'
 config.Data.outLFNDirBase = '/store/user/%s/Neutron/' % (getUsernameFromSiteDB())
 config.Data.publication = False
 config.Data.outputDatasetTag = 'ana_P5_Run2016H'
