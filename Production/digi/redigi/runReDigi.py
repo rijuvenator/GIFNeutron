@@ -32,7 +32,7 @@ OUTFILE_P    = args.outputFile # for "pattern"
 # Get useful environment variables
 #USER       = bash.check_output('echo $USER'      , shell=True).rstrip('\n')
 CMSSW_BASE = bash.check_output('echo $CMSSW_BASE', shell=True).rstrip('\n')+'/'
-RUNDIR     = CMSSW_BASE + 'src/Gif/Production/digi/tree/'
+RUNDIR     = CMSSW_BASE + 'src/Gif/Production/digi/redigi/'
 
 # ensure output directories exist
 if SUBMIT: bash.call('mkdir -p '+OUTDIR, shell=True)
@@ -74,7 +74,7 @@ for i in range(1,NFILES+1):
 	configScript = open(CONFIGSCRIPT).read()
 	configScript += '''
 process.source.fileNames = cms.untracked.vstring('{INPATH}')
-process.TFileService.fileName = cms.string('{OUTPATH}')
+process.FEVTDEBUGoutput.fileName = cms.string('{OUTPATH}')
 '''.format(**locals())
 	
 	open(CONFIGPATH, 'w').write(configScript)

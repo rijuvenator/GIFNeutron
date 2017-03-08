@@ -14,6 +14,6 @@ COMMAND = 'python runTreeMaker.py -s {BATCH} -n {NUM} -c {CONFIG} -id {IDIR} -if
 		OFILE  = 'test.root'
 )
 print '\033[1m EXECUTING:\033[m\n'
-print COMMAND
+print COMMAND, '\n'
 
 bash.call(COMMAND, shell=True)
