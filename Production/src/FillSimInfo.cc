@@ -26,6 +26,7 @@ void FillSimHitInfo::fill(const CSCGeometry * theCSC, const edm::PSimHitContaine
 		sim_entry_px.push_back(hiti->momentumAtEntry().x());
 		sim_entry_py.push_back(hiti->momentumAtEntry().y());
 		sim_entry_pz.push_back(hiti->momentumAtEntry().z());
+		sim_track_id.push_back(hiti->trackId());
 
 		CSCDetId chamberId(simID);
 		const CSCChamber *simChamber = theCSC->chamber(chamberId);

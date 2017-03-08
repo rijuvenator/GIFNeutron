@@ -32,6 +32,7 @@ class FillSimHitInfo : public FillInfo
 			book("sim_entry_px",sim_entry_px);
 			book("sim_entry_py",sim_entry_py);
 			book("sim_entry_pz",sim_entry_pz);
+			book("sim_track_id",sim_track_id);
 		}
 		virtual ~FillSimHitInfo() {};
 		void fill(const CSCGeometry * theCSC, const edm::PSimHitContainer& simHits);
@@ -61,6 +62,7 @@ class FillSimHitInfo : public FillInfo
 		std::vector<float> sim_entry_px;
 		std::vector<float> sim_entry_py;
 		std::vector<float> sim_entry_pz;
+		std::vector<unsigned int> sim_track_id;
 
 		virtual void reset()
 		{
@@ -88,6 +90,7 @@ class FillSimHitInfo : public FillInfo
 			sim_entry_px.clear();
 			sim_entry_py.clear();
 			sim_entry_pz.clear();
+			sim_track_id.clear();
 		}
 };
 
