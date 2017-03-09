@@ -49,3 +49,18 @@ class Chamber():
 		fstring = fstring.replace('{R}','{ring:1d}'    )
 		fstring = fstring.replace('{C}','{chamber:02d}')
 		return fstring.format(endcap=('+' if self.endcap == 1 else '-'), station=self.station, ring=self.ring, chamber=self.chamber)
+
+def serialID(E, S, R, C):
+	SerialDict = {
+		(1, 1): 0,
+		(1, 2): 36,
+		(1, 3): 72,
+		(1, 4): 0,
+		(2, 1): 108,
+		(2, 2): 126,
+		(3, 1): 162,
+		(3, 2): 180,
+		(4, 1): 216,
+		(4, 2): 234
+	}
+	return C + SerialDict[(S, R)] + (300 * (E == -1 or E == 2))
