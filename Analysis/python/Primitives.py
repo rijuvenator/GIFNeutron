@@ -10,7 +10,7 @@ import Gif.Analysis.ChamberHandler as CH
 def SelectBranches(t, DecList=(), branches=()):
 	t.SetBranchStatus('*', 0)
 	Branches = [br for br in branches]
-	BranchList = [str(br) for br in list(t.GetListOfBranches())]
+	BranchList = [str(br.GetName()) for br in list(t.GetListOfBranches())]
 	BranchHead = {
 		'COMP'   : 'comp_' ,
 		'STRIP'  : 'strip_',
@@ -131,6 +131,8 @@ class ETree():
 				self.sim_stripPos     = list(t.sim_pos_strip)
 				self.sim_wirePos      = list(t.sim_pos_wire)
 				self.sim_globalPos    = (list(t.sim_pos_glb_x), list(t.sim_pos_glb_y), list(t.sim_pos_glb_z))
+				self.sim_entry_pabs   = list(t.sim_entry_pabs)
+				self.sim_entry_p      = (list(t.sim_entry_px), list(t.sim_entry_py), list(t.sim_entry_pz))
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 class Comp():
@@ -201,6 +203,8 @@ class SimHit():
 		self.stripPos    = E.sim_stripPos[i]
 		self.wirePos     = E.sim_wirePos[i]
 		self.globalPos   = {'x' : E.sim_globalPos[0][i], 'y' : E.sim_globalPos[1][i], 'z' : E.sim_globalPos[2][i]}
+		self.pabsEntry   = E.sim_entry_pabs[i]
+		self.pEntry      = {'x' : E.sim_entry_p[0][i], 'y' : E.sim_entry_p[1][i], 'z' : E.sim_entry_p[2][i]}
 
 class LCT():
 	def __init__(self, E, i):

@@ -32,12 +32,12 @@ def setup(self, PARAMS):
 	self.HISTS = {particle:{} for particle in particleList}
 	self.HISTS2D = {particle:{} for particle in particleList}
 	for particle in self.HISTS2D.keys():
-		self.HISTS2D[particle]['dZdR']          = R.TH2F('hDZDR'+particle,                 '',200,-1,1,200,0,20)
-		self.HISTS2D[particle]['dZdRZoom']      = R.TH2F('hDZDRZoom'+particle,             '',200,-0.002,0.002,200,0,0.02)
-		self.HISTS2D[particle]['dZenergy']      = R.TH2F('hDZenergy'+particle,             '',200,-0.002,0.002,200,0,200*10**-6)
-		self.HISTS2D[particle]['dZenergyZoom']  = R.TH2F('hDZenergyZoom'+particle,         '',200,-1,1,200,0,200*10**-6)
-		self.HISTS2D[particle]['dZdRCutEnergy'] = R.TH2F('hDZDRCutEnergy'+particle,        '',200,-1,1,200,0,3*10**-6)
-		self.HISTS2D[particle]['dZdRCutEnergyZoom'] = R.TH2F('hDZDRCutEnergyZoom'+particle,'',200,-0.002,0.002,200,0,3*10**-6)
+		self.HISTS2D[particle]['dZdR']              = R.TH2F('hDZDR'+particle,             '',200,-1,1,200,0,-1)
+		self.HISTS2D[particle]['dZdRZoom']          = R.TH2F('hDZDRZoom'+particle,         '',200,-0.005,0.005,200,0,0.01)
+		self.HISTS2D[particle]['dZenergy']          = R.TH2F('hDZenergy'+particle,         '',200,-1,1,200,0,-1)#200*10**-6)
+		self.HISTS2D[particle]['dZenergyZoom']      = R.TH2F('hDZenergyZoom'+particle,     '',200,-0.01,0.01,200,0,15*10**-6)
+		self.HISTS2D[particle]['dZdRCutEnergy']     = R.TH2F('hDZDRCutEnergy'+particle,    '',200,-1,1,200,0,5*10**-6)
+		self.HISTS2D[particle]['dZdRCutEnergyZoom'] = R.TH2F('hDZDRCutEnergyZoom'+particle,'',200,-0.01,0.01,200,0,5*10**-6)
 	for particle in self.HISTS.keys():
 		self.HISTS[particle]['deltaZ'] = R.TH1F('hDeltaZ'+particle,'',200,-1,1)
 	#self.HISTS[].SetDirectory(0)
@@ -68,11 +68,10 @@ def load(self, PARAMS):
 			self.HISTS2D[particle]['dZdRCutEnergyZoom'].SetDirectory(0)
 
 def analyze(self, t, PARAMS):
-	DecList = ['SIMHIT']
-	Primitives.SetBranches(t,DecList)
+	#Primitives.SelectBranches(t,DecList=['SIMHIT'])
 	for idx, entry in enumerate(t):
 		print 'Events:', idx+1, '\r',
-		E = Primitives.ETree(t, DecList)
+		E = Primitives.ETree(t, DecList=['SIMHIT'])
 		simhits  = [Primitives.SimHit(E, i) for i in range(len(E.sim_cham))]
 
 		for simhit in simhits:
@@ -84,33 +83,49 @@ def analyze(self, t, PARAMS):
 			# Make deltaZ by particle ID 
 			self.HISTS['all']['deltaZ'].Fill(deltaZ)
 			self.HISTS2D['all']['dZdR'].Fill(deltaZ,deltaR)
+			self.HISTS2D['all']['dZdRZoom'].Fill(deltaZ,deltaR)
 			self.HISTS2D['all']['dZenergy'].Fill(deltaZ,energy)
+			self.HISTS2D['all']['dZenergyZoom'].Fill(deltaZ,energy)
 			if deltaR < 0.004: self.HISTS2D['all']['dZdRCutEnergy'].Fill(deltaZ,energy)
+			if deltaR < 0.004: self.HISTS2D['all']['dZdRCutEnergyZoom'].Fill(deltaZ,energy)
 			if abs(simhit.particleID)==11:
 				self.HISTS['electron']['deltaZ'].Fill(deltaZ)
 				self.HISTS2D['electron']['dZdR'].Fill(deltaZ,deltaR)
+				self.HISTS2D['electron']['dZdRZoom'].Fill(deltaZ,deltaR)
 				self.HISTS2D['electron']['dZenergy'].Fill(deltaZ,energy)
+				self.HISTS2D['electron']['dZenergyZoom'].Fill(deltaZ,energy)
 				if deltaR < 0.004: self.HISTS2D['electron']['dZdRCutEnergy'].Fill(deltaZ,energy)
+				if deltaR < 0.004: self.HISTS2D['electron']['dZdRCutEnergyZoom'].Fill(deltaZ,energy)
 			elif abs(simhit.particleID)==13:
 				self.HISTS['muon']['deltaZ'].Fill(deltaZ)
 				self.HISTS2D['muon']['dZdR'].Fill(deltaZ,deltaR)
 				self.HISTS2D['muon']['dZenergy'].Fill(deltaZ,energy)
+				self.HISTS2D['muon']['dZdRZoom'].Fill(deltaZ,deltaR)
+				self.HISTS2D['muon']['dZenergyZoom'].Fill(deltaZ,energy)
 				if deltaR < 0.004: self.HISTS2D['muon']['dZdRCutEnergy'].Fill(deltaZ,energy)
+				if deltaR < 0.004: self.HISTS2D['muon']['dZdRCutEnergyZoom'].Fill(deltaZ,energy)
 			elif abs(simhit.particleID)==2212:
 				self.HISTS['proton']['deltaZ'].Fill(deltaZ)
 				self.HISTS2D['proton']['dZdR'].Fill(deltaZ,deltaR)
 				self.HISTS2D['proton']['dZenergy'].Fill(deltaZ,energy)
+				self.HISTS2D['proton']['dZdRZoom'].Fill(deltaZ,deltaR)
+				self.HISTS2D['proton']['dZenergyZoom'].Fill(deltaZ,energy)
 				if deltaR < 0.004: self.HISTS2D['proton']['dZdRCutEnergy'].Fill(deltaZ,energy)
+				if deltaR < 0.004: self.HISTS2D['proton']['dZdRCutEnergyZoom'].Fill(deltaZ,energy)
 			elif abs(simhit.particleID)==211:
 				self.HISTS['pion']['deltaZ'].Fill(deltaZ)
 				self.HISTS2D['pion']['dZdR'].Fill(deltaZ,deltaR)
 				self.HISTS2D['pion']['dZenergy'].Fill(deltaZ,energy)
+				self.HISTS2D['pion']['dZdRZoom'].Fill(deltaZ,deltaR)
+				self.HISTS2D['pion']['dZenergyZoom'].Fill(deltaZ,energy)
 				if deltaR < 0.004: self.HISTS2D['pion']['dZdRCutEnergy'].Fill(deltaZ,energy)
+				if deltaR < 0.004: self.HISTS2D['pion']['dZdRCutEnergyZoom'].Fill(deltaZ,energy)
 			else:
 				self.HISTS['other']['deltaZ'].Fill(deltaZ)
 				self.HISTS2D['other']['dZdR'].Fill(deltaZ,deltaR)
 				self.HISTS2D['other']['dZenergy'].Fill(deltaZ,energy)
 				if deltaR < 0.004: self.HISTS2D['other']['dZdRCutEnergy'].Fill(deltaZ,energy)
+				if deltaR < 0.004: self.HISTS2D['other']['dZdRCutEnergyZoom'].Fill(deltaZ,energy)
 			'''
 			if abs(simhit.particleID)==13:
 				if deltaZ < -0.95:
@@ -165,7 +180,7 @@ def makePlot(HISTS):
 				if not logy: canvas.moveExponent()
 				#canvas.makeLegend()
 				canvas.finishCanvas()
-				canvas.save('pdfs/simHit_'+name+'_'+particle + ( '_logy' if logy else '')+'_zoom', ['.pdf'])
+				canvas.save('pdfs/simHit_'+name+'_'+particle + ( '_logy' if logy else ''), ['.pdf'])
 				canvas.deleteCanvas()
 
 def make2DPlot(HISTS2D,histDict2D):
@@ -177,7 +192,7 @@ def make2DPlot(HISTS2D,histDict2D):
 			canvas = Plotter.Canvas(lumi=particle+' '+histDict2D[name]['title'])
 			canvas.addMainPlot(plot)
 			canvas.finishCanvas()
-			canvas.save('pdfs/simHit_'+name+'_'+particle+'_zoom', ['.pdf'])
+			canvas.save('pdfs/simHit_'+name+'_'+particle, ['.pdf'])
 			canvas.deleteCanvas()
 
 histDict2D = {
