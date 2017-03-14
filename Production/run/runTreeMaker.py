@@ -49,7 +49,7 @@ else:
 # Get useful environment variables
 #USER       = bash.check_output('echo $USER'      , shell=True).rstrip('\n')
 CMSSW_BASE = bash.check_output('echo $CMSSW_BASE', shell=True).rstrip('\n')+'/'
-RUNDIR     = CMSSW_BASE + 'src/Gif/Production/digi/tree/'
+RUNDIR     = CMSSW_BASE + 'src/Gif/Production/run/'
 
 # ensure output directories exist
 if SUBMIT: bash.call('mkdir -p '+OUTDIR, shell=True)
