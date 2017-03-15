@@ -103,3 +103,23 @@ process.schedule = cms.Schedule(process.digitisation_step,process.L1simulation_s
 from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEarlyDelete
 process = customiseEarlyDelete(process)
 # End adding early deletion
+
+process.MessageLogger = cms.Service('MessageLogger',
+		destinations = cms.untracked.vstring('cscDigiLog'),#,'cout'),
+		categories = cms.untracked.vstring('CSCDigitizer','CSCGasCollisions'),
+		cscDigiLog = cms.untracked.PSet(
+			extension=cms.untracked.string('.txt'),
+			threshold=cms.untracked.string('DEBUG'),
+			debugModules=cms.untracked.vstring('CSCDigitizer','CSCGasCollisions'),
+			default=cms.untracked.PSet(limit = cms.untracked.int32(0)),
+			CSCDigitizer=cms.untracked.PSet(limit = cms.untracked.int32(100000000)),
+			CSCGasCollisions=cms.untracked.PSet(limit = cms.untracked.int32(100000000))
+		),
+#		cout = cms.untracked.PSet(
+#			threshold=cms.untracked.string('DEBUG'),
+#			debugModules=cms.untracked.vstring('CSCDigitizer','CSCGasCollisions'),
+#			default=cms.untracked.PSet(limit = cms.untracked.int32(0)),
+#			CSCDigitizer=cms.untracked.PSet(limit = cms.untracked.int32(1000000000)),
+#			CSCGasCollisions=cms.untracked.PSet(limit = cms.untracked.int32(100000000))
+#		)
+)
