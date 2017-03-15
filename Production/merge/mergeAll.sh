@@ -1,0 +1,1 @@
+for i in {2..78}; do cmsRun merge.py outputFile=~/eos/cms/store/user/cschnaib/Neutron/MinBiasNeutronHP/MinBiasNeutronHP_ThermalON/Merged1/MinBias_HPThermalON_GENSIM_${i}.root inputFiles_load=list_${i}.txt; done
