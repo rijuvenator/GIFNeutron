@@ -12,7 +12,11 @@ class Chamber():
 		self.chamber = 0
 		self.nwires  = 0
 		self.nstrips = 0
+		self.area    = 0
 		self.inverseSerial()
+		# Compute area after self.station and
+		# self.ring are set!
+		self.setArea()
 	
 	def inverseSerial(self):
 		serial = self.id
@@ -49,6 +53,31 @@ class Chamber():
 		fstring = fstring.replace('{R}','{ring:1d}'    )
 		fstring = fstring.replace('{C}','{chamber:02d}')
 		return fstring.format(endcap=('+' if self.endcap == 1 else '-'), station=self.station, ring=self.ring, chamber=self.chamber)
+
+	def setArea(self):
+		# Areas are calculated from this link
+		# https://twiki.cern.ch/twiki/pub/CMS/MuonDPGCSC/table_of_csc_properties_150730.pdf
+		# Area = 6 * 0.5 * AGV_h * ( AGV_t - AGV_b )
+		areas = {
+				'11' : 0.,
+				'12' : 0.,
+				'13' : 0.,
+				'21' : 0.,
+				'22' : 0.,
+				'31' : 0., 
+				'32' : 0.,
+				'41' : 0.,
+				'42' : 0.,
+		}
+		#   me11    me12    me13    me21    me22    me31    me32    me41    me42 # me11a  me11b 
+		h=[152.0, 174.49, 164.16, 189.66, 323.06, 169.70, 323.06, 149.42, 323.06]#  44.5, 107.5,
+		b=[19.14,  51.00,  63.40,  54.00,  66.46,  61.40,  66.46,  69.01,  66.46]# 19.14,  27.4,
+		t=[ 47.4,  83.74,  92.10, 125.71, 127.15, 125.71, 127.15, 125.65, 127.15]#  27.4,  47.4,
+		for r,ring in enumerate(areas.keys()):
+			areas[ring] = 6*0.5*h[r]*(t[r]+b[r])
+
+		self.area = areas[self.display('{S}{R}')]
+
 
 def serialID(E, S, R, C):
 	SerialDict = {

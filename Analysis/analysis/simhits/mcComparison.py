@@ -11,8 +11,8 @@ R.gROOT.SetBatch(True)
 
 
 #TITLE = ''
-#TITLE = '_tGT300'
-TITLE = '_tLT300'
+TITLE = '_tGT300'
+#TITLE = '_tLT300'
 
 RECREATE=True
 outputROOT = R.TFile('mcComparison'+TITLE+'.root','recreate')
@@ -37,7 +37,7 @@ fileDict = {
 
 stations = [1,2,3,4,'all']
 particles = ['muon','e','pion','proton','other','all']
-hists = ['tof','radial','phi','nSimHits','z','id']
+hists = ['tof','radial','radial2','phi','nSimHits','z','id']
 hists2d = ['xy','rz','rphi','rtof','phitof','ztof']
 
 HISTS = {
@@ -58,6 +58,7 @@ if RECREATE:
 			for particle in particles:
 				HISTS[sim][station]['tof'][particle]       = R.TH1F(name+'_'+str(station)+'_tof_'+particle,      '',100,np.logspace(0.,10.,101))
 				HISTS[sim][station]['radial'][particle]    = R.TH1F(name+'_'+str(station)+'_radial_'+particle,   '',100,0,800)
+				HISTS[sim][station]['radial2'][particle]   = R.TH1F(name+'_'+str(station)+'_radial2_'+particle,  '',100,0,640000)
 				HISTS[sim][station]['phi'][particle]       = R.TH1F(name+'_'+str(station)+'_phi_'+particle,      '',50,-3.14,3.14)
 				HISTS[sim][station]['nSimHits'][particle]  = R.TH1F(name+'_'+str(station)+'_nSimHits_'+particle, '',25,0,25)
 				HISTS[sim][station]['z'][particle]         = R.TH1F(name+'_'+str(station)+'_z_'+particle,        '',100,-1100,1100)
@@ -82,7 +83,12 @@ if RECREATE:
 			print 'Events:', idx, '\r',
 
 			E = Primitives.ETree(t, DecList=['SIMHIT'])
-			simhits = [Primitives.SimHit(E,i) for i in range(len(E.sim_cham)) if E.sim_tof[i] < 300]
+			# Total
+			#simhits = [Primitives.SimHit(E,i) for i in range(len(E.sim_cham))]
+			# t > 300 ns
+			simhits = [Primitives.SimHit(E,i) for i in range(len(E.sim_cham)) if E.sim_tof[i] > 300]
+			# t < 300 ns
+			#simhits = [Primitives.SimHit(E,i) for i in range(len(E.sim_cham)) if E.sim_tof[i] < 300]
 
 
 			# Fill N(SH) for each station for all particle types
@@ -117,7 +123,8 @@ if RECREATE:
 				gx = simhit.globalPos['x']
 				gy = simhit.globalPos['y']
 				gz = simhit.globalPos['z']
-				gr = math.sqrt( simhit.globalPos['x']**2 + simhit.globalPos['y']**2 )
+				gr2 = simhit.globalPos['x']**2 + simhit.globalPos['y']**2
+				gr = math.sqrt( gr2 )
 				gphi = math.atan2(simhit.globalPos['y'],simhit.globalPos['x'])
 				tof = simhit.tof
 				if abs(simhit.particleID)==13:
@@ -142,12 +149,14 @@ if RECREATE:
 				# Fill 1D histograms (per station)
 				HISTS[neutronSim][station]['tof']['all'].Fill(tof)
 				HISTS[neutronSim][station]['radial']['all'].Fill(gr)
+				HISTS[neutronSim][station]['radial2']['all'].Fill(gr2)
 				HISTS[neutronSim][station]['phi']['all'].Fill(gphi)
 				HISTS[neutronSim][station]['z']['all'].Fill(gz)
 				HISTS[neutronSim][station]['id']['all'].Fill(fill)
 				# Fill 1D histograms (all stations)
 				HISTS[neutronSim]['all']['tof']['all'].Fill(tof)
 				HISTS[neutronSim]['all']['radial']['all'].Fill(gr)
+				HISTS[neutronSim]['all']['radial2']['all'].Fill(gr2)
 				HISTS[neutronSim]['all']['phi']['all'].Fill(gphi)
 				HISTS[neutronSim]['all']['z']['all'].Fill(gz)
 				HISTS[neutronSim]['all']['id']['all'].Fill(fill)
@@ -155,12 +164,14 @@ if RECREATE:
 				# Fill 1D histograms (per station)
 				HISTS[neutronSim][station]['tof'][particle].Fill(tof)
 				HISTS[neutronSim][station]['radial'][particle].Fill(gr)
+				HISTS[neutronSim][station]['radial2'][particle].Fill(gr2)
 				HISTS[neutronSim][station]['phi'][particle].Fill(gphi)
 				HISTS[neutronSim][station]['z'][particle].Fill(gz)
 				HISTS[neutronSim][station]['id'][particle].Fill(fill)
 				# Fill 1D histograms (all stations)
 				HISTS[neutronSim]['all']['tof'][particle].Fill(tof)
 				HISTS[neutronSim]['all']['radial'][particle].Fill(gr)
+				HISTS[neutronSim]['all']['radial2'][particle].Fill(gr2)
 				HISTS[neutronSim]['all']['phi'][particle].Fill(gphi)
 				HISTS[neutronSim]['all']['z'][particle].Fill(gz)
 				HISTS[neutronSim]['all']['id'][particle].Fill(fill)
@@ -201,6 +212,7 @@ if RECREATE:
 			for particle in particles:
 				HISTS[neutronSim][station]['tof'][particle].Write()
 				HISTS[neutronSim][station]['radial'][particle].Write()
+				HISTS[neutronSim][station]['radial2'][particle].Write()
 				HISTS[neutronSim][station]['phi'][particle].Write()
 				HISTS[neutronSim][station]['z'][particle].Write()
 				HISTS[neutronSim][station]['id'][particle].Write()
@@ -218,6 +230,7 @@ else:
 			for particle in particles:
 				HISTS[neutronSim][station]['tof'][particle]      = outputROOT.Get(name+'_'+str(station)+'_tof_'+particle)
 				HISTS[neutronSim][station]['radial'][particle]   = outputROOT.Get(name+'_'+str(station)+'_radial_'+particle)
+				HISTS[neutronSim][station]['radial2'][particle]   = outputROOT.Get(name+'_'+str(station)+'_radial2_'+particle)
 				HISTS[neutronSim][station]['phi'][particle]      = outputROOT.Get(name+'_'+str(station)+'_phi_'+particle)
 				HISTS[neutronSim][station]['z'][particle]        = outputROOT.Get(name+'_'+str(station)+'_z_'+particle)
 				HISTS[neutronSim][station]['id'][particle]       = outputROOT.Get(name+'_'+str(station)+'_id_'+particle)
@@ -231,7 +244,7 @@ else:
 
 def makePlots1D(HISTS,plotDict,particleTitles):
 	for particle in particles:
-		for name in ['tof','radial','phi','z','id','nSimHits']:
+		for name in ['tof','radial','radial2','phi','z','id','nSimHits']:
 			for station in stations:
 				for logy in [True,False]:
 
@@ -311,6 +324,10 @@ plotDict = {
 			'X':'Time of Flight [ns]',
 			'Y':'Counts',
 			'title':'SimHit Time of Flight'},
+		'radial2':{
+			'X':'radius^{2} [cm^{2}]',
+			'Y':'Counts',
+			'title':'SimHit Squared Radial Position'},
 		'radial':{
 			'X':'radius [cm]',
 			'Y':'Counts',
