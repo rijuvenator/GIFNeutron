@@ -12,7 +12,8 @@ RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
-	'P5'  : 'BGComp_P5.root'
+	'P5'  : 'BGComp_P5_me11fix.root'
+	#'P5'  : 'BGComp_P5.root'
 	#'P5'  : 'BGComp_P5_noGap.root',
 	#'P5'  : 'BGComp_P5_Gap8.root',
 	#'P5'  : 'BGComp_P5_Gap11.root',
@@ -40,10 +41,10 @@ def analyze(self, t, PARAMS):
 	DOGAP = PARAMS[2]
 	DOZJETS = PARAMS[3]
 	GAP = PARAMS[4]
-	Primitives.SelectBranches(t, DecList=['LCT', 'COMP'])
+	Primitives.SelectBranches(t, DecList=['LCT', 'COMP'], branches=['Event_RunNumber','Event_BXCrossing','Event_LumiSection'])
 	for idx, entry in enumerate(t):
-		if idx == 10000: break
-		#print 'Events    :', idx+1, '\r',
+		#if idx == 10000: break
+		print 'Events    :', idx+1, '\r',
 
 		# Z and jet cuts
 		if DOZJETS:
@@ -177,10 +178,12 @@ def load(self, PARAMS):
 			'time' : f.Get('t'+ring),
 			'lumi' : f.Get('l'+ring),
 			'totl' : f.Get('a'+ring),
+			'occ'  : f.Get('o'+ring),
 		}
 		self.HISTS[ring]['time'].SetDirectory(0)
 		self.HISTS[ring]['lumi'].SetDirectory(0)
 		self.HISTS[ring]['totl'].SetDirectory(0)
+		self.HISTS[ring]['occ'].SetDirectory(0)
 
 # runs before file loop; open a file, declare a hist dictionary
 def setup(self, PARAMS):
@@ -194,10 +197,24 @@ def setup(self, PARAMS):
 			'time': R.TH1F('t'+ring, '', 10, 0., 10.),
 			'lumi': R.TH1F('l'+ring, '', 30, 0., 15.e33),
 			'totl': R.TH1F('a'+ring, '', 30, 0., 15.e33),
+			'occ' : R.TH1F('o'+ring, '', hsDict[ring], 0., hsDict[ring]),
 		}
 		self.HISTS[ring]['time'].SetDirectory(0)
 		self.HISTS[ring]['lumi'].SetDirectory(0)
 		self.HISTS[ring]['totl'].SetDirectory(0)
+		self.HISTS[ring]['occ'].SetDirectory(0)
+
+hsDict = {\
+		'11':230,
+		'12':170,
+		'13':140,
+		'21':170,
+		'22':170,
+		'31':170,
+		'32':170,
+		'41':170,
+		'42':170
+}
 
 def cleanup(self, PARAMS):
 	print ''
@@ -268,11 +285,23 @@ def makeNumDum(h, ring, which):
 	canvas.save('pdfs/BGCompAvgN'+'_'+ring+'_'+which+'.pdf')
 	R.SetOwnership(canvas, False)
 
+def makeOccPlot(h,ring):
+	for logy in [True,False]:
+		plot = Plotter.Plot(h,option='hist')
+		canvas = Plotter.Canvas(lumi='ME'+ring+' Comparator Occupancy',logy=logy)
+		canvas.addMainPlot(plot)
+		canvas.makeTransparent()
+		plot.setTitles(X='Comparator Half Strip',Y='Counts')
+		canvas.finishCanvas()
+		canvas.save('pdfs/BGCompOcc_'+ring, ['.pdf'])
+		canvas.deleteCanvas()
+
 for ring in RINGLIST:
 	makeTimePlot(data.HISTS[ring]['time'], ring)
 	makeLumiPlot(data.HISTS[ring]['lumi'], data.HISTS[ring]['totl'], ring)
 	makeNumDum(data.HISTS[ring]['lumi'], ring, 'ncomp')
 	makeNumDum(data.HISTS[ring]['totl'], ring, 'lumi')
+	makeOccPlot(data.HISTS[ring]['occ'], ring)
 
 def makeAllTimePlot():
 	h = data.HISTS[RINGLIST[0]]['time'].Clone()
