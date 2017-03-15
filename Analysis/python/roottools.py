@@ -1,5 +1,10 @@
+import sys
+import subprocess as bash
 import ROOT as R
 import array as array
+
+CMSSW_PATH  = bash.check_output('echo $CMSSW_BASE',shell=True).strip('\n') + '/src/'
+GITLAB_PATH = CMSSW_PATH + 'Gif/Analysis/'
 
 def DrawOverflow(hist):
     # Function to paint the histogram hist with an extra bin for overflows
@@ -52,3 +57,32 @@ def clopper_pearson(n_on, n_tot, alpha=1-0.6827, equal_tailed=True):
 def clopper_pearson_poisson_means(x, y, alpha=1-0.6827):
 	r, rl, rh = clopper_pearson(x, x+y, alpha)
 	return r/(1 - r), rl/(1 - rl), rh/(1 - rh)
+
+# For getting the output of TTree::Scan as a dictionary
+# No arguments gets you the entire tree
+# scanarg is exactly what you want to pass to TTree::Scan
+#    it should be of the form '"ID", "CUTS"'
+# num is the event number
+def getTreeDict(scanarg=None,num=None):
+	if scanarg is None:
+		SCANARG = r'"ID"'
+	else:
+		SCANARG = scanarg
+
+	if num is None:
+		print 'No tree given.'
+		return
+
+	SCANARG = '\'' + SCANARG + '\''
+
+	COMMAND = GITLAB_PATH+'analysis/neutron/scanTree.sh '+str(num)+' '+SCANARG
+	scan = bash.check_output(COMMAND,shell=True)
+
+	scan = scan.split('\n')
+	dic = {}
+	for line in scan:
+		if '**' in line or 'Row' in line or 'selected' in line or line == '':
+			continue
+		l = line.split()
+		dic[l[3]] = int(l[1])
+	return dic

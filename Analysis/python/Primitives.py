@@ -132,6 +132,10 @@ class ETree():
 				self.sim_stripPos     = list(t.sim_pos_strip)
 				self.sim_wirePos      = list(t.sim_pos_wire)
 				self.sim_globalPos    = (list(t.sim_pos_glb_x), list(t.sim_pos_glb_y), list(t.sim_pos_glb_z))
+				if hasattr(t, 'sim_track_id'):
+					self.sim_track_id = list(t.sim_track_id)
+				else:
+					self.sim_track_id = [0 for i in self.sim_cham]
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 class Comp():
@@ -202,6 +206,7 @@ class SimHit():
 		self.stripPos    = E.sim_stripPos[i]
 		self.wirePos     = E.sim_wirePos[i]
 		self.globalPos   = {'x' : E.sim_globalPos[0][i], 'y' : E.sim_globalPos[1][i], 'z' : E.sim_globalPos[2][i]}
+		self.trackID     = E.sim_track_id[i]
 
 class LCT():
 	def __init__(self, E, i):
