@@ -58,36 +58,64 @@ def analyze(self, t, PARAMS):
 			cham = CH.Chamber(lct.cham)
 			nHS = cham.nstrips*2
 			nWG = cham.nwires
-			LCTAreas = \
-			{
-				'bl' : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : 0.          , 'hs1' : nHS*0.25},
-				'tl' : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : 0.          , 'hs1' : nHS*0.25},
-				'tr' : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
-				'br' : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
-			}
-			OppAreas = \
-			{
-				'bl' : {'wg0' : (1-0.50)*nWG, 'wg1' : nWG     },
-				'tl' : {'wg0' : 0.          , 'wg1' : nWG*0.50},
-				'tr' : {'wg0' : 0.          , 'wg1' : nWG*0.50},
-				'br' : {'wg0' : (1-0.50)*nWG, 'wg1' : nWG     },
-			}
+			if cham.station==1 and cham.ring==1:
+				# ME1/1 has wires tilted at 29 degrees wrt local +x axis
+				# Instead of requiring that the LCT is in a "corner", for 
+				# ME1/1 we use "bottom" and "top" parts to look for an LCT
+				# "Bottom" is defined as  1 <= kwg <= 12 (0,3)
+				# "Top"    is defined as 37 <= kwg <= 48 (1,2)
+				# (Only defined differently because in ME1/1 we don't 
+				#  make any requirement on the HS of the LCT)
+				LCTAreas = \
+				{
+					'0' : {'wg0' :  1. , 'wg1' : 12. , 'hs0' : 0. , 'hs1' : nHS},
+					'1' : {'wg0' : 37. , 'wg1' : 48. , 'hs0' : 0. , 'hs1' : nHS},
+					'2' : {'wg0' : 37. , 'wg1' : 48. , 'hs0' : 0. , 'hs1' : nHS},
+					'3' : {'wg0' :  1. , 'wg1' : 12. , 'hs0' : 0. , 'hs1' : nHS},
+				}
+				# ME1/1 opposite areas are the other "half"
+				# keys correspond to LCT location
+				# "Bottom" LCTs -> Look for wgs in 25 <= wg <= 48 (0,3)
+				#    "Top" LCTs -> Look for wgs in  1 <= wg <= 24 (1,2)
+				# (Same for all other chambers but defined explicitly for ME1/1)
+				OppAreas = \
+				{
+					0 : {'wg0' :  25 , 'wg1' : 48 },
+					1 : {'wg0' :   1 , 'wg1' : 24 },
+					2 : {'wg0' :   1 , 'wg1' : 24 },
+					3 : {'wg0' :  25 , 'wg1' : 48 },
+				}
+			else:
+				LCTAreas = \
+				{
+					0 : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : 0.          , 'hs1' : nHS*0.25},
+					1 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : 0.          , 'hs1' : nHS*0.25},
+					2 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
+					3 : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
+				}
+				OppAreas = \
+				{
+					0 : {'wg0' : (1-0.50)*nWG, 'wg1' : nWG     },
+					1 : {'wg0' : 0.          , 'wg1' : nWG*0.50},
+					2 : {'wg0' : 0.          , 'wg1' : nWG*0.50},
+					3 : {'wg0' : (1-0.50)*nWG, 'wg1' : nWG     },
+				}
 			for key in LCTAreas.keys():
 				if  lct.keyWireGroup >= LCTAreas[key]['wg0'] and lct.keyWireGroup <= LCTAreas[key]['wg1']\
 				and lct.keyHalfStrip >= LCTAreas[key]['hs0'] and lct.keyHalfStrip <= LCTAreas[key]['hs1']:
 					for wire in wires:
 						if wire.cham != lct.cham: continue
 						if wire.number >= OppAreas[key]['wg0'] and wire.number <= OppAreas[key]['wg1']:
-							if key[0] == 'b':
+							if key==0 or key==3: # Fill upper bg wire group hist
 								self.HISTS[cham.display('{S}{R}u')]['time'].Fill(wire.timeBin)
-							if key[0] == 't':
+							if key==1 or key==2: # Fill lower bg wire group hist
 								self.HISTS[cham.display('{S}{R}l')]['time'].Fill(wire.timeBin)
 							if wire.timeBin >= 1 and wire.timeBin <= 5:
 								nWire += 1
-					if key[0] == 'b':
+					if key==0 or key==3: # upper bg wires
 						self.HISTS[cham.display('{S}{R}u')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nWire))
 						self.HISTS[cham.display('{S}{R}u')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
-					elif key[0] == 't':
+					elif key==1 or key==2: # lower bg wires
 						self.HISTS[cham.display('{S}{R}l')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nWire))
 						self.HISTS[cham.display('{S}{R}l')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
 

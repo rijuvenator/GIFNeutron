@@ -29,6 +29,9 @@ def setup(self, PARAMS):
 	self.F_OUT = R.TFile(FN,'RECREATE')
 	self.F_OUT.cd()
 	self.HISTS = {}
+	self.HISTS['AllZoom'] = R.TH1F('hAllZoom', '', 200, 0, 20*10**-6)
+	self.HISTS['MatchZoom'] = R.TH1F('hMatchZoom', '', 200, 0, 20*10**-6)
+	self.HISTS['NoMatchZoom'] = R.TH1F('hNoMatchZoom', '', 200, 0, 20*10**-6)
 	self.HISTS['All'] = R.TH1F('hAll', '', 200, 0, 200*10**-6)
 	self.HISTS['Match'] = R.TH1F('hMatch', '', 200, 0, 200*10**-6)
 	self.HISTS['NoMatch'] = R.TH1F('hNoMatch', '', 200, 0, 200*10**-6)
@@ -60,6 +63,7 @@ def analyze(self, t, PARAMS):
 					# Compare comparators to clusters
 					# Fill All energy histogram
 					self.HISTS['All'].Fill(cluster.energy)
+					self.HISTS['AllZoom'].Fill(cluster.energy)
 					# Find matching comparators
 					for comp in comps:
 						if comp.cham!=cham: continue
@@ -69,11 +73,16 @@ def analyze(self, t, PARAMS):
 					if len(cluster.matchedComps)>0:
 						# Fill Matched energy histogram 
 						self.HISTS['Match'].Fill(cluster.energy)
+						self.HISTS['MatchZoom'].Fill(cluster.energy)
 					else:
 						# Fill Not Matched energy histogram
 						self.HISTS['NoMatch'].Fill(cluster.energy)
+						self.HISTS['NoMatchZoom'].Fill(cluster.energy)
 
 	self.F_OUT.cd()
+	self.HISTS['AllZoom'].Write()
+	self.HISTS['MatchZoom'].Write()
+	self.HISTS['NoMatchZoom'].Write()
 	self.HISTS['All'].Write()
 	self.HISTS['Match'].Write()
 	self.HISTS['NoMatch'].Write()
@@ -85,10 +94,13 @@ def cleanup(self, PARAMS):
 def load(self, PARAMS):
 	f = R.TFile.Open(self.F_DATAFILE)
 	self.HISTS = {}
+	self.HISTS['AllZoom'] = f.Get('hAllZoom')
+	self.HISTS['MatchZoom'] = f.Get('hMatchZoom')
+	self.HISTS['NoMatchZoom'] = f.Get('hNoMatchZoom')
 	self.HISTS['All'] = f.Get('hAll')
 	self.HISTS['Match'] = f.Get('hMatch')
 	self.HISTS['NoMatch'] = f.Get('hNoMatch')
-	for title in ['All','Match','NoMatch']:
+	for title in ['All','Match','NoMatch','AllZoom','MatchZoom','NoMatchZoom']:
 		self.HISTS[title].SetDirectory(0)
 
 #### RUN ANALYSIS #####
@@ -155,35 +167,45 @@ def makeStack(HISTS,histDict):
 		canvas.deleteCanvas()
 
 def makeComparison(HISTS,histDict):
-	matchList = ['NoMatch','Match']
+	matchLists = [['NoMatch','Match'],['NoMatchZoom','MatchZoom']]
+	zooms = [False,True]
 	for logy in [True,False]:
 		plotList = []
-		for match in matchList:
-			hist = roottools.DrawOverflow(HISTS[match])
-			plot = Plotter.Plot(hist,legName=histDict[match]['title'],option='HIST',legType='l')
-			plotList.append(plot)
-		canvas = Plotter.Canvas(lumi='Energy Deposited by SimHit Clusters',logy=logy)
-		canvas.makeLegend(pos='tr')
-		for match,plot in zip(matchList,plotList): canvas.addMainPlot(plot)
-		for match,plot in zip(matchList,plotList): 
-			plot.SetLineColor(histDict[match]['color'])
-			plot.setTitles(X='SimHit Cluster Energy Loss [GeV]',Y='Counts')
-			canvas.addLegendEntry(plot)
-		canvas.legend.moveLegend(X=-0.25,Y=-0.1)
-		canvas.legend.resizeHeight()
-		canvas.makeTransparent()
-		canvas.finishCanvas()
-		canvas.save('pdfs/simHitEnergy_comp'+ ('_logy' if logy else '') ,['.pdf'])
-		canvas.deleteCanvas()
+		for zoom,matches in zip(zooms,matchLists):
+			for match in matches:
+				hist = HISTS[match]
+				#hist = roottools.DrawOverflow(HISTS[match])
+				plot = Plotter.Plot(hist,legName=histDict[match]['title'],option='HIST',legType='l')
+				plotList.append(plot)
+			canvas = Plotter.Canvas(lumi='Energy Deposited by SimHit Clusters',logy=logy)
+			canvas.makeLegend(pos='tr')
+			for match,plot in zip(matches,plotList): canvas.addMainPlot(plot)
+			for match,plot in zip(matches,plotList): 
+				plot.SetLineColor(histDict[match]['color'])
+				plot.setTitles(X='SimHit Cluster Energy Loss [GeV]',Y='Counts')
+				canvas.addLegendEntry(plot)
+			canvas.legend.moveLegend(X=-0.25,Y=-0.1)
+			canvas.legend.resizeHeight()
+			canvas.makeTransparent()
+			canvas.finishCanvas()
+			canvas.save('pdfs/simHitEnergy_comp'+ ('_logy' if logy else '') + ('_zoom' if zoom else '') ,['.pdf'])
+			canvas.deleteCanvas()
 
-histDict = {'NoMatch':{
+histDict = {
+			'NoMatch':{
 				'color':R.kBlue,
 				'title':'Not Matched to Comparator'},
 			'Match':{
 				'color':R.kRed,
-				'title':'Matched to Comparator'}
+				'title':'Matched to Comparator'},
+			'NoMatchZoom':{
+				'color':R.kBlue,
+				'title':'Not Matched to Comparator'},
+			'MatchZoom':{
+				'color':R.kRed,
+				'title':'Matched to Comparator'},
 			}
 
 makePlots(data.HISTS)
-makeStack(data.HISTS,histDict)
+#makeStack(data.HISTS,histDict)
 makeComparison(data.HISTS,histDict)

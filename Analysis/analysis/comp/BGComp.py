@@ -76,26 +76,77 @@ def analyze(self, t, PARAMS):
 			cham = CH.Chamber(lct.cham)
 			nHS = cham.nstrips*2
 			nWG = cham.nwires
-			LCTAreas = \
-			{
-				0 : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : 0.          , 'hs1' : nHS*0.25},
-				1 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : 0.          , 'hs1' : nHS*0.25},
-				2 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
-				3 : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
-			}
-			OppAreas = \
-			{
-				0 : {'hs0' : (1-0.50)*nHS, 'hs1' : nHS     },
-				1 : {'hs0' : (1-0.50)*nHS, 'hs1' : nHS     },
-				2 : {'hs0' : 0.          , 'hs1' : nHS*0.50},
-				3 : {'hs0' : 0.          , 'hs1' : nHS*0.50},
-			}
+			if cham.station==1 and cham.ring==1:
+				# ME1/1a and ME1/1b are separated by a cut in the strips.
+				# Since wires are tilted use the a/b divider as a crude radial cut
+				# on LCT position instead of wires.
+				# ME1/1b : strips  1 to  64 (top)    | hs   0 to 127 (top)
+				# ME1/1a : strips 65 to 112 (bottom) | hs 128 to 224 (bottom)
+				# (remember strips are numbered from 1 while hs are numbered from 0!)
+				#
+				# For ME1/1 the +/- endcaps are 'flipped' wrt each other
+				# (+,0) is (-,3) and vice versa
+				# (+,1) is (-,2) and vice versa
+				# Does not actually matter for what we are doing but important to keep in mind!
+				#
+				# -> LCTAreas are defined for ME+1/1
+				# ME+1/1b - 1 : (  0, 31) , 2 : ( 95,127) (hs are numbered R to L - top)
+				# ME+1/1a - 0 : (200,224) , 3 : (128,152) (hs are numbered L to R - bottom)
+				#
+				# For opposite area, the set of opposite half halfstrips are disjoint for LCT 
+				# areas 2 and 3
+				#
+				# -> OppAreas are defined for ME+1/1
+				#           (top) +   (bottom)
+				# 0,1 : (64, 127) + (128, 171)
+				# 2,3 : ( 0,  63) + (172, 223)
+				LCTAreas = \
+				{
+					0 : {'wg0' : 0. , 'wg1' : nWG , 'hs0' : 200. , 'hs1' : 223},
+					1 : {'wg0' : 0. , 'wg1' : nWG , 'hs0' : 0.   , 'hs1' : 31 },
+					2 : {'wg0' : 0. , 'wg1' : nWG , 'hs0' : 96   , 'hs1' : 127},
+					3 : {'wg0' : 0. , 'wg1' : nWG , 'hs0' : 128  , 'hs1' : 151},
+				}
+				OppAreas = \
+				{
+					0 : {'hs0' : 64 , 'hs1' : 127 , 'hs2' : 128 , 'hs3' : 171},
+					1 : {'hs0' : 64 , 'hs1' : 127 , 'hs2' : 128 , 'hs3' : 171},
+					2 : {'hs0' :  0 , 'hs1' :  63 , 'hs2' : 172 , 'hs3' : 223},
+					3 : {'hs0' :  0 , 'hs1' :  63 , 'hs2' : 172 , 'hs3' : 223},
+				}
+			else:
+				LCTAreas = \
+				{
+					0 : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : 0.          , 'hs1' : nHS*0.25},
+					1 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : 0.          , 'hs1' : nHS*0.25},
+					2 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
+					3 : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
+				}
+				OppAreas = \
+				{
+					0 : {'hs0' : (1-0.50)*nHS, 'hs1' : nHS     },
+					1 : {'hs0' : (1-0.50)*nHS, 'hs1' : nHS     },
+					2 : {'hs0' : 0.          , 'hs1' : nHS*0.50},
+					3 : {'hs0' : 0.          , 'hs1' : nHS*0.50},
+				}
+			# Loop on all areas (we've already forced there to be only one LCT in this chamber)
 			for key in LCTAreas.keys():
+				# If LCT in a corner
 				if  lct.keyWireGroup >= LCTAreas[key]['wg0'] and lct.keyWireGroup <= LCTAreas[key]['wg1']\
 				and lct.keyHalfStrip >= LCTAreas[key]['hs0'] and lct.keyHalfStrip <= LCTAreas[key]['hs1']:
 					for comp in comps:
 						if comp.cham != lct.cham: continue
-						if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
+						# For comparators in opposite half of LCT
+						OPPAREA = False
+						if cham.station==1 and cham.ring==1:
+							if ((comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1'])\
+									or \
+								(comp.staggeredHalfStrip >= OppAreas[key]['hs2'] and comp.staggeredHalfStrip <= OppAreas[key]['hs3'])):
+								OPPAREA = True
+						else:
+							if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
+								OPPAREA = True
+						if OPPAREA:
 							self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
 							if comp.timeBin >= 1 and comp.timeBin <= 5:
 								#print idx, cham.id, size, comp.timeBin
