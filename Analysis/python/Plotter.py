@@ -18,6 +18,9 @@ R.PyConfig.IgnoreCommandLineOptions = True
 def globalSetStyle():
 	style = R.TStyle('style','Style')
 
+	# rainbow
+	style.SetPalette(55)
+
 	# generic line thicknesses
 	style.SetLineWidth(2)
 
@@ -264,7 +267,7 @@ class Canvas(R.TCanvas):
 		plot.UseCurrentStyle()
 		self.cd()
 		self.mainPad.cd()
-		self.plotList.append(plot)
+		if addToPlotList: self.plotList.append(plot)
 
 		if not self.axesDrawn:
 			self.axesDrawn = True
@@ -469,25 +472,24 @@ class Canvas(R.TCanvas):
 		latex.DrawLatexNDC(pos[0], pos[1], text)
 	
 	# draws the lumi text, 'CMS', extra text, and legend 
-	def finishCanvas(self):
+	def finishCanvas(self, mode=''):
 		tMargin = float(self.mainPad.GetTopMargin())
 		lMargin = float(self.mainPad.GetLeftMargin())
 		rMargin = float(self.mainPad.GetRightMargin())
 
 		tOffset = 0.02
-		scale = 1.
-		if (self.ratioFactor != 0):
-			scale /= (1-self.ratioFactor)
 
 		self.cd()
 		self.mainPad.cd()
 
-		# 'CMS' is approximately 2.75 times wide as tall, so draw extra at 2.75 * charheight to the right of CMS as a fraction of width
-		extraOffset = self.fontsize * self.cHeight * (1-self.ratioFactor) * 2.75 / self.cWidth
-
-		self.drawText(text=self.lumi , pos=(1-rMargin            , 1-tMargin+tOffset), align='br', fontcode=self.fontcode, fontscale=1.  )
-		self.drawText(text='CMS'     , pos=(  lMargin            , 1-tMargin+tOffset), align='bl', fontcode='b'          , fontscale=1.25)
-		self.drawText(text=self.extra, pos=(  lMargin+extraOffset, 1-tMargin+tOffset), align='bl', fontcode='i'          , fontscale=1.  )
+		if mode == '':
+			# 'CMS' is approximately 2.75 times wide as tall, so draw extra at 2.75 * charheight to the right of CMS as a fraction of width
+			extraOffset = self.fontsize * self.cHeight * (1-self.ratioFactor) * 2.75 / self.cWidth
+			self.drawText(text=self.lumi , pos=(1-rMargin            , 1-tMargin+tOffset), align='br', fontcode=self.fontcode, fontscale=1.  )
+			self.drawText(text='CMS'     , pos=(  lMargin            , 1-tMargin+tOffset), align='bl', fontcode='b'          , fontscale=1.25)
+			self.drawText(text=self.extra, pos=(  lMargin+extraOffset, 1-tMargin+tOffset), align='bl', fontcode='i'          , fontscale=1.  )
+		elif mode == 'BOB':
+			self.drawText(text=self.lumi , pos=((1-rMargin+lMargin)/2, 1-tMargin+tOffset), align='bc', fontcode=self.fontcode, fontscale=1.5 )
 
 		if self.legend is not None:
 			self.legend.Draw()

@@ -132,8 +132,16 @@ class ETree():
 				self.sim_stripPos     = list(t.sim_pos_strip)
 				self.sim_wirePos      = list(t.sim_pos_wire)
 				self.sim_globalPos    = (list(t.sim_pos_glb_x), list(t.sim_pos_glb_y), list(t.sim_pos_glb_z))
-				self.sim_entry_pabs   = list(t.sim_entry_pabs)
-				self.sim_entry_p      = (list(t.sim_entry_px), list(t.sim_entry_py), list(t.sim_entry_pz))
+				if hasattr(t, 'sim_track_id'):
+					self.sim_track_id = list(t.sim_track_id)
+				else:
+					self.sim_track_id = [0 for i in self.sim_cham]
+				if hasattr(t, 'sim_entry_pabs'):
+					self.sim_entry_pabs   = list(t.sim_entry_pabs)
+					self.sim_entry_p      = (list(t.sim_entry_px), list(t.sim_entry_py), list(t.sim_entry_pz))
+				else:
+					self.sim_entry_pabs   = [0. for i in self.sim_cham]
+					self.sim_entry_p      = [[0. for i in self.sim_cham] for j in range(3)]
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 class Comp():
@@ -204,6 +212,7 @@ class SimHit():
 		self.stripPos    = E.sim_stripPos[i]
 		self.wirePos     = E.sim_wirePos[i]
 		self.globalPos   = {'x' : E.sim_globalPos[0][i], 'y' : E.sim_globalPos[1][i], 'z' : E.sim_globalPos[2][i]}
+		self.trackID     = E.sim_track_id[i]
 		self.pabsEntry   = E.sim_entry_pabs[i]
 		self.pEntry      = {'x' : E.sim_entry_p[0][i], 'y' : E.sim_entry_p[1][i], 'z' : E.sim_entry_p[2][i]}
 

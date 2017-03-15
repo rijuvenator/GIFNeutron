@@ -10,3 +10,5 @@ __init__.py
 *.tmb
 *.bak
 *cxx*
+*.log
+*.config

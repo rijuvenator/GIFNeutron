@@ -3,7 +3,7 @@ import argparse
 import subprocess as bash
 
 # parse arguments
-FCHOICES = ['500_3', '1000_3', '1000_1']
+FCHOICES = ['500_3', '1000_3', '1000_1', '1000_Hack1_1', '25000_HPT_1', '25000_HPT_Hack2_1']
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file'   , dest='FILE'   , default='1000_1'   , choices=FCHOICES, help='which data file to use'   )
@@ -17,7 +17,7 @@ PRINTCHAMDICT = not args.CHAMOFF
 PRINTSUMMARY  = not args.SUMOFF
 
 # make gaslist and timlist
-eventHitList = bash.check_output('python printLogStats.py logs/log'+args.FILE+'Layer -e -s', shell=True)
+eventHitList = bash.check_output('python printLogStats.py logs/log'+args.FILE+'Layer.log -e -s', shell=True)
 lines = eventHitList.split('\n')
 gaslist, timlist = [], []
 for line in lines:
@@ -29,7 +29,7 @@ gas = dict(zip(gaslist, timlist))
 
 # run over the tree
 f = R.TFile.Open('roots/output'+args.FILE+'Layer.root')
-t = f.Get('GIFTree/NeutronDigiTree')
+t = f.Get('GIFTree/GIFDigiTree')
 
 t.SetBranchStatus('*', 0)
 BranchList = ['sim_id', 'comp_id', 'wire_id', 'strip_id', 'lct_id', 'alct_id', 'clct_id']
