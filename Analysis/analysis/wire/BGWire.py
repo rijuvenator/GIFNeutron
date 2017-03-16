@@ -6,6 +6,7 @@ import Gif.Analysis.Plotter as Plotter
 import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
+import Gif.Analysis.BGDigi as BGDigi
 
 shortringlist = ['11','12','13','21','22','31','32','41','42']
 ringlist = [i+'u' for i in shortringlist] + [i+'l' for i in shortringlist]
@@ -23,8 +24,10 @@ parser.add_argument('-ng', '--nogap'     , action='store_false', dest='NOGAP')
 parser.add_argument('-nz', '--nozjetcuts', action='store_false', dest='NOZJETS')
 parser.add_argument('-f' , '--file'      , default=''          , dest='FILE')
 parser.add_argument('-g' , '--gapsize'   , default='35'        , dest='GAP')
+parser.add_argument('-fr', '--findroads' , action='store_true' , dest='DOROAD')
 args = parser.parse_args(REMAINDER)
 
+DOROAD  = args.DOROAD
 DOGAP   = args.NOGAP
 DOZJETS = args.NOZJETS
 GAP     = int(args.GAP)
@@ -65,6 +68,30 @@ def analyze(self, t, PARAMS):
 		lcts  = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham ))]
 		wires = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham))]
 
+		bgLCTs,bgWires = BGDigi.getBGWireCandList(lcts,wires)
+		if len(bgLCTs)==0: continue # skip event if no isolated lcts
+		if DOROAD:
+			roadchams = BGDigi.removeDigiRoads(lcts,wires)
+		else:
+			roadchams = []
+			
+		for lct,half in bgLCTs:
+			nWire = 0.
+			# skip chamber if there's a background track
+			if lct.cham in roadchams and DOROAD: continue
+			cham = CH.Chamber(lct.cham)
+			for wire in bgWires:
+				if wire.cham != lct.cham: continue
+				self.HISTS[cham.display('{S}{R}')+half]['time'].Fill(wire.timeBin)
+				if wire.timeBin >= 1 and wire.timeBin <= 5:
+					self.HISTS[cham.display('{S}{R}')+half]['occ'].Fill(wire.number)
+					nWire += 1
+			self.HISTS[cham.display('{S}{R}')+half]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nWire))
+			self.HISTS[cham.display('{S}{R}')+half]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
+
+			
+
+		'''
 		twolcts = list(set([i for i in E.lct_cham if E.lct_cham.count(i)>1]))
 		for lct in lcts:
 			if lct.cham in twolcts: continue
@@ -135,6 +162,7 @@ def analyze(self, t, PARAMS):
 					elif key==1 or key==2: # lower bg wires
 						self.HISTS[cham.display('{S}{R}l')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nWire))
 						self.HISTS[cham.display('{S}{R}l')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
+		'''
 
 	self.F_OUT.cd()
 	for ring in ringlist:

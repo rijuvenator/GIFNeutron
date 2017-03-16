@@ -6,13 +6,15 @@ import Gif.Analysis.Plotter as Plotter
 import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
+import Gif.Analysis.BGDigi as BGDigi
 
 RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
-	'P5'  : 'BGComp_P5_me11fix.root'
+	'P5'  : 'BGComp_P5_bgdigitest.root'
+	#'P5'  : 'BGComp_P5_me11fix.root'
 	#'P5'  : 'BGComp_P5.root'
 	#'P5'  : 'BGComp_P5_noGap.root',
 	#'P5'  : 'BGComp_P5_Gap8.root',
@@ -28,8 +30,10 @@ parser.add_argument('-ng', '--nogap'     , action='store_false', dest='NOGAP')
 parser.add_argument('-nz', '--nozjetcuts', action='store_false', dest='NOZJETS')
 parser.add_argument('-f' , '--file'      , default=''          , dest='FILE')
 parser.add_argument('-g' , '--gapsize'   , default='35'        , dest='GAP')
+parser.add_argument('-fr', '--findroads' , action='store_true' , dest='DOROAD')
 args = parser.parse_args(REMAINDER)
 
+DOROAD  = args.DOROAD
 DOGAP   = args.NOGAP
 DOZJETS = args.NOZJETS
 GAP     = int(args.GAP)
@@ -43,7 +47,7 @@ def analyze(self, t, PARAMS):
 	GAP = PARAMS[4]
 	Primitives.SelectBranches(t, DecList=['LCT', 'COMP'], branches=['Event_RunNumber','Event_BXCrossing','Event_LumiSection'])
 	for idx, entry in enumerate(t):
-		#if idx == 10000: break
+		if idx == 10000: break
 		print 'Events    :', idx+1, '\r',
 
 		# Z and jet cuts
@@ -69,7 +73,29 @@ def analyze(self, t, PARAMS):
 		E = Primitives.ETree(t, DecList=['LCT','COMP'])
 		lcts  = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham ))]
 		comps = [Primitives.Comp   (E, i) for i in range(len(E.comp_cham))]
+		
+		bgLCTs,oppHalfComps = BGDigi.getBGCompCandList(lcts,comps)
+		if len(bgLCTs)==0: continue # skip event if there were no isolated LCTs
+		if DOROAD:
+			roadChams = BGDigi.removeCompRoads(bgLCTs,oppHalfComps)
+		else:
+			roadChams = []
 
+		for lct in bgLCTs:
+			nComp = 0.
+			# Skip Chamber if there's a background road
+			if lct.cham in roadChams and DOROAD: continue
+			cham = CH.Chamber(lct.cham)
+			for comp in bgComps:
+				if comp.cham!=lct.cham: continue
+				self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
+				if comp.timeBin >= 1 and comp.timeBin <= 5:
+					nComp += 1
+					self.HISTS[cham.display('{S}{R}')]['occ'].Fill(comp.halfStrip)
+			self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
+			self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
+
+		'''
 		twolcts = list(set([i for i in E.lct_cham if E.lct_cham.count(i)>1]))
 		for lct in lcts:
 			if lct.cham in twolcts: continue
@@ -154,12 +180,14 @@ def analyze(self, t, PARAMS):
 								nComp += 1
 					self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
 					self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
+		'''
 
 	self.F_OUT.cd()
 	for ring in RINGLIST:
 		self.HISTS[ring]['time'].Write()
 		self.HISTS[ring]['lumi'].Write()
 		self.HISTS[ring]['totl'].Write()
+		self.HISTS[ring]['occ'].Write()
 
 	if DOGAP:
 		print ''
@@ -318,4 +346,5 @@ def makeAllTimePlot():
 	canvas.finishCanvas()
 	canvas.save('pdfs/BGCompTimeNewAll.pdf')
 	R.SetOwnership(canvas, False)
+
 makeAllTimePlot()
