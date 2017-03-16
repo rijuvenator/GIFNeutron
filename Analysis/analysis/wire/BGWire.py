@@ -85,6 +85,7 @@ def analyze(self, t, PARAMS):
 				self.HISTS[cham.display('{S}{R}')+half]['time'].Fill(wire.timeBin)
 				if wire.timeBin >= 1 and wire.timeBin <= 5:
 					self.HISTS[cham.display('{S}{R}')+half]['occ'].Fill(wire.number)
+					self.HISTS[cham.display('{S}{R}')]['occ'].Fill(wire.number)
 					nWire += 1
 			self.HISTS[cham.display('{S}{R}')+half]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nWire))
 			self.HISTS[cham.display('{S}{R}')+half]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
@@ -246,6 +247,10 @@ wireOccDict = {
 ##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 R.gROOT.SetBatch(True)
 METHODS = ['analyze', 'load', 'setup','cleanup']
+MS.F_P5DATA = '/afs/cern.ch/work/c/cschnaib/public/P5Neutron/ana_Neutron_P5_1.root'
+MS.F_GAPDATA = '../datafiles/gapdata_1'
+MS.F_RUNGRID = '../datafiles/runlumigrid_1'
+#MS.F_P5DATA = '/afs/cern.ch/work/c/cschnaib/public/P5Neutron/ana_Neutron_P5_2.root'
 ARGS = {\
 	'PARAMS'     : [OFN, TYPE, DOGAP, DOZJETS, GAP],
 	'F_DATAFILE' : FDATA

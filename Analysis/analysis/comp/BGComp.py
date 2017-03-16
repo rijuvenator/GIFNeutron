@@ -77,6 +77,7 @@ def analyze(self, t, PARAMS):
 		bgLCTs,oppHalfComps = BGDigi.getBGCompCandList(lcts,comps)
 		if len(bgLCTs)==0: continue # skip event if there were no isolated LCTs
 		if DOROAD:
+			#roadChams = BGDigi.removeDigiRoads(bgLCTs,oppHalfComps)
 			roadChams = BGDigi.removeCompRoads(bgLCTs,oppHalfComps)
 		else:
 			roadChams = []
@@ -86,7 +87,7 @@ def analyze(self, t, PARAMS):
 			# Skip Chamber if there's a background road
 			if lct.cham in roadChams and DOROAD: continue
 			cham = CH.Chamber(lct.cham)
-			for comp in bgComps:
+			for comp in oppHalfComps:
 				if comp.cham!=lct.cham: continue
 				self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
 				if comp.timeBin >= 1 and comp.timeBin <= 5:
@@ -251,6 +252,8 @@ def cleanup(self, PARAMS):
 ##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 R.gROOT.SetBatch(True)
 METHODS = ['analyze', 'load', 'setup', 'cleanup']
+#MS.F_P5DATA = '/afs/cern.ch/work/c/cschnaib/public/P5Neutron/ana_Neutron_P5_1.root'
+#MS.F_P5DATA = '/afs/cern.ch/work/c/cschnaib/public/P5Neutron/ana_Neutron_P5_2.root'
 ARGS = {\
 	'PARAMS'     : [OFN, TYPE, DOGAP, DOZJETS, GAP],
 	'F_DATAFILE' : FDATA
