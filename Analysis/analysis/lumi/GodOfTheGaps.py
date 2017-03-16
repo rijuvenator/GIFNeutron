@@ -22,7 +22,7 @@ TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 def analyze(self, t, PARAMS):
 	Primitives.SelectBranches(t, branches=['Event_RunNumber', 'Event_BXCrossing'])
 	for idx, entry in enumerate(t):
-		print 'Event: ', idx, '\r',
+		#print 'Event: ', idx, '\r',
 
 		RUN = t.Event_RunNumber
 		if RUN not in self.HISTS.keys():
@@ -56,6 +56,8 @@ def cleanup(self, PARAMS):
 ##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 R.gROOT.SetBatch(True)
 METHODS = ['analyze', 'load', 'setup', 'cleanup']
+MS.F_P5DATA = '/afs/cern.ch/work/c/cschnaib/public/P5Neutron/ana_Neutron_P5_1.root'
+#MS.F_P5DATA = '/afs/cern.ch/work/c/cschnaib/public/P5Neutron/ana_Neutron_P5_2.root'
 ARGS = {\
 	'PARAMS'     : [OFN, TYPE],
 	'F_DATAFILE' : FDATA
@@ -78,7 +80,6 @@ for RUN in data.HISTS.keys():
 			Count += 1
 
 	print RUN, Count
-	continue
 	print '  {:>5s} {:>5s} {:>5s}'.format('SIZE', 'START', 'END')
 	for key, group in it.groupby(enumerate(BXList), lambda (idx, BX) : idx - BX):
 		BXRange = [BX for idx, BX in list(group)]
