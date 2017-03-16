@@ -32,7 +32,7 @@ def SelectBranches(t, DecList=(), branches=()):
 # then pass it to the classes (which used to take addressed trees; they now take this)
 # DecList is for turning on or off some declarations. No need to declare everything
 # if we're not going to use them.
-class ETree():
+class ETree(object):
 	def __init__(self, t, DecList=('COMP', 'STRIP', 'WIRE', 'RECHIT', 'LCT', 'SEGMENT','CLCT','SIMHIT')):
 		if 'COMP' in DecList:
 			self.comp_cham      = list(t.comp_id)
@@ -144,7 +144,7 @@ class ETree():
 					self.sim_entry_p      = [[0. for i in self.sim_cham] for j in range(3)]
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
-class Comp():
+class Comp(object):
 	def __init__(self, E, i):
 		self.cham      = E.comp_cham[i]
 		self.layer     = E.comp_layer[i]
@@ -161,7 +161,7 @@ class Comp():
 		self.halfStrip = 2*self.strip + self.comp
 		self.staggeredHalfStrip = self.halfStrip - self.isStaggered * 1.0
 
-class Strip():
+class Strip(object):
 	def __init__(self, E, i):
 		self.cham   = E.strip_cham[i]
 		self.layer  = E.strip_layer[i]
@@ -173,7 +173,7 @@ class Strip():
 
 		self.staggeredNumber = self.number - self.isStaggered * 0.5
 
-class Wire():
+class Wire(object):
 	def __init__(self, E, i):
 		self.cham      = E.wire_cham[i]
 		self.layer     = E.wire_layer[i]
@@ -182,7 +182,7 @@ class Wire():
 		self.pos       = {'x' : E.wire_pos[0][i], 'y' : E.wire_pos[1][i]}
 		self.globalPos = {'x' : E.wire_globalPos[0][i], 'y' : E.wire_globalPos[1][i], 'z' : E.wire_globalPos[2][i]}
 
-class RecHit():
+class RecHit(object):
 	def __init__(self, E, i):
 		self.cham      = E.rh_cham[i]
 		self.layer     = E.rh_layer[i]
@@ -198,7 +198,7 @@ class RecHit():
 
 		self.halfStrip = (self.strips[0 if self.nStrips == 1 else 1] + self.posStrip) * 2
 
-class SimHit():
+class SimHit(object):
 	def __init__(self, E, i):
 		self.cham        = E.sim_cham[i]
 		self.particleID  = E.sim_particle_id[i]
@@ -216,14 +216,14 @@ class SimHit():
 		self.pabsEntry   = E.sim_entry_pabs[i]
 		self.pEntry      = {'x' : E.sim_entry_p[0][i], 'y' : E.sim_entry_p[1][i], 'z' : E.sim_entry_p[2][i]}
 
-class LCT():
+class LCT(object):
 	def __init__(self, E, i):
 		self.cham         = E.lct_cham[i]
 		self.pattern      = E.lct_pattern[i]
 		self.keyHalfStrip = E.lct_keyHalfStrip[i]
 		self.keyWireGroup = E.lct_keyWireGroup[i]
 
-class Segment():
+class Segment(object):
 	def __init__(self, E, i):
 		self.cham      = E.seg_cham[i]
 		self.nHits     = E.seg_nHits[i]
@@ -245,7 +245,7 @@ class Segment():
 
 		self.slope = {'x' : E.seg_slope[i][0], 'y' : E.seg_slope[i][1], 'z' : E.seg_slope[i][2]}
 
-class CLCT():
+class CLCT(object):
 	def __init__(self, E, i):
 		self.cham      = E.clct_cham[i]
 		self.quality   = E.clct_quality[i]

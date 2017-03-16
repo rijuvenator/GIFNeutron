@@ -6,13 +6,14 @@ import Gif.Analysis.Plotter as Plotter
 import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
+import Gif.Analysis.BGDigi as BGDigi
 
 MS.F_MCDATA = '$WS/public/Neutron/hacktrees2/hacktree.root'
 
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
-	'P5'  : 'Integrals_P5.root',
+	'P5'  : 'Integrals_P5_test.root',
 	'MC'  : 'Integrals_MC.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
@@ -41,7 +42,7 @@ def analyze(self, t, PARAMS):
 	elif TYPE == 'MC':
 		Primitives.SelectBranches(t, DecList=['COMP','WIRE'])
 	for idx, entry in enumerate(t):
-		#if idx == 10000: break
+		if idx == 10000: break
 		print 'Events:', idx+1, '\r',
 
 		if TYPE == 'P5':
@@ -58,143 +59,39 @@ def analyze(self, t, PARAMS):
 			comps = [Primitives.Comp   (E, i) for i in range(len(E.comp_cham))]
 			wires = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham))]
 
-			twolcts = list(set([i for i in E.lct_cham if E.lct_cham.count(i)>1]))
-			for lct in lcts:
-				if lct.cham in twolcts: continue
-				nComp = 0
-				cham = CH.Chamber(lct.cham)
-				nHS = cham.nstrips*2
-				nWG = cham.nwires
-				if cham.station==1 and cham.ring==1:
-					# ME1/1a and ME1/1b are separated by a cut in the strips.
-					# Since wires are tilted use the a/b divider as a crude radial cut
-					# on LCT position instead of wires.
-					# ME1/1b : strips  1 to  64 (top)    | hs   0 to 127 (top)
-					# ME1/1a : strips 65 to 112 (bottom) | hs 128 to 224 (bottom)
-					# (remember strips are numbered from 1 while hs are numbered from 0!)
-					#
-					# For ME1/1 the +/- endcaps are 'flipped' wrt each other
-					# (+,0) is (-,3) and vice versa
-					# (+,1) is (-,2) and vice versa
-					# Does not actually matter for what we are doing but important to keep in mind!
-					#
-					# -> LCTAreas are defined for ME+1/1
-					# ME+1/1b - 1 : (  0, 31) , 2 : ( 95,127) (hs are numbered R to L - top)
-					# ME+1/1a - 0 : (200,224) , 3 : (128,152) (hs are numbered L to R - bottom)
-					#
-					# For opposite area, the set of opposite half halfstrips are disjoint for LCT 
-					# areas 2 and 3
-					#
-					# -> OppAreas are defined for ME+1/1
-					#           (top) +   (bottom)
-					# 0,1 : (64, 127) + (128, 171)
-					# 2,3 : ( 0,  63) + (172, 223)
-					LCTAreas = \
-					{
-						0 : {'wg0' : 0. , 'wg1' : nWG , 'hs0' : 200. , 'hs1' : 223},
-						1 : {'wg0' : 0. , 'wg1' : nWG , 'hs0' : 0.   , 'hs1' : 31 },
-						2 : {'wg0' : 0. , 'wg1' : nWG , 'hs0' : 96   , 'hs1' : 127},
-						3 : {'wg0' : 0. , 'wg1' : nWG , 'hs0' : 128  , 'hs1' : 151},
-					}
-					OppAreas = \
-					{
-						0 : {'hs0' : 64 , 'hs1' : 127 , 'hs2' : 128 , 'hs3' : 171},
-						1 : {'hs0' : 64 , 'hs1' : 127 , 'hs2' : 128 , 'hs3' : 171},
-						2 : {'hs0' :  0 , 'hs1' :  63 , 'hs2' : 172 , 'hs3' : 223},
-						3 : {'hs0' :  0 , 'hs1' :  63 , 'hs2' : 172 , 'hs3' : 223},
-					}
-				else:
-					LCTAreas = \
-					{
-						0 : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : 0.          , 'hs1' : nHS*0.25},
-						1 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : 0.          , 'hs1' : nHS*0.25},
-						2 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
-						3 : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
-					}
-					OppAreas = \
-					{
-						0 : {'hs0' : (1-0.50)*nHS, 'hs1' : nHS     },
-						1 : {'hs0' : (1-0.50)*nHS, 'hs1' : nHS     },
-						2 : {'hs0' : 0.          , 'hs1' : nHS*0.50},
-						3 : {'hs0' : 0.          , 'hs1' : nHS*0.50},
-					}
-				# Loop on all areas (we've already forced there to be only one LCT in this chamber)
-				for key in LCTAreas.keys():
-					# If LCT in a corner
-					if  lct.keyWireGroup >= LCTAreas[key]['wg0'] and lct.keyWireGroup <= LCTAreas[key]['wg1']\
-					and lct.keyHalfStrip >= LCTAreas[key]['hs0'] and lct.keyHalfStrip <= LCTAreas[key]['hs1']:
-						for comp in comps:
-							if comp.cham != lct.cham: continue
-							# For comparators in opposite half of LCT
-							OPPAREA = False
-							if cham.station==1 and cham.ring==1:
-								if ((comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1'])\
-										or \
-									(comp.staggeredHalfStrip >= OppAreas[key]['hs2'] and comp.staggeredHalfStrip <= OppAreas[key]['hs3'])):
-									OPPAREA = True
-							else:
-								if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
-									OPPAREA = True
-							if OPPAREA:
-								if comp.timeBin >= 1 and comp.timeBin <= 5:
-									self.HISTS['comp'].Fill(ringdict[cham.display('{E}{S}{R}')])
+			DOROAD = False
 
-			for lct in lcts:
-				if lct.cham in twolcts: continue
-				nWire = 0
+			bgLCTs, bgComps = BGDigi.getBGCompCandList(lcts, comps)
+			if len(bgLCTs) == 0: continue # skip event if there were no isolated LCTs
+			if DOROAD:
+				roadChams = BGDigi.removeCompRoads(bgLCTs, bgComps)
+			else:
+				roadChams = []
+
+			for lct in bgLCTs:
+				# Skip Chamber if there's a background road
+				if lct.cham in roadChams and DOROAD: continue
 				cham = CH.Chamber(lct.cham)
-				nHS = cham.nstrips*2
-				nWG = cham.nwires
-				if cham.station==1 and cham.ring==1:
-					# ME1/1 has wires tilted at 29 degrees wrt local +x axis
-					# Instead of requiring that the LCT is in a "corner", for 
-					# ME1/1 we use "bottom" and "top" parts to look for an LCT
-					# "Bottom" is defined as  1 <= kwg <= 12 (0,3)
-					# "Top"    is defined as 37 <= kwg <= 48 (1,2)
-					# (Only defined differently because in ME1/1 we don't 
-					#  make any requirement on the HS of the LCT)
-					LCTAreas = \
-					{
-						0 : {'wg0' :  1. , 'wg1' : 12. , 'hs0' : 0. , 'hs1' : nHS},
-						1 : {'wg0' : 37. , 'wg1' : 48. , 'hs0' : 0. , 'hs1' : nHS},
-						2 : {'wg0' : 37. , 'wg1' : 48. , 'hs0' : 0. , 'hs1' : nHS},
-						3 : {'wg0' :  1. , 'wg1' : 12. , 'hs0' : 0. , 'hs1' : nHS},
-					}
-					# ME1/1 opposite areas are the other "half"
-					# keys correspond to LCT location
-					# "Bottom" LCTs -> Look for wgs in 25 <= wg <= 48 (0,3)
-					#    "Top" LCTs -> Look for wgs in  1 <= wg <= 24 (1,2)
-					# (Same for all other chambers but defined explicitly for ME1/1)
-					OppAreas = \
-					{
-						0 : {'wg0' :  25 , 'wg1' : 48 },
-						1 : {'wg0' :   1 , 'wg1' : 24 },
-						2 : {'wg0' :   1 , 'wg1' : 24 },
-						3 : {'wg0' :  25 , 'wg1' : 48 },
-					}
-				else:
-					LCTAreas = \
-					{
-						0 : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : 0.          , 'hs1' : nHS*0.25},
-						1 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : 0.          , 'hs1' : nHS*0.25},
-						2 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
-						3 : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
-					}
-					OppAreas = \
-					{
-						0 : {'wg0' : (1-0.50)*nWG, 'wg1' : nWG     },
-						1 : {'wg0' : 0.          , 'wg1' : nWG*0.50},
-						2 : {'wg0' : 0.          , 'wg1' : nWG*0.50},
-						3 : {'wg0' : (1-0.50)*nWG, 'wg1' : nWG     },
-					}
-				for key in LCTAreas.keys():
-					if  lct.keyWireGroup >= LCTAreas[key]['wg0'] and lct.keyWireGroup <= LCTAreas[key]['wg1']\
-					and lct.keyHalfStrip >= LCTAreas[key]['hs0'] and lct.keyHalfStrip <= LCTAreas[key]['hs1']:
-						for wire in wires:
-							if wire.cham != lct.cham: continue
-							if wire.number >= OppAreas[key]['wg0'] and wire.number <= OppAreas[key]['wg1']:
-								if wire.timeBin >= 1 and wire.timeBin <= 5:
-									self.HISTS['wire'].Fill(ringdict[cham.display('{E}{S}{R}')])
+				for comp in bgComps:
+					if comp.cham!=lct.cham: continue
+					if comp.timeBin >= 1 and comp.timeBin <= 5:
+						self.HISTS['comp'].Fill(ringdict[cham.display('{E}{S}{R}')])
+
+			bgLCTs, bgWires = BGDigi.getBGWireCandList(lcts,wires)
+			if len(bgLCTs) == 0: continue # skip event if no isolated LCTs
+			if DOROAD:
+				roadchams = BGDigi.removeDigiRoads(lcts,wires)
+			else:
+				roadchams = []
+				
+			for lct,half in bgLCTs:
+				# skip chamber if there's a background track
+				if lct.cham in roadchams and DOROAD: continue
+				cham = CH.Chamber(lct.cham)
+				for wire in bgWires:
+					if wire.cham != lct.cham: continue
+					if wire.timeBin >= 1 and wire.timeBin <= 5:
+						self.HISTS['wire'].Fill(ringdict[cham.display('{E}{S}{R}')])
 
 		elif TYPE == 'MC':
 			E = Primitives.ETree(t, DecList=['COMP','WIRE'])
