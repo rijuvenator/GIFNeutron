@@ -72,7 +72,7 @@ class MegaStruct():
 				f = R.TFile.Open(F_GIFDATA.replace('XXXX',str(MEAS)))
 				t = f.Get('GIFTree/GIFDigiTree')
 				for CHAM in CHAMLIST:
-					self.hists[CHAM][MEAS] = {\
+					self.hists[CHAM][MEAS] = {
 						'rhEnergy' : R.TH1F('rh_e_'+str(CHAM)+'_'+str(MEAS),'',100,0,1500),
 						'rhEnergyMatch' : R.TH1F('rh_e_match_'+str(CHAM)+'_'+str(MEAS),'', 100,0,1500),
 						'rhEnergyNoMatch' : R.TH1F('rh_e_nomatch_'+str(CHAM)+'_'+str(MEAS),'',100,0,1500)

@@ -20,7 +20,7 @@ def matchSegLCT(seg, lct, layer=3, thresh=(2, 1), old=True):
 	else:
 		id_ = lct.pattern
 		khs = lct.keyHalfStrip
-		pat = {\
+		pat = {
 			2  : {6:[khs-5, khs-4, khs-3], 5:[khs-4, khs-3, khs-2], 4:[khs-2, khs-1, khs], 3:[khs], 2:[khs+1, khs+2], 1:[khs+3, khs+4, khs+5]},
 			3  : {1:[khs-5, khs-4, khs-3], 2:[khs-2, khs-1], 3:[khs], 4:[khs, khs+1, khs+2], 5:[khs+2, khs+3, khs+4], 6:[khs+3, khs+4, khs+5]},
 			4  : {6:[khs-4, khs-3, khs-2], 5:[khs-4, khs-3, khs-2], 4:[khs-2, khs-1], 3:[khs], 2:[khs+1, khs+2], 1:[khs+2, khs+3, khs+4]},

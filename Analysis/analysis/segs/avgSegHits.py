@@ -116,7 +116,7 @@ class MegaStruct():
 								nNHitsMuon[CHAM] += seg.nHits
 
 					for CHAM in CHAMLIST:
-						self.VALDATA[CHAM][MEAS] = {\
+						self.VALDATA[CHAM][MEAS] = {
 							'all' : float(nNHits    [CHAM])/nSeg    [CHAM] if nSeg    [CHAM] != 0 else 0.,
 							'muon': float(nNHitsMuon[CHAM])/nSegMuon[CHAM] if nSegMuon[CHAM] != 0 else 0.
 						}

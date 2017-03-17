@@ -45,7 +45,7 @@ class Canvas(R.TCanvas):
 			self.cd()
 			self.PADS[pair].cd()
 			# mapping from box bit number to lower left corner pixel position / 100
-			boxes = {\
+			boxes = {
 				0 : (3., 3.),
 				1 : (4., 3.),
 				2 : (5., 3.),

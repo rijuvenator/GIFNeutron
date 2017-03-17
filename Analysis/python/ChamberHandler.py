@@ -26,7 +26,7 @@ class Chamber():
 		else:
 			self.endcap =  1
 
-		chambers = {\
+		chambers = {
 			(1  ,  36) : (1, 1, 48 , 112),
 			(37 ,  72) : (1, 2, 48 , 80 ),
 			(73 , 108) : (1, 3, 48 , 64 ),

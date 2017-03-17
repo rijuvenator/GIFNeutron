@@ -79,7 +79,7 @@ def load(self, PARAMS):
 #### RUN ANALYSIS #####
 R.gROOT.SetBatch(True)
 methods = ['analyze', 'load', 'setup', 'cleanup']
-kwargs = {\
+kwargs = {
 	'PARAMS'     : [OFN, TYPE],
 	'F_DATAFILE' : FDATA
 }

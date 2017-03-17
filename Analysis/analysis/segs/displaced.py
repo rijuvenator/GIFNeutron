@@ -100,7 +100,7 @@ class MegaStruct():
 			for ATT in self.MEASDATA.keys():
 				for MEAS in self.MEASDATA[ATT][0:1]: # only interested in Original for now
 					for CHAM in CHAMLIST:
-						self.HISTS[CHAM][MEAS] = {\
+						self.HISTS[CHAM][MEAS] = {
 							'ML'  : R.TH1F('hML'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX),                   # "missing layer"
 							'IS'  : R.TH1F('hIS'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX),                   # "in segment"
 							'2M'  : R.TH2F('h2M'+str(CHAM)+str(MEAS), '', CBINS, CMIN, CMAX, 400, -200., 200.), # "2D Missing"
@@ -173,7 +173,7 @@ class MegaStruct():
 									self.HISTS[CHAM][MEAS]['2M'].Fill(fillValD, fillTime)
 					f.Close()
 					for CHAM in CHAMLIST:
-						self.VALDATA[CHAM][MEAS] = {\
+						self.VALDATA[CHAM][MEAS] = {
 							'ML_SD': self.HISTS[CHAM][MEAS]['ML'].GetStdDev(),
 							'IS_SD': self.HISTS[CHAM][MEAS]['IS'].GetStdDev(),
 							'ML_MU': self.HISTS[CHAM][MEAS]['ML'].GetMean(),
@@ -209,7 +209,7 @@ class MegaStruct():
 						hSS = f.Get('hSS'+str(CHAM)+str(MEAS))
 						hTM = f.Get('hTM'+str(CHAM)+str(MEAS))
 						hTS = f.Get('hTS'+str(CHAM)+str(MEAS))
-						self.HISTS[CHAM][MEAS] = {\
+						self.HISTS[CHAM][MEAS] = {
 							'ML' : hML.Rebin(BINS, 'hNML'+str(CHAM)+str(MEAS), np.array([MIN + i*(MAX-MIN)/float(BINS) for i in range(BINS+1)])),
 							'IS' : hIS.Rebin(BINS, 'hNIS'+str(CHAM)+str(MEAS), np.array([MIN + i*(MAX-MIN)/float(BINS) for i in range(BINS+1)])),
 							'2M' : h2M.Rebin2D(BINS, 5, 'hN2M'+str(CHAM)+str(MEAS)),
@@ -227,7 +227,7 @@ class MegaStruct():
 						self.HISTS[CHAM][MEAS]['SS'].SetDirectory(0)
 						self.HISTS[CHAM][MEAS]['TM'].SetDirectory(0)
 						self.HISTS[CHAM][MEAS]['TS'].SetDirectory(0)
-						self.VALDATA[CHAM][MEAS] = {\
+						self.VALDATA[CHAM][MEAS] = {
 							'ML_SD' : hML.GetStdDev(),
 							'IS_SD' : hIS.GetStdDev(),
 							'ML_MU' : hML.GetMean(),

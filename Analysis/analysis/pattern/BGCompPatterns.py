@@ -165,7 +165,7 @@ def load(self, PARAMS):
 ##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 R.gROOT.SetBatch(True)
 METHODS = ['analyze', 'load', 'setup', 'cleanup']
-ARGS = {\
+ARGS = {
 	'PARAMS'     : [OFN, TYPE],
 	'F_DATAFILE' : FDATA
 }
@@ -211,7 +211,7 @@ def makePlot(h, ISGIF):
 	print 'List of new IDs are:', [i for i in pdict.keys() if i not in labels]
 
 	# make multiple histograms based on number of hits
-	binslices = {\
+	binslices = {
 		1 : range(1 , 2 ),
 		2 : range(2 , 10),
 		3 : range(10, 38),

@@ -116,15 +116,15 @@ class MegaStruct():
 			for line in f:
 				cols = [int(x) for x in line.strip('\n').split()]
 				MEAS = cols[0]
-				self.VALDATA[MEAS] = {\
-					1:{\
+				self.VALDATA[MEAS] = {
+					1:{
 						0:cols[1 ],
 						3:cols[2 ],
 						4:cols[3 ],
 						5:cols[4 ],
 						6:cols[5 ]
 					},
-					110:{\
+					110:{
 						0:cols[6 ],
 						3:cols[7 ],
 						4:cols[8 ],

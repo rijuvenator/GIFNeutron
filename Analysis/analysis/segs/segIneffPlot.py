@@ -120,8 +120,8 @@ class MegaStruct():
 						cols = [int(x) for x in line.strip('\n').split()]
 						meas = cols[0]
 						if meas!=MEAS: continue
-						self.VALDATA[meas] = {\
-							1:{\
+						self.VALDATA[meas] = {
+							1:{
 								0:cols[1 ], # total
 								1:cols[6 ], # No  Seg: Yes Wire, Yes strip (no rechits)
 								2:cols[3 ], # No  Seg: No  wire, No  strip (dont care comps)
@@ -129,7 +129,7 @@ class MegaStruct():
 								4:cols[4 ], # No  Seg: No  wire, Yes strip
 								5:cols[5 ], # No  Seg: Yes wire, No  strip
 							},
-							110:{\
+							110:{
 								0:cols[7 ], # total
 								1:cols[12], # No  Seg: Yes Wire, Yes strip (no rechits)
 								2:cols[9 ], # No  Seg: No  wire, No  strip (dont care comps) 

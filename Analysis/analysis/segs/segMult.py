@@ -98,7 +98,7 @@ class MegaStruct():
 					f = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/GIF/16Dec/ana_'+str(MEAS)+'.root')
 					t = f.Get('GIFTree/GIFDigiTree')
 					for CHAM in CHAMLIST:
-						self.hists[CHAM][MEAS] = {\
+						self.hists[CHAM][MEAS] = {
 							'mult' : R.TH1F('hMult_'+str(CHAM)+'_'+str(MEAS),'',15,0,15),
 							'multScint' : R.TH1F('hMultScint_'+str(CHAM)+'_'+str(MEAS),'',15,0,15),
 							'multMatch' : R.TH1F('hMultMatch_'+str(CHAM)+'_'+str(MEAS),'',2,0,2),

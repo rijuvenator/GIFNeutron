@@ -120,7 +120,7 @@ class MegaStruct():
 					for CHAM in CHAMLIST:
 						self.VALDATA[CHAM][MEAS] = {}
 						for DOF in [0, 2, 4, 6, 8]:
-							self.VALDATA[CHAM][MEAS][DOF] = {\
+							self.VALDATA[CHAM][MEAS][DOF] = {
 								'MEAN' : h[CHAM][DOF].GetMean(),
 								'STDD' : h[CHAM][DOF].GetStdDev()
 							}
@@ -149,7 +149,7 @@ class MegaStruct():
 				CHAM = 1 if cols[1] == '1' else 110
 				self.VALDATA[CHAM][MEAS] = {}
 				for DOF in [0, 2, 4, 6, 8]:
-					self.VALDATA[CHAM][MEAS][DOF] = {\
+					self.VALDATA[CHAM][MEAS][DOF] = {
 						'MEAN' : float(cols[DOF+2]),
 						'STDD' : float(cols[DOF+3])
 					}

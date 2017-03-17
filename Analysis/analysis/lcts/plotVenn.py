@@ -107,7 +107,7 @@ class MegaStruct():
 			cols = line.strip('\n').split()
 			CHAM = 1 if cols[2] == 'ME11' else 110
 			MEAS = int(cols[1])
-			self.VALDATA[CHAM][MEAS] = {\
+			self.VALDATA[CHAM][MEAS] = {
 				'L1A'         : int(cols[3]),
 				'LCT'         : int(cols[4]),
 				'LCTScint'    : int(cols[5]),

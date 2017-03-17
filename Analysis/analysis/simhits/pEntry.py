@@ -118,7 +118,7 @@ def load(self, PARAMS):
 R.gROOT.SetBatch(True)
 methods = ['analyze', 'load', 'setup', 'cleanup']
 F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON.root'
-kwargs = {\
+kwargs = {
 	'PARAMS'     : [OFN, TYPE],
 	'F_DATAFILE' : FDATA,
 	'INPUTFILE'  : F_MCDATA

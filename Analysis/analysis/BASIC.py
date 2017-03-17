@@ -46,7 +46,7 @@ def cleanup(self, PARAMS):
 ##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 R.gROOT.SetBatch(True)
 METHODS = ['analyze', 'load', 'setup', 'cleanup']
-ARGS = {\
+ARGS = {
 	'PARAMS'     : [OFN, TYPE],
 	'F_DATAFILE' : FDATA
 }

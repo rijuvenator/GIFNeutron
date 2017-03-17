@@ -83,7 +83,7 @@ for FILE,TYPE in CONFIG.keys():
 			HS_MAX   = CHAMBER.nstrips*2
 
 			# Ndivisions codes
-			ND = {\
+			ND = {
 				'st' : { 64 : 520,  80 : 520, 112 : 1020            },
 
 				'wg' : { 48 : 510,  64 : 520,  96 :  520, 112 : 1020}
