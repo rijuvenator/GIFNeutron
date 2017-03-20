@@ -8,6 +8,9 @@ import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 import Gif.Analysis.BGDigi as BGDigi
 
+MS.F_P5DATA = '$WS/public/Neutron/ana_Neutron_P5_ALL.root'
+MS.F_RUNGRID = '../datafiles/runlumigrid_ALL'
+MS.F_GAPDATA = '../datafiles/gapdata_ALL'
 RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 
 #### SETUP SCRIPT #####
@@ -26,17 +29,17 @@ CONFIG = {
 TYPE, OFN, FDATA, REMAINDER = MS.ParseArguments(CONFIG, extraArgs=True)
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-ng', '--nogap'     , action='store_false', dest='NOGAP')
-parser.add_argument('-nz', '--nozjetcuts', action='store_false', dest='NOZJETS')
-parser.add_argument('-f' , '--file'      , default=''          , dest='FILE')
-parser.add_argument('-g' , '--gapsize'   , default='35'        , dest='GAP')
-parser.add_argument('-fr', '--findroads' , action='store_true' , dest='DOROAD')
+parser.add_argument('-ng', '--nogap'     , action='store_false' , dest='NOGAP')
+parser.add_argument('-nz', '--nozjetcuts', action='store_false' , dest='NOZJETS')
+parser.add_argument('-f' , '--file'      , default=''           , dest='FILE')
+parser.add_argument('-g' , '--gapsize'   , default=35, type=int , dest='GAP')
+parser.add_argument('-fr', '--findroads' , action='store_true'  , dest='DOROAD')
 args = parser.parse_args(REMAINDER)
 
 DOROAD  = args.DOROAD
 DOGAP   = args.NOGAP
 DOZJETS = args.NOZJETS
-GAP     = int(args.GAP)
+GAP     = args.GAP
 OFN = 'BGComp_P5' + ('' if args.FILE == '' else '_') + args.FILE + '.root'
 if FDATA is not None: FDATA = OFN
 
@@ -47,7 +50,7 @@ def analyze(self, t, PARAMS):
 	GAP = PARAMS[4]
 	Primitives.SelectBranches(t, DecList=['LCT', 'COMP'], branches=['Event_RunNumber','Event_BXCrossing','Event_LumiSection'])
 	for idx, entry in enumerate(t):
-		if idx == 10000: break
+		#if idx == 1000: break
 		print 'Events    :', idx+1, '\r',
 
 		# Z and jet cuts
@@ -73,15 +76,13 @@ def analyze(self, t, PARAMS):
 		E = Primitives.ETree(t, DecList=['LCT','COMP'])
 		lcts  = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham ))]
 		comps = [Primitives.Comp   (E, i) for i in range(len(E.comp_cham))]
-		
+
 		bgLCTs,oppHalfComps = BGDigi.getBGCompCandList(lcts,comps)
 		if len(bgLCTs)==0: continue # skip event if there were no isolated LCTs
 		if DOROAD:
-			#roadChams = BGDigi.removeDigiRoads(bgLCTs,oppHalfComps)
-			roadChams = BGDigi.removeCompRoads(bgLCTs,oppHalfComps)
+			roadChams = BGDigi.removeDigiRoads(bgLCTs,oppHalfComps)
 		else:
 			roadChams = []
-
 		for lct in bgLCTs:
 			nComp = 0.
 			# Skip Chamber if there's a background road
@@ -91,97 +92,11 @@ def analyze(self, t, PARAMS):
 				if comp.cham!=lct.cham: continue
 				self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
 				if comp.timeBin >= 1 and comp.timeBin <= 5:
-					nComp += 1
+
 					self.HISTS[cham.display('{S}{R}')]['occ'].Fill(comp.halfStrip)
+					nComp += 1
 			self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
 			self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
-
-		'''
-		twolcts = list(set([i for i in E.lct_cham if E.lct_cham.count(i)>1]))
-		for lct in lcts:
-			if lct.cham in twolcts: continue
-			nComp = 0
-			cham = CH.Chamber(lct.cham)
-			nHS = cham.nstrips*2
-			nWG = cham.nwires
-			if cham.station==1 and cham.ring==1:
-				# ME1/1a and ME1/1b are separated by a cut in the strips.
-				# Since wires are tilted use the a/b divider as a crude radial cut
-				# on LCT position instead of wires.
-				# ME1/1b : strips  1 to  64 (top)    | hs   0 to 127 (top)
-				# ME1/1a : strips 65 to 112 (bottom) | hs 128 to 224 (bottom)
-				# (remember strips are numbered from 1 while hs are numbered from 0!)
-				#
-				# For ME1/1 the +/- endcaps are 'flipped' wrt each other
-				# (+,0) is (-,3) and vice versa
-				# (+,1) is (-,2) and vice versa
-				# Does not actually matter for what we are doing but important to keep in mind!
-				#
-				# -> LCTAreas are defined for ME+1/1
-				# ME+1/1b - 1 : (  0, 31) , 2 : ( 95,127) (hs are numbered R to L - top)
-				# ME+1/1a - 0 : (200,224) , 3 : (128,152) (hs are numbered L to R - bottom)
-				#
-				# For opposite area, the set of opposite half halfstrips are disjoint for LCT 
-				# areas 2 and 3
-				#
-				# -> OppAreas are defined for ME+1/1
-				#           (top) +   (bottom)
-				# 0,1 : (64, 127) + (128, 171)
-				# 2,3 : ( 0,  63) + (172, 223)
-				LCTAreas = \
-				{
-					0 : {'wg0' : 0. , 'wg1' : nWG , 'hs0' : 200. , 'hs1' : 223},
-					1 : {'wg0' : 0. , 'wg1' : nWG , 'hs0' : 0.   , 'hs1' : 31 },
-					2 : {'wg0' : 0. , 'wg1' : nWG , 'hs0' : 96   , 'hs1' : 127},
-					3 : {'wg0' : 0. , 'wg1' : nWG , 'hs0' : 128  , 'hs1' : 151},
-				}
-				OppAreas = \
-				{
-					0 : {'hs0' : 64 , 'hs1' : 127 , 'hs2' : 128 , 'hs3' : 171},
-					1 : {'hs0' : 64 , 'hs1' : 127 , 'hs2' : 128 , 'hs3' : 171},
-					2 : {'hs0' :  0 , 'hs1' :  63 , 'hs2' : 172 , 'hs3' : 223},
-					3 : {'hs0' :  0 , 'hs1' :  63 , 'hs2' : 172 , 'hs3' : 223},
-				}
-			else:
-				LCTAreas = \
-				{
-					0 : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : 0.          , 'hs1' : nHS*0.25},
-					1 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : 0.          , 'hs1' : nHS*0.25},
-					2 : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
-					3 : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
-				}
-				OppAreas = \
-				{
-					0 : {'hs0' : (1-0.50)*nHS, 'hs1' : nHS     },
-					1 : {'hs0' : (1-0.50)*nHS, 'hs1' : nHS     },
-					2 : {'hs0' : 0.          , 'hs1' : nHS*0.50},
-					3 : {'hs0' : 0.          , 'hs1' : nHS*0.50},
-				}
-			# Loop on all areas (we've already forced there to be only one LCT in this chamber)
-			for key in LCTAreas.keys():
-				# If LCT in a corner
-				if  lct.keyWireGroup >= LCTAreas[key]['wg0'] and lct.keyWireGroup <= LCTAreas[key]['wg1']\
-				and lct.keyHalfStrip >= LCTAreas[key]['hs0'] and lct.keyHalfStrip <= LCTAreas[key]['hs1']:
-					for comp in comps:
-						if comp.cham != lct.cham: continue
-						# For comparators in opposite half of LCT
-						OPPAREA = False
-						if cham.station==1 and cham.ring==1:
-							if ((comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1'])\
-									or \
-								(comp.staggeredHalfStrip >= OppAreas[key]['hs2'] and comp.staggeredHalfStrip <= OppAreas[key]['hs3'])):
-								OPPAREA = True
-						else:
-							if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
-								OPPAREA = True
-						if OPPAREA:
-							self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
-							if comp.timeBin >= 1 and comp.timeBin <= 5:
-								#print idx, cham.id, size, comp.timeBin
-								nComp += 1
-					self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
-					self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
-		'''
 
 	self.F_OUT.cd()
 	for ring in RINGLIST:
@@ -203,7 +118,7 @@ def load(self, PARAMS):
 	f = R.TFile.Open(self.F_DATAFILE)
 	self.HISTS = {}
 	for ring in RINGLIST:
-		self.HISTS[ring] = {\
+		self.HISTS[ring] = {
 			'time' : f.Get('t'+ring),
 			'lumi' : f.Get('l'+ring),
 			'totl' : f.Get('a'+ring),
@@ -222,28 +137,18 @@ def setup(self, PARAMS):
 	self.F_OUT = R.TFile(FN,'RECREATE')
 	self.F_OUT.cd()
 	for ring in RINGLIST:
-		self.HISTS[ring] = {\
+		cham = CH.Chamber(CH.serialID(1, int(ring[0]), int(ring[1]), 1))
+		bins = cham.nstrips*2+2
+		self.HISTS[ring] = {
 			'time': R.TH1F('t'+ring, '', 10, 0., 10.),
 			'lumi': R.TH1F('l'+ring, '', 30, 0., 15.e33),
 			'totl': R.TH1F('a'+ring, '', 30, 0., 15.e33),
-			'occ' : R.TH1F('o'+ring, '', hsDict[ring], 0., hsDict[ring]),
+			'occ' : R.TH1F('o'+ring, '', bins, 0., bins),
 		}
 		self.HISTS[ring]['time'].SetDirectory(0)
 		self.HISTS[ring]['lumi'].SetDirectory(0)
 		self.HISTS[ring]['totl'].SetDirectory(0)
 		self.HISTS[ring]['occ'].SetDirectory(0)
-
-hsDict = {\
-		'11':230,
-		'12':170,
-		'13':140,
-		'21':170,
-		'22':170,
-		'31':170,
-		'32':170,
-		'41':170,
-		'42':170
-}
 
 def cleanup(self, PARAMS):
 	print ''
@@ -252,9 +157,7 @@ def cleanup(self, PARAMS):
 ##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 R.gROOT.SetBatch(True)
 METHODS = ['analyze', 'load', 'setup', 'cleanup']
-#MS.F_P5DATA = '/afs/cern.ch/work/c/cschnaib/public/P5Neutron/ana_Neutron_P5_1.root'
-#MS.F_P5DATA = '/afs/cern.ch/work/c/cschnaib/public/P5Neutron/ana_Neutron_P5_2.root'
-ARGS = {\
+ARGS = {
 	'PARAMS'     : [OFN, TYPE, DOGAP, DOZJETS, GAP],
 	'F_DATAFILE' : FDATA
 }
@@ -265,7 +168,7 @@ for METHOD in METHODS:
 	setattr(Analyzer, METHOD, locals()[METHOD])
 data = Analyzer(**ARGS)
 
-##### MAKE PLOTS #####
+##### MAKEPLOT FUNCTIONS #####
 def makeTimePlot(h, ring):
 	if h.Integral() == 0: return
 	plot = Plotter.Plot(h, option='hist')
@@ -278,6 +181,7 @@ def makeTimePlot(h, ring):
 	canvas.finishCanvas()
 	canvas.save('pdfs/BGCompTime'+'_'+ring+'.pdf')
 	R.SetOwnership(canvas, False)
+	canvas.deleteCanvas()
 
 def makeLumiPlot(h1, h2, ring):
 	binit = range(1, h1.GetNbinsX()+1)
@@ -304,6 +208,7 @@ def makeLumiPlot(h1, h2, ring):
 	canvas.finishCanvas()
 	canvas.save('pdfs/BGCompAvgN'+'_'+ring+'.pdf')
 	R.SetOwnership(canvas, False)
+	canvas.deleteCanvas()
 
 def makeNumDum(h, ring, which):
 	plot = Plotter.Plot(h, option='P')
@@ -315,6 +220,7 @@ def makeNumDum(h, ring, which):
 	canvas.finishCanvas()
 	canvas.save('pdfs/BGCompAvgN'+'_'+ring+'_'+which+'.pdf')
 	R.SetOwnership(canvas, False)
+	canvas.deleteCanvas()
 
 def makeOccPlot(h,ring):
 	for logy in [True,False]:
@@ -349,5 +255,6 @@ def makeAllTimePlot():
 	canvas.finishCanvas()
 	canvas.save('pdfs/BGCompTimeNewAll.pdf')
 	R.SetOwnership(canvas, False)
+	canvas.deleteCanvas()
 
 makeAllTimePlot()

@@ -1,8 +1,9 @@
+import itertools
 import ROOT as R
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.Primitives as Primitives
 
-def getBGCompCandList(lctList, compList):
+def getBGCompCandList(lcts, comps):
 	''' Find and return opposite-half background comparators
 
 		Input  : Full lists of lcts and comparators
@@ -16,9 +17,9 @@ def getBGCompCandList(lctList, compList):
 	bgLCTs  = []
 
 	#twolcts = list(set([i for i in E.lct_cham if E.lct_cham.count(i)>1]))
-	lctchams = [lct.cham for lct in lctList]
-	twolcts = list(set([i for i in lctList if lctList.count(i)>1]))
-	for lct in lctList:
+	lctchams = [lct.cham for lct in lcts]
+	twolcts = list(set([cham for cham in lctchams if lctchams.count(cham)>1]))
+	for lct in lcts:
 		if lct.cham in twolcts: continue
 		cham = CH.Chamber(lct.cham)
 		nHS = cham.nstrips*2
@@ -82,7 +83,7 @@ def getBGCompCandList(lctList, compList):
 			if  lct.keyWireGroup >= LCTAreas[key]['wg0'] and lct.keyWireGroup <= LCTAreas[key]['wg1']\
 			and lct.keyHalfStrip >= LCTAreas[key]['hs0'] and lct.keyHalfStrip <= LCTAreas[key]['hs1']:
 				bgLCTs.append(lct)
-				for comp in compList:
+				for comp in comps:
 					if comp.cham != lct.cham: continue
 					# For comparators in opposite half of LCT
 					OPPAREA = False
@@ -97,10 +98,10 @@ def getBGCompCandList(lctList, compList):
 					if OPPAREA:
 						bgComps.append(comp)
 
-	return bgLCTs,bgComps
+	return bgLCTs, bgComps
 
 
-def getBGWireCandList(lcts,wires):
+def getBGWireCandList(lcts, wires):
 	''' Find and return opposite-half background wire group hits
 
 		Input  : Full lists of lcts and wire group hits
@@ -117,7 +118,7 @@ def getBGWireCandList(lcts,wires):
 
 	#twolcts = list(set([i for i in E.lct_cham if E.lct_cham.count(i)>1]))
 	lctchams = [lct.cham for lct in lcts]
-	twolcts = list(set([i for i in lcts if lcts.count(i)>1]))
+	twolcts = list(set([cham for cham in lctchams if lctchams.count(cham)>1]))
 	for lct in lcts:
 		if lct.cham in twolcts: continue
 		nWire = 0
@@ -181,67 +182,11 @@ def getBGWireCandList(lcts,wires):
 	
 	return bgLCTs,bgWires
 
-def removeCompRoads(lcts,comps):
-	''' Find background comparator tracks with a road method
-	
-	'''
-
-
-	roadchams = []
-	for lct in lcts:
-		BGCompList = {1:[], 2:[], 3:[], 4:[], 5:[], 6:[]}
-		for comp in comps:
-			if comp.cham != lct.cham: continue
-			BGCompList[comp.layer].append(comp)
-
-		minRoadLength = 4 # minimum 4 layers in a road
-		roadWidth     = 3 # size away from central road hs
-		roads = []
-		sortFunc = lambda road: len(set([comp.layer for comp in road]))
-		# Loop through outer layers
-		for (beginLay,endLay) in [(1,6),(1,5),(2,6),(1,4),(2,5),(3,6)]:
-			# Calculate hs difference between comparators in outer layer and inner layer
-			layDiff = endLay - beginLay
-			for beginComp in BGCompList[beginLay]:
-				for endComp in BGCompList[endLay]:
-					# Make road and count comparators
-					road = []
-					xDiff = endComp.staggeredHalfStrip - beginComp.staggeredHalfStrip
-					road.append(beginComp)
-					for lay in range(beginLay+1, endLay):
-						xpos = (float(xDiff)/layDiff)*(lay-beginLay) + beginComp.staggeredHalfStrip
-						for c in BGCompList[lay]:
-							if c.cham != beginComp.cham: continue
-							if c.staggeredHalfStrip >= xpos-roadWidth and c.staggeredHalfStrip <= xpos+roadWidth:
-								road.append(c)
-					road.append(endComp)
-
-					if sortFunc(road) < minRoadLength: continue
-					roads.append(road)
-					roadchams.append(lct.cham)
-
-		# Remove comparators from background comp list if they're in a road
-		#roads.sort(key=sortFunc,reverse=True)
-		#for road in roads:
-		#   allCompsInBkg = True
-		#   for comp in road:
-		#	   if comp not in BGCompList[comp.layer]:
-		#		   allCompsInBkg = False
-		#		   break
-		#   if allCompsInBkg:
-		#	   for comp in road:
-		#		   #print idx, comp.cham, comp.layer, comp.staggeredHalfStrip, comp.timeBin
-		#		   BGCompList[comp.layer].remove(comp)
-		#		   comps.remove(comp)
-
-
-	return roadchams
-
-def removeDigiRoads(lcts,digis):
+def removeDigiRoads(digis):
 	''' Find background digi tracks with a road method
 		
-		Input  : List of lcts (proxy for list of chambers in an event to consider) 
-				 and list of background digis
+		Input  : List of background digis (chamber lists are obtained from the digis 
+				 instead of from a list of LCTs, so that it can be applied to MC)
 		Output : List of chambers with a background track found with a road method
 				 (optional output is the list of background digis with 
 				 track-candidate digis removed)
@@ -251,43 +196,58 @@ def removeDigiRoads(lcts,digis):
 		4 layers.
 	
 	'''
+	minRoadLength = 4 # minimum 4 layers in a road
+	roadWidth     = 3 # size away from central road hs
 
+	# Allows road finder to operate on a generic "digi": either a Wire or a Comp
+	# Also, handle an empty digi list, since there is an explicit index
+	try:
+		location = 'number' if type(digis[0]) == Primitives.Wire else 'staggeredHalfStrip'
+	except IndexError:
+		return []
 
+	# return value
 	roadchams = []
-	# So that the function works equally well on wire group and comparator hits
-	location = 'number' if type(digis[0]) == Primitives.Wire else 'staggeredHalfStrip'
-	for lct in lcts:
+	# lambda returning chamber ID for use in the groupby and sort
+	chamID = lambda digi: digi.cham
+	# lambda returning number of layers in road (to be compared to minRoadLength)
+	roadLength = lambda road: len(set([digi.layer for digi in road]))
+
+	# groupby gives a tuple (cham, generator of digis); the sort function is chamID
+	for cham, digisGen in itertools.groupby(sorted(digis, key=chamID), key=chamID):
+		digisCham = list(digisGen)
+		# Explicitly filling the BGDigiList dictionary is better here
 		BGDigiList = {1:[], 2:[], 3:[], 4:[], 5:[], 6:[]}
-		for digi in digis:
-			if digi.cham != lct.cham: continue
+		for digi in digisCham:
 			BGDigiList[digi.layer].append(digi)
 
-		minRoadLength = 4 # minimum 4 layers in a road
-		roadWidth     = 3 # size away from central road hs
 		roads = []
-		sortFunc = lambda road: len(set([digi.layer for digi in road]))
 		# Loop through outer layers
-		for (beginLay,endLay) in [(1,6),(1,5),(2,6),(1,4),(2,5),(3,6)]:
+		for beginLayer, endLayer in [(1,6),(1,5),(2,6),(1,4),(2,5),(3,6)]:
 			# Calculate hs difference between comparators in outer layer and inner layer
-			layDiff = endLay - beginLay
-			for beginDigi in BGDigiList[beginLay]:
-				for endDigi in BGDigiList[endLay]:
+			layerDiff = endLayer - beginLayer
+			for beginDigi in BGDigiList[beginLayer]:
+				for endDigi in BGDigiList[endLayer]:
 					# Make road and count comparators
 					road = []
-					xDiff = getattr(endDigi,location) - getattr(beginDigi,location)
+					locDiff = getattr(endDigi,location) - getattr(beginDigi,location)
 					road.append(beginDigi)
-					for lay in range(beginLay+1, endLay):
-						xpos = (float(xDiff)/layDiff)*(lay-beginLay) + getattr(beginDigi,location)
-						for d in BGDigiList[lay]:
-							if d.cham != beginDigi.cham: continue
-							if getattr(d,location) >= xpos-roadWidth and getattr(d,location) <= xpos+roadWidth:
+					for interLayer in range(beginLayer+1, endLayer):
+						interLoc = (float(locDiff)/layerDiff)*(interLayer-beginLayer) + getattr(beginDigi,location)
+						for d in BGDigiList[layer]:
+							if getattr(d,location) >= interLoc-roadWidth and getattr(d,location) <= interLoc+roadWidth:
 								road.append(d)
 					road.append(endDigi)
 
-					if sortFunc(road) < minRoadLength: continue
+					if roadLength(road) < minRoadLength: continue
 					roads.append(road)
-					roadchams.append(lct.cham)
 
+		if roads != []:
+			roadchams.append(cham)
+
+	return roadchams
+
+# Old code
 		# Remove comparators from background comp list if they're in a road
 		#roads.sort(key=sortFunc,reverse=True)
 		#for road in roads:
@@ -303,4 +263,3 @@ def removeDigiRoads(lcts,digis):
 		#		   comps.remove(comp)
 
 
-	return roadchams

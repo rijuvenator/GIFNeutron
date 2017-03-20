@@ -64,7 +64,7 @@ def analyze(self, t, PARAMS):
 			bgLCTs, bgComps = BGDigi.getBGCompCandList(lcts, comps)
 			if len(bgLCTs) == 0: continue # skip event if there were no isolated LCTs
 			if DOROAD:
-				roadChams = BGDigi.removeCompRoads(bgLCTs, bgComps)
+				roadChams = BGDigi.removeDigiRoads(bgComps)
 			else:
 				roadChams = []
 
@@ -80,13 +80,13 @@ def analyze(self, t, PARAMS):
 			bgLCTs, bgWires = BGDigi.getBGWireCandList(lcts,wires)
 			if len(bgLCTs) == 0: continue # skip event if no isolated LCTs
 			if DOROAD:
-				roadchams = BGDigi.removeDigiRoads(lcts,wires)
+				roadChams = BGDigi.removeDigiRoads(bgWires)
 			else:
-				roadchams = []
+				roadChams = []
 				
-			for lct,half in bgLCTs:
+			for lct, half in bgLCTs:
 				# skip chamber if there's a background track
-				if lct.cham in roadchams and DOROAD: continue
+				if lct.cham in roadChams and DOROAD: continue
 				cham = CH.Chamber(lct.cham)
 				for wire in bgWires:
 					if wire.cham != lct.cham: continue
@@ -126,7 +126,7 @@ def cleanup(self, PARAMS):
 ##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 R.gROOT.SetBatch(True)
 METHODS = ['analyze', 'load', 'setup', 'cleanup']
-ARGS = {\
+ARGS = {
 	'PARAMS'     : [OFN, TYPE],
 	'F_DATAFILE' : FDATA
 }

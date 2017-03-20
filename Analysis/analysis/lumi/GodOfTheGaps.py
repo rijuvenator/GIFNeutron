@@ -7,6 +7,8 @@ import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 
+MS.F_P5DATA = '$WS/public/Neutron/ana_Neutron_P5_ALL.root'
+
 import itertools as it
 LHC_BUNCHES = 3564
 
@@ -56,9 +58,7 @@ def cleanup(self, PARAMS):
 ##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 R.gROOT.SetBatch(True)
 METHODS = ['analyze', 'load', 'setup', 'cleanup']
-MS.F_P5DATA = '/afs/cern.ch/work/c/cschnaib/public/P5Neutron/ana_Neutron_P5_1.root'
-#MS.F_P5DATA = '/afs/cern.ch/work/c/cschnaib/public/P5Neutron/ana_Neutron_P5_2.root'
-ARGS = {\
+ARGS = {
 	'PARAMS'     : [OFN, TYPE],
 	'F_DATAFILE' : FDATA
 }
@@ -70,7 +70,7 @@ data = Analyzer(**ARGS)
 #### FIND BUNCH RANGES #####
 for RUN in data.HISTS.keys():
 	h = data.HISTS[RUN]
-	#print 'RUN', RUN
+	print 'RUN', RUN
 	BXList = []
 	Count = 0
 	for BX in range(LHC_BUNCHES):
@@ -79,7 +79,7 @@ for RUN in data.HISTS.keys():
 		else:
 			Count += 1
 
-	print RUN, Count
+	#print RUN, Count
 	print '  {:>5s} {:>5s} {:>5s}'.format('SIZE', 'START', 'END')
 	for key, group in it.groupby(enumerate(BXList), lambda (idx, BX) : idx - BX):
 		BXRange = [BX for idx, BX in list(group)]
