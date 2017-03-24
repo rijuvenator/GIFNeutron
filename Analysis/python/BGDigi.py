@@ -234,7 +234,7 @@ def removeDigiRoads(digis):
 					road.append(beginDigi)
 					for interLayer in range(beginLayer+1, endLayer):
 						interLoc = (float(locDiff)/layerDiff)*(interLayer-beginLayer) + getattr(beginDigi,location)
-						for d in BGDigiList[layer]:
+						for d in BGDigiList[interLayer]:
 							if getattr(d,location) >= interLoc-roadWidth and getattr(d,location) <= interLoc+roadWidth:
 								road.append(d)
 					road.append(endDigi)

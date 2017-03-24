@@ -10,6 +10,8 @@ import Gif.Analysis.ChamberHandler as CH
 R.PyConfig.IgnoreCommandLineOptions = True
 
 # Useful globals
+LHC_BUNCHES = 3564
+
 CMSSW_PATH  = bash.check_output('echo $CMSSW_BASE',shell=True).strip('\n') + '/src/'
 GITLAB_PATH = CMSSW_PATH + 'Gif/Analysis/'
 
@@ -17,13 +19,14 @@ GIFDATA_PATH = GITLAB_PATH + 'trees_gif/'
 P5DATA_PATH  = GITLAB_PATH + 'trees_p5/'
 MCDATA_PATH  = GITLAB_PATH + 'trees_mc/'
 F_GIFDATA    = GIFDATA_PATH + 'ana_XXXX.root'
-F_P5DATA     = P5DATA_PATH  + 'ana_P5.root'
+F_P5DATA     = P5DATA_PATH  + 'ana_Neutron_P5_ALL.root'
 F_MCDATA     = MCDATA_PATH  + 'ana_neutronMC.root'
 
 F_MEASGRID = GITLAB_PATH + 'analysis/datafiles/measgrid'
 F_ATTENHUT = GITLAB_PATH + 'analysis/datafiles/attenhut'
 F_RUNGRID  = GITLAB_PATH + 'analysis/datafiles/runlumigrid'
 F_GAPDATA  = GITLAB_PATH + 'analysis/datafiles/gapdata'
+F_BUNCHES  = GITLAB_PATH + 'analysis/datafiles/bunchstructures'
 
 # Parses command-line arguments; run at the beginning of an analysis script
 def ParseArguments(CONFIG, extraArgs=False):
@@ -167,7 +170,7 @@ class GIFAnalyzer(GIFMegaStruct):
 class P5MegaStruct():
 	def __init__(self):
 		self.fillRunLumi()
-		self.fillGaps()
+		self.fillBunches()
 	
 	# general fill run and lumi data function
 	def fillRunLumi(self):
@@ -175,11 +178,13 @@ class P5MegaStruct():
 		self.RUNLUMIDATA = {}
 		for line in f:
 			cols = line.strip('\n').split()
+			FILL = int(cols[0])
 			RUN = int(cols[1])
 			LS = int(cols[2])
 			ILUMI = float(cols[3])*1.e33
 			if RUN not in self.RUNLUMIDATA.keys():
 				self.RUNLUMIDATA[RUN] = {}
+			self.RUNLUMIDATA[RUN]['FILL'] = FILL
 			self.RUNLUMIDATA[RUN][LS] = ILUMI
 		f.close()
 
@@ -202,18 +207,39 @@ class P5MegaStruct():
 					self.GAPDATA[RUN][SIZE] = []
 				self.GAPDATA[RUN][SIZE].append((START, END))
 
+	# general fill bunch structures function
+	def fillBunches(self):
+		f = open(F_BUNCHES)
+		self.BUNCHDATA = {}
+		for line in f:
+			cols = line.strip('\n').split()
+			FILL = int(cols[0])
+			starts = [int(start) for start in cols[1::2]]
+			trains = [int(train[1:]) for train in cols[2::2]]
+			ends   = [start+train-1 for start,train in zip(starts,trains)]
+			self.BUNCHDATA[FILL] = zip(starts, ends)
+
 	# get a luminosity given a run and lumisection
 	def lumi(self, run, ls):
 		return self.RUNLUMIDATA[run][ls]
 
-	# determine if a BX is after a gap
-	def afterGapSize(self, run, bx, minSize=1, maxSize=3564):
-		for size in self.GAPDATA[run].keys():
-			if size < minSize or size > maxSize: continue
-			for bxrange in self.GAPDATA[run][size]:
-				if bx == bxrange[1] + 1:
-					return size
-		return 0
+	# get bunch information
+	def getBunchInfo(self, run, bx, minSize=1, maxSize=3564):
+		fill = self.RUNLUMIDATA[run]['FILL']
+		abortGapSize = (LHC_BUNCHES-1) - self.BUNCHDATA[fill][-1][1] + self.BUNCHDATA[fill][0][0]
+		size, train, diff = 0, 0, 0
+		for i, (start, end) in enumerate(self.BUNCHDATA[fill]):
+			if bx >= start and bx <= end:
+				if i == 0:
+					size = abortGapSize
+				else:
+					size = start - self.BUNCHDATA[fill][i-1][1] - 1
+				train = end - start + 1
+				diff = bx - start + 1
+				break
+		if size <= minSize or size >= maxSize:
+			return False, False, False
+		return size, diff, train
 
 ##### P5 ANALYZER CLASS #####
 class P5Analyzer(P5MegaStruct):
