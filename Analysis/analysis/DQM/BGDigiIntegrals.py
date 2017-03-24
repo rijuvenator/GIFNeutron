@@ -262,7 +262,7 @@ def makeTimePlot(h, DIGI, RING, BX):
 	plot.SetFillColor(R.kOrange)
 	plot.setTitles(X='Time Bin', Y='Counts')
 	plot.SetMinimum(0)
-	plot.SetMaximum(250)
+	plot.SetMaximum(700)
 
 	canvas.finishCanvas()
 	canvas.save('pdfs/TimeBin_{DIGI}_{RING}_{BX}.pdf'.format(DIGI=DIGI, RING=RING, BX=BX))
@@ -284,7 +284,7 @@ def makeBXPlot(h, DIGI, RING, TB):
 	plot.SetFillColor(R.kOrange)
 	plot.setTitles(X='BX After Gap', Y='Counts')
 	plot.SetMinimum(0)
-	plot.SetMaximum(300)
+	plot.SetMaximum(1400)
 
 	canvas.finishCanvas()
 	canvas.save('pdfs/BX_{DIGI}_{RING}_{TB}.pdf'.format(DIGI=DIGI, RING=RING, TB=TB))

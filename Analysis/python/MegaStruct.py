@@ -206,6 +206,7 @@ class P5MegaStruct():
 				if SIZE not in self.GAPDATA[RUN].keys():
 					self.GAPDATA[RUN][SIZE] = []
 				self.GAPDATA[RUN][SIZE].append((START, END))
+		f.close()
 
 	# general fill bunch structures function
 	def fillBunches(self):
@@ -218,6 +219,7 @@ class P5MegaStruct():
 			trains = [int(train[1:]) for train in cols[2::2]]
 			ends   = [start+train-1 for start,train in zip(starts,trains)]
 			self.BUNCHDATA[FILL] = zip(starts, ends)
+		f.close()
 
 	# get a luminosity given a run and lumisection
 	def lumi(self, run, ls):
@@ -237,7 +239,7 @@ class P5MegaStruct():
 				train = end - start + 1
 				diff = bx - start + 1
 				break
-		if size <= minSize or size >= maxSize:
+		if size < minSize or size > maxSize:
 			return False, False, False
 		return size, diff, train
 
