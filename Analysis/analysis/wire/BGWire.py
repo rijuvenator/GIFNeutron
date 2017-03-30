@@ -1,3 +1,19 @@
+'''
+Analysis of candidate neutron-induced background wire group hits
+Uses the usual tricks:
+	- Z->mumu events in Run2016H
+	- 1st BX after a gap in LHC BX structure
+	- Requires LCT in 1/16th corner of a chamber and counts
+	  wire group hits in the opposite half in selected early-time
+	  background time-bins
+	- Skips chambers with extra background tracks
+	  (tracks found with a road method)
+Output plots are
+	- Background wire group hit rate vs inst. lumi.
+	- Background wire group hit occupancy
+	- (other plots used to generate/normalize first two)
+	- Background wire group hit BX
+'''
 import sys, os, argparse
 import numpy as np
 import ROOT as R
@@ -37,23 +53,13 @@ GAP     = args.GAP
 OFN = 'BGWire_P5' + ('' if args.FILE == '' else '_') + args.FILE + '.root'
 if FDATA is not None: FDATA = OFN
 
-elist = []
-EFILE = open('eventlist.log')
-for line in EFILE:
-	event = line.strip('\n').split()[-1]
-	elist.append(int(event))
-print len(elist)
-
 ##### IMPLEMENT ANALYZERS #####
 def analyze(self, t, PARAMS):
 	DOGAP = PARAMS[2]
 	DOZJETS = PARAMS[3]
 	GAP = PARAMS[4]
 	Primitives.SelectBranches(t, DecList=['LCT', 'WIRE'], branches=['Event_RunNumber','Event_BXCrossing','Event_LumiSection'])
-#	for idx, entry in enumerate(t):
-#		if idx == 42732: break
-	for idx in elist:
-		t.GetEntry(idx)
+	for idx, entry in enumerate(t):
 		print 'Events    :', idx+1, '\r',
 
 		# Z and jet cuts
@@ -93,6 +99,9 @@ def analyze(self, t, PARAMS):
 			# skip chamber if there's a background track
 			if lct.cham in roadChams and DOROAD: continue
 			cham = CH.Chamber(lct.cham)
+			# FILLLCT
+			self.HISTS[cham.display('{S}{R}')+half]['lct'].Fill(lct.keyWireGroup)
+			self.HISTS[cham.display('{S}{R}')]['lct'].Fill(lct.keyWireGroup)
 			for wire in bgWires:
 				if wire.cham != lct.cham: continue
 				self.HISTS[cham.display('{S}{R}')+half]['time'].Fill(wire.timeBin)
@@ -109,8 +118,10 @@ def analyze(self, t, PARAMS):
 		self.HISTS[ring]['lumi'].Write()
 		self.HISTS[ring]['totl'].Write()
 		self.HISTS[ring]['occ'].Write()
+		self.HISTS[ring]['lct'].Write()
 	for ring in RINGLIST:
 		self.HISTS[ring]['occ'].Write()
+		self.HISTS[ring]['lct'].Write()
 
 	if DOGAP:
 		print ''
@@ -130,14 +141,17 @@ def load(self, PARAMS):
 			'lumi' : f.Get('l'+ring),
 			'totl' : f.Get('a'+ring),
 			'occ'  : f.Get('o'+ring),
+			'lct'  : f.Get('lct'+ring),
 		}
 		self.HISTS[ring]['time'].SetDirectory(0)
 		self.HISTS[ring]['lumi'].SetDirectory(0)
 		self.HISTS[ring]['totl'].SetDirectory(0)
 		self.HISTS[ring]['occ'].SetDirectory(0)
+		self.HISTS[ring]['lct'].SetDirectory(0)
 	for ring in RINGLIST:
 		self.HISTS[ring] = {
 			'occ'  : f.Get('o'+ring),
+			'lct'  : f.Get('lct'+ring),
 		}
 		self.HISTS[ring]['occ'].SetDirectory(0)
 
@@ -156,18 +170,22 @@ def setup(self, PARAMS):
 			'lumi': R.TH1F('l'+ring, '', 30, 0., 15.e33),
 			'totl': R.TH1F('a'+ring, '', 30, 0., 15.e33),
 			'occ' : R.TH1F('o'+ring, '', bins, 0, bins),
+			'lct' : R.TH1F('lct'+ring, '', bins, 0, bins),
 		}
 		self.HISTS[ring]['time'].SetDirectory(0)
 		self.HISTS[ring]['lumi'].SetDirectory(0)
 		self.HISTS[ring]['totl'].SetDirectory(0)
 		self.HISTS[ring]['occ'].SetDirectory(0)
+		self.HISTS[ring]['lct'].SetDirectory(0)
 	for ring in RINGLIST:
 		cham = CH.Chamber(CH.serialID(1, int(ring[0]), int(ring[1]), 1))
 		bins = cham.nwires+2
 		self.HISTS[ring] = {
 			'occ' : R.TH1F('o'+ring, '', bins, 0, bins),
+			'lct' : R.TH1F('lct'+ring, '', bins, 0, bins),
 		}
 		self.HISTS[ring]['occ'].SetDirectory(0)
+		self.HISTS[ring]['lct'].SetDirectory(0)
 
 def cleanup(self, PARAMS):
 	print ''
@@ -283,9 +301,21 @@ def makeOccPlot(h,ring):
 		canvas.addMainPlot(plot)
 		canvas.makeTransparent()
 		plot.setTitles(X='Wire Group Number',Y='Counts')
-		#canvas.finishCanvas('bob')
+		#canvas.finishCanvas('BOB')
 		canvas.finishCanvas()
 		canvas.save('pdfs/BGWireOcc_'+ring,['.pdf'])
+		canvas.deleteCanvas()
+
+def makeLCTPlot(h,ring):
+	for logy in [True,False]:
+		plot = Plotter.Plot(h,option='hist')
+		canvas = Plotter.Canvas(lumi='ME'+ring+' LCT Occupancy',logy=logy)
+		canvas.addMainPlot(plot)
+		canvas.makeTransparent()
+		plot.setTitles(X='Wire Group Number',Y='Counts')
+		#canvas.finishCanvas('BOB')
+		canvas.finishCanvas()
+		canvas.save('pdfs/BGWireLCTOcc_'+ring,['.pdf'])
 		canvas.deleteCanvas()
 
 for ring in ULRINGLIST:
@@ -294,6 +324,8 @@ for ring in ULRINGLIST:
 	makeNumDum(data.HISTS[ring]['lumi'], ring, 'nwire')
 	makeNumDum(data.HISTS[ring]['totl'], ring, 'lumi')
 	makeOccPlot(data.HISTS[ring]['occ'], ring)
+	makeLCTPlot(data.HISTS[ring]['lct'], ring)
 for ring in RINGLIST:
 	makeLumiPlotFull(data.HISTS[ring+'u']['lumi'],data.HISTS[ring+'l']['lumi'], data.HISTS[ring+'u']['totl'], data.HISTS[ring+'l']['totl'],ring)
 	makeOccPlot(data.HISTS[ring]['occ'],ring)
+	makeLCTPlot(data.HISTS[ring]['lct'], ring)

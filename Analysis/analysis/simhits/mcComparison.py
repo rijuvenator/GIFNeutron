@@ -1,3 +1,32 @@
+'''
+Purpose of this script is to combine simhit distributions from different 
+MC samples onto a single canvas
+- Requires the number of events in each MC sample for proper normalization
+- Includes option to require < or > 300 ns simhit time of flight
+- Output is a ROOT file and pdfs of different occupancy distributions
+
+- Plots are separated by station and particle type
+	- Stations  : 1,2,3,4,all
+	- Particles : muon,pion,e+/-,proton,other,all
+
+	hist key   : description
+	------------------------
+	- tof      : time of flight
+	- radial2  : radial position squared
+	- radial   : radial position
+	- phi      : phi
+	- z        : z position
+	- id       : particle id
+	- nSimHits : number of simhits in event
+	- xy       : 2d y vs x
+	- rz       : 2d r vs z
+	- rphi     : 2d r vs phi
+	- rtof     : 2d r vs time of flight
+	- ztof     : 2d z vs time of flight
+	- phitof   : 2d phi vs time of flight
+
+'''
+
 import os, math, sys
 import numpy as np
 import ROOT as R
@@ -10,8 +39,8 @@ import Gif.Analysis.roottools as roottools
 R.gROOT.SetBatch(True)
 
 
-#TITLE = ''
-TITLE = '_tGT300'
+TITLE = ''
+#TITLE = '_tGT300'
 #TITLE = '_tLT300'
 
 RECREATE=True
@@ -22,17 +51,28 @@ outputROOT = R.TFile('mcComparison'+TITLE+'.root','recreate')
 
 fileDict = {
 	'HP_Thermal_ON':{
-		'file':'/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON.root',
+		'file':'/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON_105k_digi_hack.root',
 		'color':R.kBlue,
-		#'nEvts':79950.,
-		'nEvts':0.,
+		'nEvts':102100.,
 		},
-	'Original_XS':{
-		'file':'/afs/cern.ch/user/c/cschnaib/Analysis/trees_mc/ana_neutronMC.root',
+	'HP_Thermal_OFF':{
+		'file':'/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_OFF/ana_neutronMC_HPThermalOFF_digi_all.root',
 		'color':R.kOrange+1,
-		#'nEvts':100000.,
-		'nEvts':0.,
-		}
+		'nEvts':96250.,
+		#'nEvts':0.,
+		},
+	'XS_Thermal_ON':{
+		'file':'/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_ON/ana_neutronMC_XS_ThermalON.root',
+		'color':R.kGreen,
+		'nEvts':100000.,
+		#'nEvts':0.,
+		},
+	'XS_Thermal_OFF':{
+		'file':'/afs/cern.ch/user/c/cschnaib/Analysis/trees_mc/ana_neutronMC.root',
+		'color':R.kRed,
+		'nEvts':100000.,
+		#'nEvts':0.,
+		},
 }
 
 stations = [1,2,3,4,'all']
@@ -42,11 +82,15 @@ hists2d = ['xy','rz','rphi','rtof','phitof','ztof']
 
 HISTS = {
 		'HP_Thermal_ON':{station:{hist:{particle:{} for particle in particles} for hist in hists} for station in stations},
-		'Original_XS':{station:{hist:{particle:{} for particle in particles} for hist in hists} for station in stations},
+		'HP_Thermal_OFF':{station:{hist:{particle:{} for particle in particles} for hist in hists} for station in stations},
+		'XS_Thermal_ON':{station:{hist:{particle:{} for particle in particles} for hist in hists} for station in stations},
+		'XS_Thermal_OFF':{station:{hist:{particle:{} for particle in particles} for hist in hists} for station in stations},
 }
 HISTS2D = {
 		'HP_Thermal_ON':{station:{hist:{particle:{} for particle in particles} for hist in hists2d} for station in stations},
-		'Original_XS':{station:{hist:{particle:{} for particle in particles} for hist in hists2d} for station in stations},
+		'HP_Thermal_OFF':{station:{hist:{particle:{} for particle in particles} for hist in hists2d} for station in stations},
+		'XS_Thermal_ON':{station:{hist:{particle:{} for particle in particles} for hist in hists2d} for station in stations},
+		'XS_Thermal_OFF':{station:{hist:{particle:{} for particle in particles} for hist in hists2d} for station in stations},
 }
 
 if RECREATE:
@@ -74,19 +118,19 @@ if RECREATE:
 	for neutronSim in fileDict.keys():
 		neutronFile = R.TFile.Open(fileDict[neutronSim]['file'])
 		t = neutronFile.Get('GIFTree/GIFDigiTree')
-		fileDict[neutronSim]['nEvts'] += t.GetEntries()
-		print
-		print neutronSim
-		print t.GetEntries()
-		print fileDict[neutronSim]['nEvts']
+		#fileDict[neutronSim]['nEvts'] += t.GetEntries()
+		#print
+		#print neutronSim
+		#print t.GetEntries()
+		#print fileDict[neutronSim]['nEvts']
 		for idx,entry in enumerate(t):
 			print 'Events:', idx, '\r',
 
 			E = Primitives.ETree(t, DecList=['SIMHIT'])
 			# Total
-			#simhits = [Primitives.SimHit(E,i) for i in range(len(E.sim_cham))]
+			simhits = [Primitives.SimHit(E,i) for i in range(len(E.sim_cham))]
 			# t > 300 ns
-			simhits = [Primitives.SimHit(E,i) for i in range(len(E.sim_cham)) if E.sim_tof[i] > 300]
+			#simhits = [Primitives.SimHit(E,i) for i in range(len(E.sim_cham)) if E.sim_tof[i] > 300]
 			# t < 300 ns
 			#simhits = [Primitives.SimHit(E,i) for i in range(len(E.sim_cham)) if E.sim_tof[i] < 300]
 
@@ -105,9 +149,9 @@ if RECREATE:
 				elif particle=='e':
 					plist = plist + [sh for sh in simhits if abs(sh.particleID)==11]
 				elif particle=='pion':
-					plist = plist + [sh for sh in simhits if abs(sh.particleID)==2212]
-				elif particle=='proton':
 					plist = plist + [sh for sh in simhits if abs(sh.particleID)==211]
+				elif particle=='proton':
+					plist = plist + [sh for sh in simhits if abs(sh.particleID)==2212]
 				else: # other
 					plist = plist + [sh for sh in simhits \
 						if abs(sh.particleID)!=13 and abs(sh.particleID)!=11 and abs(sh.particleID)!=211 and abs(sh.particleID)!=2212]
@@ -230,7 +274,7 @@ else:
 			for particle in particles:
 				HISTS[neutronSim][station]['tof'][particle]      = outputROOT.Get(name+'_'+str(station)+'_tof_'+particle)
 				HISTS[neutronSim][station]['radial'][particle]   = outputROOT.Get(name+'_'+str(station)+'_radial_'+particle)
-				HISTS[neutronSim][station]['radial2'][particle]   = outputROOT.Get(name+'_'+str(station)+'_radial2_'+particle)
+				HISTS[neutronSim][station]['radial2'][particle]  = outputROOT.Get(name+'_'+str(station)+'_radial2_'+particle)
 				HISTS[neutronSim][station]['phi'][particle]      = outputROOT.Get(name+'_'+str(station)+'_phi_'+particle)
 				HISTS[neutronSim][station]['z'][particle]        = outputROOT.Get(name+'_'+str(station)+'_z_'+particle)
 				HISTS[neutronSim][station]['id'][particle]       = outputROOT.Get(name+'_'+str(station)+'_id_'+particle)
@@ -248,22 +292,35 @@ def makePlots1D(HISTS,plotDict,particleTitles):
 			for station in stations:
 				for logy in [True,False]:
 
-					histHP = HISTS['HP_Thermal_ON'][station][name][particle]
-					if name=='nSimHits':
-						histHP = roottools.DrawOverflow(histHP)
-					# Normalize HP histograms to XS
-					#histHP.Scale(fileDict['Original_XS']['nEvts']/fileDict['HP_Thermal_ON']['nEvts'])
-					#histHP.Scale(1./histHP.Integral())
-					plotHP = Plotter.Plot(histHP,'HP Thermal',legType='l',option='hist')
+					# Normalize to 100k generated events
+					SCALE = 100000.
 
-					histXS = HISTS['Original_XS'][station][name][particle]
+					histHP_ON = HISTS['HP_Thermal_ON'][station][name][particle].Clone()
 					if name=='nSimHits':
-						histXS = roottools.DrawOverflow(histXS)
-					#histXS.Scale(1./histXS.Integral())
-					plotXS = Plotter.Plot(histXS,'XS No Thermal',legType='l',option='hist')
+						histHP_ON = roottools.DrawOverflow(histHP_ON)
+					histHP_ON.Scale(SCALE/fileDict['HP_Thermal_ON']['nEvts'])
+					plotHP_ON = Plotter.Plot(histHP_ON,'HP Thermal ON',legType='l',option='hist')
+
+					histHP_OFF = HISTS['HP_Thermal_OFF'][station][name][particle].Clone()
+					if name=='nSimHits':
+						histHP_OFF = roottools.DrawOverflow(histHP_OFF)
+					histHP_OFF.Scale(SCALE/fileDict['HP_Thermal_OFF']['nEvts'])
+					plotHP_OFF = Plotter.Plot(histHP_OFF,'HP Thermal OFF',legType='l',option='hist')
+
+					histXS_ON = HISTS['XS_Thermal_ON'][station][name][particle].Clone()
+					if name=='nSimHits':
+						histXS_ON = roottools.DrawOverflow(histXS_ON)
+					histXS_ON.Scale(SCALE/fileDict['XS_Thermal_ON']['nEvts'])
+					plotXS_ON = Plotter.Plot(histXS_ON,'XS Thermal ON',legType='l',option='hist')
+					
+					histXS_OFF = HISTS['XS_Thermal_OFF'][station][name][particle].Clone()
+					if name=='nSimHits':
+						histXS_OFF = roottools.DrawOverflow(histXS_OFF)
+					histXS_OFF.Scale(SCALE/fileDict['XS_Thermal_OFF']['nEvts'])
+					plotXS_OFF = Plotter.Plot(histXS_OFF,'XS Thermal OFF',legType='l',option='hist')
 
 					if name=='id':
-						for plot in [plotXS,plotHP]:
+						for plot in [plotXS_ON,plotXS_OFF,plotHP_ON,plotHP_OFF]:
 							plot.GetXaxis().SetBinLabel(1,'#mu^{#pm}')
 							plot.GetXaxis().SetBinLabel(2,'e^{-}')
 							plot.GetXaxis().SetBinLabel(3,'e^{+}')
@@ -273,15 +330,21 @@ def makePlots1D(HISTS,plotDict,particleTitles):
 					canvas = Plotter.Canvas(lumi=particleTitles[particle]+' '+plotDict[name]['title']+' Station '+str(station),logy=logy)
 					if 'tof' in name:
 						canvas.mainPad.SetLogx(True)
-					canvas.addMainPlot(plotXS)
-					canvas.addMainPlot(plotHP)
-					plotHP.SetLineColor(fileDict['HP_Thermal_ON']['color'])
-					plotXS.SetLineColor(fileDict['Original_XS']['color'])
-					factor = 1.1
-					plotHP.SetMaximum(plotHP.GetMaximum()*factor if plotHP.GetMaximum() > plotXS.GetMaximum() else plotXS.GetMaximum()*factor)
-					plotXS.SetMaximum(plotHP.GetMaximum()*factor if plotHP.GetMaximum() > plotXS.GetMaximum() else plotXS.GetMaximum()*factor)
-					plotHP.setTitles(X=plotDict[name]['X'],Y=plotDict[name]['Y'])
-					plotXS.setTitles(X=plotDict[name]['X'],Y=plotDict[name]['Y'])
+					canvas.addMainPlot(plotXS_ON)
+					canvas.addMainPlot(plotXS_OFF)
+					canvas.addMainPlot(plotHP_OFF)
+					canvas.addMainPlot(plotHP_ON)
+					plotHP_ON.SetLineColor(fileDict['HP_Thermal_ON']['color'])
+					plotHP_OFF.SetLineColor(fileDict['HP_Thermal_OFF']['color'])
+					plotXS_ON.SetLineColor(fileDict['XS_Thermal_ON']['color'])
+					plotXS_OFF.SetLineColor(fileDict['XS_Thermal_OFF']['color'])
+					factor = 1.05
+					maximum = max( plotHP_ON.GetMaximum(), plotHP_OFF.GetMaximum(), plotXS_ON.GetMaximum(), plotXS_OFF.GetMaximum() )
+					canvas.firstPlot.SetMaximum(maximum*factor)
+					plotHP_ON.setTitles(X=plotDict[name]['X'],Y=plotDict[name]['Y'])
+					plotHP_OFF.setTitles(X=plotDict[name]['X'],Y=plotDict[name]['Y'])
+					plotXS_OFF.setTitles(X=plotDict[name]['X'],Y=plotDict[name]['Y'])
+					plotXS_ON.setTitles(X=plotDict[name]['X'],Y=plotDict[name]['Y'])
 					canvas.makeLegend(pos='tr')
 					if name=='z':
 						canvas.legend.moveLegend(X=-0.4)

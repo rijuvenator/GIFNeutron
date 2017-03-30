@@ -1,3 +1,19 @@
+'''
+Analysis of candidate neutron-induced background comparator hits
+Uses the usual tricks:
+	- Z->mumu events in Run2016H
+	- 1st BX after a gap in LHC BX structure
+	- Requires LCT in 1/16th corner of a chamber and counts
+	  comparator hits in the opposite half in selected early-time
+	  background time-bins
+	- Skips chambers with extra background tracks
+	  (tracks found with a road method)
+Output plots are
+	- Background comparator hit rate vs inst. lumi.
+	- Background comparator hit occupancy
+	- (other plots used to generate/normalize first two)
+	- Background comparator hit BX
+'''
 import sys, os, argparse
 import numpy as np
 import ROOT as R
@@ -77,30 +93,50 @@ def analyze(self, t, PARAMS):
 		bgLCTs,oppHalfComps = BGDigi.getBGCompCandList(lcts,comps)
 		if len(bgLCTs)==0: continue # skip event if there were no isolated LCTs
 		if DOROAD:
-			roadChams = BGDigi.removeDigiRoads(bgLCTs,oppHalfComps)
+			roadChams = BGDigi.removeDigiRoads(oppHalfComps)
 		else:
 			roadChams = []
-		for lct in bgLCTs:
+		for lct, half in bgLCTs:
 			nComp = 0.
 			# Skip Chamber if there's a background road
 			if lct.cham in roadChams and DOROAD: continue
 			cham = CH.Chamber(lct.cham)
+			# FILLLCT
+			self.HISTS[cham.display('{S}{R}')+half]['lct'].Fill(lct.keyHalfStrip)
+			self.HISTS[cham.display('{S}{R}')]['lct'].Fill(lct.keyHalfStrip)
 			for comp in oppHalfComps:
 				if comp.cham!=lct.cham: continue
+				self.HISTS[cham.display('{S}{R}')+half]['time'].Fill(comp.timeBin)
 				self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
 				if comp.timeBin >= 1 and comp.timeBin <= 5:
-
+					self.HISTS[cham.display('{S}{R}')+half]['occ'].Fill(comp.halfStrip)
 					self.HISTS[cham.display('{S}{R}')]['occ'].Fill(comp.halfStrip)
 					nComp += 1
+				if comp.timeBin == 0:
+					self.HISTS[cham.display('{S}{R}')+half]['comp_t0'].Fill(comp.comp)
+					self.HISTS[cham.display('{S}{R}')]['comp_t0'].Fill(comp.comp)
+				if comp.timeBin == 1:
+					self.HISTS[cham.display('{S}{R}')+half]['comp_t1'].Fill(comp.comp)
+					self.HISTS[cham.display('{S}{R}')]['comp_t1'].Fill(comp.comp)
+				if comp.timeBin == 2:
+					self.HISTS[cham.display('{S}{R}')+half]['comp_t2'].Fill(comp.comp)
+					self.HISTS[cham.display('{S}{R}')]['comp_t2'].Fill(comp.comp)
+			self.HISTS[cham.display('{S}{R}')+half]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
+			self.HISTS[cham.display('{S}{R}')+half]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
 			self.HISTS[cham.display('{S}{R}')]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nComp))
 			self.HISTS[cham.display('{S}{R}')]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
 
 	self.F_OUT.cd()
 	for ring in RINGLIST:
-		self.HISTS[ring]['time'].Write()
-		self.HISTS[ring]['lumi'].Write()
-		self.HISTS[ring]['totl'].Write()
-		self.HISTS[ring]['occ'].Write()
+		for half in ['l','r','']:
+			self.HISTS[ring+half]['time'].Write()
+			self.HISTS[ring+half]['lumi'].Write()
+			self.HISTS[ring+half]['totl'].Write()
+			self.HISTS[ring+half]['occ'].Write()
+			self.HISTS[ring+half]['lct'].Write()
+			self.HISTS[ring+half]['comp_t0'].Write()
+			self.HISTS[ring+half]['comp_t1'].Write()
+			self.HISTS[ring+half]['comp_t2'].Write()
 
 	if DOGAP:
 		print ''
@@ -115,16 +151,26 @@ def load(self, PARAMS):
 	f = R.TFile.Open(self.F_DATAFILE)
 	self.HISTS = {}
 	for ring in RINGLIST:
-		self.HISTS[ring] = {
-			'time' : f.Get('t'+ring),
-			'lumi' : f.Get('l'+ring),
-			'totl' : f.Get('a'+ring),
-			'occ'  : f.Get('o'+ring),
-		}
-		self.HISTS[ring]['time'].SetDirectory(0)
-		self.HISTS[ring]['lumi'].SetDirectory(0)
-		self.HISTS[ring]['totl'].SetDirectory(0)
-		self.HISTS[ring]['occ'].SetDirectory(0)
+		for half in ['l','r','']:
+			self.HISTS[ring+half] = {
+				'time' : f.Get('t'+ring+half),
+				'lumi' : f.Get('l'+ring+half),
+				'totl' : f.Get('a'+ring+half),
+				'occ'  : f.Get('o'+ring+half),
+				'lct'  : f.Get('lct'+ring+half),
+				'comp' : f.Get('comp'+ring+half),
+				'comp_t0' : f.Get('comp_t0'+ring+half),
+				'comp_t1' : f.Get('comp_t1'+ring+half),
+				'comp_t2' : f.Get('comp_t2'+ring+half),
+			}
+			self.HISTS[ring+half]['time'].SetDirectory(0)
+			self.HISTS[ring+half]['lumi'].SetDirectory(0)
+			self.HISTS[ring+half]['totl'].SetDirectory(0)
+			self.HISTS[ring+half]['occ'].SetDirectory(0)
+			self.HISTS[ring+half]['lct'].SetDirectory(0)
+			self.HISTS[ring+half]['comp_t0'].SetDirectory(0)
+			self.HISTS[ring+half]['comp_t1'].SetDirectory(0)
+			self.HISTS[ring+half]['comp_t2'].SetDirectory(0)
 
 # runs before file loop; open a file, declare a hist dictionary
 def setup(self, PARAMS):
@@ -134,18 +180,27 @@ def setup(self, PARAMS):
 	self.F_OUT = R.TFile(FN,'RECREATE')
 	self.F_OUT.cd()
 	for ring in RINGLIST:
-		cham = CH.Chamber(CH.serialID(1, int(ring[0]), int(ring[1]), 1))
-		bins = cham.nstrips*2+2
-		self.HISTS[ring] = {
-			'time': R.TH1F('t'+ring, '', 10, 0., 10.),
-			'lumi': R.TH1F('l'+ring, '', 30, 0., 15.e33),
-			'totl': R.TH1F('a'+ring, '', 30, 0., 15.e33),
-			'occ' : R.TH1F('o'+ring, '', bins, 0., bins),
-		}
-		self.HISTS[ring]['time'].SetDirectory(0)
-		self.HISTS[ring]['lumi'].SetDirectory(0)
-		self.HISTS[ring]['totl'].SetDirectory(0)
-		self.HISTS[ring]['occ'].SetDirectory(0)
+		for half in ['l','r','']:
+			cham = CH.Chamber(CH.serialID(1, int(ring[0]), int(ring[1]), 1))
+			bins = cham.nstrips*2+2
+			self.HISTS[ring+half] = {
+				'time' : R.TH1F('t'+ring+half,    '', 10, 0., 10.),
+				'lumi' : R.TH1F('l'+ring+half,    '', 30, 0., 15.e33),
+				'totl' : R.TH1F('a'+ring+half,    '', 30, 0., 15.e33),
+				'occ'  : R.TH1F('o'+ring+half,    '', bins, 0., bins),
+				'lct'  : R.TH1F('lct'+ring+half,  '', bins, 0, bins),
+				'comp_t0' : R.TH1F('comp_t0'+ring+half, '', 2, 0, 2),
+				'comp_t1' : R.TH1F('comp_t1'+ring+half, '', 2, 0, 2),
+				'comp_t2' : R.TH1F('comp_t2'+ring+half, '', 2, 0, 2),
+			}
+			self.HISTS[ring+half]['time'].SetDirectory(0)
+			self.HISTS[ring+half]['lumi'].SetDirectory(0)
+			self.HISTS[ring+half]['totl'].SetDirectory(0)
+			self.HISTS[ring+half]['occ'].SetDirectory(0)
+			self.HISTS[ring+half]['lct'].SetDirectory(0)
+			self.HISTS[ring+half]['comp_t0'].SetDirectory(0)
+			self.HISTS[ring+half]['comp_t1'].SetDirectory(0)
+			self.HISTS[ring+half]['comp_t2'].SetDirectory(0)
 
 def cleanup(self, PARAMS):
 	print ''
@@ -207,6 +262,40 @@ def makeLumiPlot(h1, h2, ring):
 	R.SetOwnership(canvas, False)
 	canvas.deleteCanvas()
 
+def makeLumiPlotLR(h1l, h2l, h1r, h2r, ring):
+	binit = range(1, h1l.GetNbinsX()+1)
+	ncompsl = [h1l.GetBinContent(i) for i in binit]
+	totalsl = [h2l.GetBinContent(i) for i in binit]
+	ncompsr = [h1r.GetBinContent(i) for i in binit]
+	totalsr = [h2r.GetBinContent(i) for i in binit]
+	lumiA = np.array([(15.e33)/30 * (i+0.5) for i in range(30)])
+	dataAlist = []
+	for ncompl,ncompr,totall,totalr in zip(ncompsl,ncompsr,totalsl,totalsr):
+		sumC  = ncompr/float(totalr) if totalr != 0 else 0.
+		sumC += ncompl/float(totall) if totall != 0 else 0.
+		dataAlist.append(sumC)
+	dataA = np.array(dataAlist)
+	lumi = np.array(lumiA[10:26])
+	data = np.array(dataA[10:26])
+	h = R.TGraph(len(lumi), lumi, data)
+
+	plot = Plotter.Plot(h, option='PE')
+	canvas = Plotter.Canvas(lumi='ME'+ring, logy=False)
+	canvas.addMainPlot(plot)
+	canvas.makeTransparent()
+	canvas.scaleMargins(1.25, 'R')
+	canvas.firstPlot.setTitles(X='Luminosity [cm^{-2}s^{-1}]', Y='#LT Number of Background Comparators #GT')
+	canvas.firstPlot.GetXaxis().SetLimits(0., 15.e33)
+	canvas.firstPlot.SetMinimum(0. )
+	canvas.firstPlot.SetMaximum(0.6)
+	canvas.firstPlot.scaleTitles(0.8)
+	canvas.firstPlot.scaleLabels(0.8)
+	canvas.firstPlot.scaleTitleOffsets(1.2)
+	canvas.finishCanvas()
+	canvas.save('pdfs/BGCompAvgN'+'_'+ring+'_LR_norm.pdf')
+	R.SetOwnership(canvas, False)
+	canvas.deleteCanvas()
+
 def makeNumDum(h, ring, which):
 	plot = Plotter.Plot(h, option='P')
 	canvas = Plotter.Canvas(lumi='ME'+ring, logy=False)
@@ -230,12 +319,53 @@ def makeOccPlot(h,ring):
 		canvas.save('pdfs/BGCompOcc_'+ring, ['.pdf'])
 		canvas.deleteCanvas()
 
+def makeLCTPlot(h,ring):
+	for logy in [True,False]:
+		plot = Plotter.Plot(h,option='hist')
+		canvas = Plotter.Canvas(lumi='ME'+ring+' LCT Occupancy',logy=logy)
+		canvas.addMainPlot(plot)
+		canvas.makeTransparent()
+		plot.setTitles(X='Key Half Strip',Y='Counts')
+		#canvas.finishCanvas('BOB')
+		canvas.finishCanvas()
+		canvas.save('pdfs/BGCompLCTOcc_'+ring,['.pdf'])
+		canvas.deleteCanvas()
+
+def makeCompPlot(h0,h1,h2,ring):
+	for logy in [True,False]:
+		plot0 = Plotter.Plot(h0,option='hist',legType='l',legName='Time Bin 0')
+		plot1 = Plotter.Plot(h1,option='hist',legType='l',legName='Time Bin 1')
+		plot2 = Plotter.Plot(h2,option='hist',legType='l',legName='Time Bin 2')
+		canvas = Plotter.Canvas(lumi='ME'+ring+' L/R Comparator',logy=logy)
+		canvas.addMainPlot(plot0)
+		canvas.addMainPlot(plot1)
+		canvas.addMainPlot(plot2)
+		plot0.SetLineColor(R.kBlue)
+		plot1.SetLineColor(R.kOrange+1)
+		plot2.SetLineColor(R.kGreen)
+		canvas.makeLegend(pos='tr')
+		canvas.legend.moveLegend(X=-0.1)
+		maximum = max(plot0.GetMaximum(),plot1.GetMaximum(),plot2.GetMaximum())
+		canvas.firstPlot.SetMaximum(1.05*maximum)
+		canvas.firstPlot.SetMinimum(0.)
+		canvas.makeTransparent()
+		canvas.firstPlot.setTitles(X='Comparator Half Strip Bit',Y='Counts')
+		canvas.finishCanvas('BOB')
+		canvas.save('pdfs/BGComp_LRbit_'+ring,['.pdf'])
+		canvas.deleteCanvas()
+
 for ring in RINGLIST:
-	makeTimePlot(data.HISTS[ring]['time'], ring)
-	makeLumiPlot(data.HISTS[ring]['lumi'], data.HISTS[ring]['totl'], ring)
-	makeNumDum(data.HISTS[ring]['lumi'], ring, 'ncomp')
-	makeNumDum(data.HISTS[ring]['totl'], ring, 'lumi')
-	makeOccPlot(data.HISTS[ring]['occ'], ring)
+	makeLumiPlotLR(data.HISTS[ring+'l']['lumi'], data.HISTS[ring+'l']['totl'],
+				   data.HISTS[ring+'r']['lumi'], data.HISTS[ring+'r']['totl'],
+				   ring)
+	for half in ['l','r','']:
+		makeLumiPlot(data.HISTS[ring+half]['lumi'], data.HISTS[ring+half]['totl'], ring+half)
+		makeTimePlot(data.HISTS[ring+half]['time'], ring+half)
+		makeNumDum(data.HISTS[ring+half]['lumi'], ring+half, 'ncomp')
+		makeNumDum(data.HISTS[ring+half]['totl'], ring+half, 'lumi')
+		makeOccPlot(data.HISTS[ring+half]['occ'], ring+half)
+		makeLCTPlot(data.HISTS[ring+half]['lct'], ring+half)
+		makeCompPlot(data.HISTS[ring+half]['comp_t0'], data.HISTS[ring+half]['comp_t1'], data.HISTS[ring+half]['comp_t2'], ring+half)
 
 def makeAllTimePlot():
 	h = data.HISTS[RINGLIST[0]]['time'].Clone()

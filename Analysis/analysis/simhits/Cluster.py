@@ -1,3 +1,9 @@
+'''
+Class for clustering simhits into groups where the simhits lie on contigious
+strips. Meant to be a proxy for what 'perfect' digitization could produce.
+Also, since a single particle can leave multiple simhits it normalizes for 
+that possiblity as well.
+'''
 # For finding most common particle ID in cluster
 from collections import Counter
 from math import atan2

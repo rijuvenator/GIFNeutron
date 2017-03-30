@@ -29,10 +29,10 @@ def DrawOverflow(hist):
 def poisson_interval(nobs, alpha=(1-0.6827)/2, beta=(1-0.6827)/2):
     lower = 0
     if nobs > 0:
-        lower = 0.5 * ROOT.Math.chisquared_quantile_c(1-alpha, 2*nobs)
+        lower = 0.5 * R.Math.chisquared_quantile_c(1-alpha, 2*nobs)
     elif nobs == 0:
         beta *= 2
-    upper = 0.5 * ROOT.Math.chisquared_quantile_c(beta, 2*(nobs+1))
+    upper = 0.5 * R.Math.chisquared_quantile_c(beta, 2*(nobs+1))
     return lower, upper
 
 def clopper_pearson(n_on, n_tot, alpha=1-0.6827, equal_tailed=True):
@@ -86,3 +86,27 @@ def getTreeDict(scanarg=None,num=None):
 		l = line.split()
 		dic[l[3]] = int(l[1])
 	return dic
+
+def cumulative_histogram(h, type='ge'):
+    """Construct the cumulative histogram in which the value of each
+    bin is the tail integral of the given histogram.
+    """
+    
+    nb = h.GetNbinsX()
+    hc = R.TH1F(h.GetName() + '_cumulative_' + type, '', nb, h.GetXaxis().GetXmin(), h.GetXaxis().GetXmax())
+    hc.Sumw2()
+    if type == 'ge':
+        first, last, step = nb+1, 0, -1
+    elif type == 'le':
+        first, last, step = 0, nb+1, 1
+    else:
+        raise ValueError('type %s not recognized' % type)
+    for i in xrange(first, last, step):
+        prev = 0 if i == first else hc.GetBinContent(i-step)
+        c = h.GetBinContent(i) + prev
+        hc.SetBinContent(i, c)
+        if c > 0:
+            hc.SetBinError(i, c**0.5)
+        else:
+            hc.SetBinError(i, 0.)
+    return hc

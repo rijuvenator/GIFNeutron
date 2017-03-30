@@ -1,3 +1,7 @@
+'''
+Analysis of matching simhit clusters from Cluster.py to wire group hits
+All plots are of simhit cluster energy loss
+'''
 import os, math, sys
 import numpy as np
 import ROOT as R

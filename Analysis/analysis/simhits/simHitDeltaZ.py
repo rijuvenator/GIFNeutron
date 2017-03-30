@@ -1,3 +1,6 @@
+'''
+Analysis if simhit entry and exit position differences
+'''
 import sys, os
 import numpy as np
 import ROOT as R

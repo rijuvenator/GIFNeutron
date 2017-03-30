@@ -65,24 +65,27 @@ def getBGCompCandList(lcts, comps):
 		else:
 			LCTAreas = \
 			{
-				'bl' : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : 0.          , 'hs1' : nHS*0.25},
-				'tl' : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : 0.          , 'hs1' : nHS*0.25},
-				'tr' : {'wg0' : (1-0.25)*nWG, 'wg1' : nWG     , 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
-				'br' : {'wg0' : 0.          , 'wg1' : nWG*0.25, 'hs0' : (1-0.25)*nHS, 'hs1' : nHS     },
+				'bl' : {'wg0' : 0.     , 'wg1' : nWG/4, 'hs0' : 0.     , 'hs1' : nHS/4},
+				'tl' : {'wg0' : 3*nWG/4, 'wg1' : nWG  , 'hs0' : 0.     , 'hs1' : nHS/4},
+				'tr' : {'wg0' : 3*nWG/4, 'wg1' : nWG  , 'hs0' : 3*nHS/4, 'hs1' : nHS  },
+				'br' : {'wg0' : 0.     , 'wg1' : nWG/4, 'hs0' : 3*nHS/4, 'hs1' : nHS  },
 			}
 			OppAreas = \
 			{
-				'bl' : {'hs0' : (1-0.50)*nHS, 'hs1' : nHS     },
-				'tl' : {'hs0' : (1-0.50)*nHS, 'hs1' : nHS     },
-				'tr' : {'hs0' : 0.          , 'hs1' : nHS*0.50},
-				'br' : {'hs0' : 0.          , 'hs1' : nHS*0.50},
+				'bl' : {'hs0' : nHS/2, 'hs1' : nHS    },
+				'tl' : {'hs0' : nHS/2, 'hs1' : nHS    },
+				'tr' : {'hs0' : 0.   , 'hs1' : nHS/2-2},
+				'br' : {'hs0' : 0.   , 'hs1' : nHS/2-2},
 			}
 		# Loop on all areas (we've already forced there to be only one LCT in this chamber)
 		for key in LCTAreas.keys():
 			# If LCT in a corner
 			if  lct.keyWireGroup >= LCTAreas[key]['wg0'] and lct.keyWireGroup <= LCTAreas[key]['wg1']\
 			and lct.keyHalfStrip >= LCTAreas[key]['hs0'] and lct.keyHalfStrip <= LCTAreas[key]['hs1']:
-				bgLCTs.append(lct)
+				if key[1]=='r': # if LCT is on right-side, fill left-side background comparator histogram
+					bgLCTs.append((lct,'l'))
+				elif key[1]=='l': # if LCT is on left-side, fill right-side background comparator histogram
+					bgLCTs.append((lct,'r'))
 				for comp in comps:
 					if comp.cham != lct.cham: continue
 					# For comparators in opposite half of LCT
@@ -170,15 +173,14 @@ def getBGWireCandList(lcts, wires):
 		for key in LCTAreas.keys():
 			if  lct.keyWireGroup >= LCTAreas[key]['wg0'] and lct.keyWireGroup <= LCTAreas[key]['wg1']\
 			and lct.keyHalfStrip >= LCTAreas[key]['hs0'] and lct.keyHalfStrip <= LCTAreas[key]['hs1']:
+				if key[0]=='b':   # if lct is in lower half, then fill upper half bkgnd histogram
+					bgLCTs.append((lct,'u'))
+				elif key[0]=='t': # if lct is in upper half, then fill lower half bkgnd histogram
+					bgLCTs.append((lct,'l'))
 				for wire in wires:
 					if wire.cham != lct.cham: continue
 					if wire.number >= OppAreas[key]['wg0'] and wire.number <= OppAreas[key]['wg1']:
-						if key[0]=='b': # Fill upper bg wire group list
-							bgLCTs.append((lct,'u'))
-							bgWires.append(wire)
-						if key[0]=='t': # Fill lower bg wire group list
-							bgLCTs.append((lct,'l'))
-							bgWires.append(wire)
+						bgWires.append(wire)
 	
 	return bgLCTs,bgWires
 
