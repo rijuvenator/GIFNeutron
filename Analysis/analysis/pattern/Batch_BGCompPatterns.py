@@ -21,9 +21,18 @@ CONFIG = {
 	'MC'  : 'bgpatterns_MC.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
-TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
+TYPE, OFN, FDATA, REMAINDER = MS.ParseArguments(CONFIG, extraArgs=True)
 
-if TYPE == 'MC': DOROAD=False
+NUM = REMAINDER[0]
+START = int(REMAINDER[1])
+END = int(REMAINDER[2])
+
+OFN = OFN.replace('.root', '_'+NUM+'.root')
+FDATA = OFN if FDATA is not None else None
+
+if FDATA is not None:
+	print 'Use the other script!!'
+	exit()
 
 ##### CLUSTER CLASSES #####
 class Cluster(object):
@@ -104,8 +113,10 @@ def setup(self, PARAMS):
 def analyze(self, t, PARAMS):
 	TYPE = PARAMS[1]
 	Primitives.SelectBranches(t, DecList=['LCT','COMP','WIRE'], branches=['Event_RunNumber', 'Event_BXCrossing'])
-	for idx, entry in enumerate(t):
+	#for idx, entry in enumerate(t):
+	for idx in xrange(START, END+1):
 		#if idx == 1000: break
+		t.GetEntry(idx)
 		print 'Events:', idx, '\r',
 
 		if TYPE == 'P5':
@@ -148,29 +159,6 @@ def analyze(self, t, PARAMS):
 						if pid >= 0:
 							self.HIST.Fill(pid)
 
-		elif TYPE == 'MC':
-			import itertools
-
-			if list(t.lct_id) == [] or list(t.comp_id) == []: continue
-			E = Primitives.ETree(t, DecList=['LCT','COMP'])
-			lcts  = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham ))]
-			comps = [Primitives.Comp   (E, i) for i in range(len(E.comp_cham))]
-
-			if DOROAD:
-				roadChams = BGDigi.removeDigiRoads(comps)
-			else:
-				roadChams = []
-			
-			for cham, compsGen in itertools.groupby(sorted(comps, key=lambda comp: comp.cham), key=lambda comp: comp.cham):
-				if cham in roadChams: continue
-				complist = [comp for comp in compsGen if comp.timeBin <= 5 and comp.timeBin >= 1]
-				if complist != []:
-					cc = ClusterCollection(complist)
-					for cluster in cc.ClusterList:
-						pid = cluster.PID
-						if pid >= 0:
-							self.HIST.Fill(pid)
-
 	self.F_OUT.cd()
 	self.HIST.Write()
 
@@ -196,105 +184,3 @@ Analyzer = getattr(MS, TYPE+'Analyzer')
 for METHOD in METHODS:
 	setattr(Analyzer, METHOD, locals()[METHOD])
 data = Analyzer(**ARGS)
-
-##### MAKEPLOT FUNCTIONS #####
-def makePlot(h):
-	# get non-empty PIDs
-	print 'The histogram was filled', int(h.GetEntries()), 'times'
-	pdict = {}
-	for i in range(512):
-		if h.GetBinContent(i+1)>0:
-			#print '{:3d} {:6d}'.format(i, int(h.GetBinContent(i+1)))
-			pdict[i] = int(h.GetBinContent(i+1))
-
-	# enumerate and name PIDs
-	labels = [\
-		1,                # Lonely
-		3, 9,             # 2-Horiz, 2-Vert
-		10, 17,           # 2+Diag, 2-Diag
-		11, 19, 25, 26,   # Gamma, Corner, L, J
-		14, 28, 35, 49,   # Gun-R, Dog-R, Gun-L, Dog-L
-		21, 42, 81, 138,  # C-U, C-D, C-L, C-R
-		56, 73,           # 3-Horiz, 3-Vert
-		74, 82, 137, 145, # Peri-TR, Peri-BL, Peri-BR, Peri-TL
-		84, 273           # 3+Diag, 3-Diag
-	]
-	# fill empties and see if any are missing
-	for label in labels:
-		if label not in pdict.keys():
-			pdict[label] = 0
-	print 'List of new IDs are:', [i for i in pdict.keys() if i not in labels]
-
-	# make multiple histograms based on number of hits
-	binslices = {
-		1 : range(1 , 2 ),
-		2 : range(2 , 6 ),
-		3 : range(6 , 26),
-	}
-
-	hists = {}
-	for ncomps in binslices.keys():
-		hists[ncomps] = R.TH1F('hists'+str(ncomps), '', len(labels), 0, len(labels))
-		for bin_ in binslices[ncomps]:
-			hists[ncomps].SetBinContent(bin_, pdict[labels[bin_-1]])
-	for bin_, label in enumerate(labels):
-		hists[1].GetXaxis().SetBinLabel(bin_+1, str(label))
-	
-	# make the plot and canvas objects and add the plots
-	plots = {}
-	for ncomps in binslices.keys():
-		plots[ncomps] = Plotter.Plot(hists[ncomps], option='hist', legName=str(ncomps)+' hits', legType='f')
-
-	canvas = Plotter.Canvas(lumi='Background Comparators Pattern ID', cWidth=1500, logy=True)
-	R.gStyle.SetLineWidth(1)
-
-	for ncomps in binslices.keys():
-		canvas.addMainPlot(plots[ncomps])
-
-	# decorate and format
-	canvas.makeTransparent()
-	canvas.scaleMargins(0.5, 'L')
-	canvas.firstPlot.setTitles(X='Pattern ID', Y='Counts')
-	canvas.firstPlot.scaleLabels(1.25, 'X')
-	canvas.firstPlot.scaleTitleOffsets(0.6, 'Y')
-	canvas.firstPlot.SetMaximum(10**math.ceil(math.log(canvas.firstPlot.GetMaximum(),10)) - 1)
-	canvas.firstPlot.SetMinimum(10**-1 + 0.0001)
-
-	# move legend
-	canvas.scaleMargins(2., 'R')
-	canvas.makeLegend()
-	canvas.legend.moveLegend(X=.16)
-
-	# colors
-	colors = {1 : R.kGreen, 2 : R.kBlue, 3 : R.kOrange, 4 : R.kRed}
-	for ncomps in binslices.keys():
-		plots[ncomps].SetLineWidth(0)
-		plots[ncomps].SetFillColor(colors[ncomps])
-
-	# two neighboring comparators; should be suppressed
-	shades = R.TH1F('shades','',len(labels), 0, len(labels))
-	bins = [3, 11, 19, 25, 26, 14, 28, 35, 49, 56]
-	for bin_ in bins:
-		shades.SetBinContent(labels.index(bin_)+1, canvas.firstPlot.GetMaximum())
-	shades.SetLineWidth(0)
-	shades.SetFillStyle(3004)
-	shades.SetFillColorAlpha(R.kBlack, 0.5)
-	shades.Draw('same')
-	for ncomps in binslices.keys():
-		plots[ncomps].Draw('same')
-
-	# grouping lines
-	ymin = canvas.firstPlot.GetMinimum()
-	ymax = canvas.firstPlot.GetMaximum()
-	lines = []
-	bins = [1, 3, 9, 17, 19, 26, 49, 138, 73, 145]
-	for bin_ in bins:
-		lines.append(R.TLine(labels.index(bin_)+1, ymin, labels.index(bin_)+1, ymax))
-		lines[-1].Draw()
-
-	# finish up
-	canvas.finishCanvas()
-	canvas.save('pdfs/BGPatterns_{TYPE}.pdf'.format(TYPE=TYPE))
-	R.SetOwnership(canvas, False)
-
-makePlot(data.HIST)
