@@ -1,3 +1,24 @@
+'''
+Analysis of simhit clusters from Cluster.py
+
+	- clusterMult : number of clusters of simhits in an event
+	- simHitMult  : number of simhits in a cluster
+	- totalSimHit : number of simhits in an event
+	- energy      : summed energy loss of simhits in a cluster
+	- ID          : mode particle ID of simhits in a cluster
+	- nID         : number different particle IDs in a cluster
+	- extraID     : second most common particle ID in a cluster
+	- layer       : cluster layer
+	still to add from other scripts:
+	- radial position
+	- phi position
+	still to add 
+	- z position
+	- width of cluster in strips
+	- width in z ?
+	- sort plots py station
+
+'''
 import os, math, sys
 import numpy as np
 import ROOT as R
