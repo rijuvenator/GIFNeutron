@@ -24,9 +24,6 @@ import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 import Gif.Analysis.BGDigi as BGDigi
 
-MS.F_P5DATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_P5_ALL.root'
-MS.F_RUNGRID = '../datafiles/runlumigrid_ALL'
-MS.F_GAPDATA = '../datafiles/gapdata_ALL'
 RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 
 #### SETUP SCRIPT #####
@@ -80,7 +77,7 @@ def analyze(self, t, PARAMS):
 
 		if DOGAP:
 			# Only after gap BXs
-			size = self.afterGapSize(t.Event_RunNumber, t.Event_BXCrossing, minSize=GAP)
+			size, diff, train = self.getBunchInfo(t.Event_RunNumber, t.Event_BXCrossing, minSize=GAP)
 			if size not in self.COUNTS.keys():
 				self.COUNTS[size] = 0
 			self.COUNTS[size] += 1

@@ -18,7 +18,7 @@ class SimHit(object):
 		self.vol         = args[8]
 		self.fromNeutron = args[9]
 
-f = open('output/fulllog.log')
+f = open('mythologies/fulllog.log')
 simhits = []
 num = re.compile(r'\d')
 arr = re.compile(r'<=')

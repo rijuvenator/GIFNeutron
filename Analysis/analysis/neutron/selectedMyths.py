@@ -3,7 +3,7 @@ import Gif.Analysis.roottools as RT
 import threading, logging, sys
 
 # ==== GET DATA FILE ====
-f = open('shorttracks')
+f = open('shorttracks.log')
 data = {}
 for line in f:
 	if line[0] == '#': continue
