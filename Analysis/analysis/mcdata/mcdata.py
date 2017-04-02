@@ -16,7 +16,7 @@ events must be put in by hand.)
 
 Plots are made for each ring individually.
 
-Usage : python mcdata.py -w -c
+Usage : python mcdata.py
 '''
 import sys, os, argparse
 import numpy as np
@@ -30,14 +30,6 @@ import Gif.Analysis.BGDigi as BGDigi
 import Gif.Analysis.roottools as roottools
 import logging
 R.gROOT.SetBatch(True)
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-w' , '--wire' , action='store_true' , default = False , dest='DOWIRE')
-parser.add_argument('-c' , '--comp' , action='store_true' , default = False , dest='DOCOMP')
-args = parser.parse_args()
-
-DOWIRE = args.DOWIRE
-DOCOMP = args.DOCOMP
 
 RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 ULRINGLIST = [i+'u' for i in RINGLIST] + [i+'l' for i in RINGLIST]
@@ -404,20 +396,18 @@ def doCompCumSep(dataDict,mcDict):
 					canvas.deleteCanvas()
 
 
-if DOWIRE:
-	wireDataDict = dataDict['wire']
-	wireMCDict = mcDict['wire']
-	
-	loadWireData(wireDataDict)
-	loadWireMC(wireMCDict)
-	doWireOcc(wireDataDict,wireMCDict)
+# Make Wire Group Histograms
+wireDataDict = dataDict['wire']
+wireMCDict = mcDict['wire']
+loadWireData(wireDataDict)
+loadWireMC(wireMCDict)
+doWireOcc(wireDataDict,wireMCDict)
 
-if DOCOMP:
-	compDataDict = dataDict['comp']
-	compMCDict = mcDict['comp']
-
-	loadCompData(compDataDict)
-	loadCompMC(compMCDict)
-	doCompOcc(compDataDict,compMCDict)
-	doCompOccSep(compDataDict,compMCDict)
-	doCompCum(compDataDict,compMCDict)
+# Make Comparator Histograms
+compDataDict = dataDict['comp']
+compMCDict = mcDict['comp']
+loadCompData(compDataDict)
+loadCompMC(compMCDict)
+#doCompOcc(compDataDict,compMCDict)
+doCompOccSep(compDataDict,compMCDict) # current comparator occupancy money plot
+#doCompCum(compDataDict,compMCDict)
