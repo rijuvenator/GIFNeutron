@@ -5,7 +5,7 @@ RUNDIR = CMSSW_BASE + 'src/Gif/Analysis/analysis/pattern/'
 
 bash.call('mkdir -p sh', shell=True)
 
-for NUM in xrange(80):
+for NUM in xrange(76):
 	START = NUM*50000
 	END = min(START+49999, 3790593)
 

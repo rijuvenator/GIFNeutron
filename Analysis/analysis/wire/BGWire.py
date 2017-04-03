@@ -23,94 +23,78 @@ import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 import Gif.Analysis.BGDigi as BGDigi
-import logging
-
-logging.basicConfig(filename='eventlist.log',format='%(asctime)s %(message)s')
 
 RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 ULRINGLIST = [i+'u' for i in RINGLIST] + [i+'l' for i in RINGLIST]
 
-#### SETUP SCRIPT #####
-# Output file names
-CONFIG = {
-	'P5'  : 'BGWire_P5_bgdigitest.root',
-}
-# Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
-TYPE, OFN, FDATA, REMAINDER = MS.ParseArguments(CONFIG, extraArgs=True)
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-ng', '--nogap'     , action='store_false' , dest='NOGAP')
-parser.add_argument('-nz', '--nozjetcuts', action='store_false' , dest='NOZJETS')
-parser.add_argument('-f' , '--file'      , default=''           , dest='FILE')
-parser.add_argument('-g' , '--gapsize'   , default=35, type=int , dest='GAP')
-parser.add_argument('-fr', '--findroads' , action='store_true'  , dest='DOROAD')
-args = parser.parse_args(REMAINDER)
-
-DOROAD  = args.DOROAD
-DOGAP   = args.NOGAP
-DOZJETS = args.NOZJETS
-GAP     = args.GAP
-OFN = 'BGWire_P5' + ('' if args.FILE == '' else '_') + args.FILE + '.root'
-if FDATA is not None: FDATA = OFN
-
 ##### IMPLEMENT ANALYZERS #####
-def analyze(self, t, PARAMS):
-	DOGAP = PARAMS[2]
+def loopFunction(self, t, PARAMS):
+	DOGAP   = PARAMS[2]
 	DOZJETS = PARAMS[3]
-	GAP = PARAMS[4]
+	GAP     = PARAMS[4]
+	DOROAD  = PARAMS[5]
+	# Z and jet cuts
+	if DOZJETS:
+		if      t.Z_mass <= 98. and t.Z_mass >= 84.\
+			and t.nJets20 == 0\
+			and t.Z_pT <= 20.:
+			pass
+		else:
+			return
+
+	if DOGAP:
+		# Only after gap BXs
+		size, diff, train = self.getBunchInfo(t.Event_RunNumber, t.Event_BXCrossing, minSize=GAP)
+		if size not in self.COUNTS.keys():
+			self.COUNTS[size] = 0
+		self.COUNTS[size] += 1
+
+		if not size or diff != 1: return
+
+	# Background wire groups
+	if list(t.lct_id) == [] or list(t.wire_id) == []: return
+	E = Primitives.ETree(t, DecList=['LCT','WIRE'])
+	lcts  = [Primitives.LCT (E, i) for i in range(len(E.lct_cham ))]
+	wires = [Primitives.Wire(E, i) for i in range(len(E.wire_cham))]
+
+	bgLCTs, bgWires = BGDigi.getBGWireCandList(lcts,wires)
+	if len(bgLCTs) == 0: return # skip event if no isolated lcts
+	if DOROAD:
+		roadChams = BGDigi.removeDigiRoads(bgWires)
+	else:
+		roadChams = []
+	for lct, half in bgLCTs:
+		nWire = 0.
+		# skip chamber if there's a background track
+		if lct.cham in roadChams and DOROAD: continue
+		cham = CH.Chamber(lct.cham)
+		# FILLLCT
+		self.HISTS[cham.display('{S}{R}')+half]['lct'].Fill(lct.keyWireGroup)
+		self.HISTS[cham.display('{S}{R}')]['lct'].Fill(lct.keyWireGroup)
+		for wire in bgWires:
+			if wire.cham != lct.cham: continue
+			self.HISTS[cham.display('{S}{R}')+half]['time'].Fill(wire.timeBin)
+			if wire.timeBin >= 1 and wire.timeBin <= 5:
+				self.HISTS[cham.display('{S}{R}')+half]['occ'].Fill(wire.number)
+				self.HISTS[cham.display('{S}{R}')]['occ'].Fill(wire.number)
+				nWire += 1
+		self.HISTS[cham.display('{S}{R}')+half]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nWire))
+		self.HISTS[cham.display('{S}{R}')+half]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
+
+
+def analyze(self, t, PARAMS):
+	DOGAP   = PARAMS[2]
+	DOZJETS = PARAMS[3]
+	GAP     = PARAMS[4]
+	DOROAD  = PARAMS[5]
 	Primitives.SelectBranches(t, DecList=['LCT', 'WIRE'], branches=['Event_RunNumber','Event_BXCrossing','Event_LumiSection'])
 	for idx, entry in enumerate(t):
+
+		if idx == 1000: break
+
 		print 'Events    :', idx+1, '\r',
 
-		# Z and jet cuts
-		if DOZJETS:
-			if      t.Z_mass <= 98. and t.Z_mass >= 84.\
-				and t.nJets20 == 0\
-				and t.Z_pT <= 20.:
-				pass
-			else:
-				continue
-
-		if DOGAP:
-			# Only after gap BXs
-			size, diff, train = self.getBunchInfo(t.Event_RunNumber, t.Event_BXCrossing, minSize=GAP)
-			if size not in self.COUNTS.keys():
-				self.COUNTS[size] = 0
-			self.COUNTS[size] += 1
-
-			if size == 0: continue
-
-		#logging.warning('Event '+str(idx))
-
-		# Background wire groups
-		if list(t.lct_id) == [] or list(t.wire_id) == []: continue
-		E = Primitives.ETree(t, DecList=['LCT','WIRE'])
-		lcts  = [Primitives.LCT (E, i) for i in range(len(E.lct_cham ))]
-		wires = [Primitives.Wire(E, i) for i in range(len(E.wire_cham))]
-
-		bgLCTs, bgWires = BGDigi.getBGWireCandList(lcts,wires)
-		if len(bgLCTs) == 0: continue # skip event if no isolated lcts
-		if DOROAD:
-			roadChams = BGDigi.removeDigiRoads(bgWires)
-		else:
-			roadChams = []
-		for lct, half in bgLCTs:
-			nWire = 0.
-			# skip chamber if there's a background track
-			if lct.cham in roadChams and DOROAD: continue
-			cham = CH.Chamber(lct.cham)
-			# FILLLCT
-			self.HISTS[cham.display('{S}{R}')+half]['lct'].Fill(lct.keyWireGroup)
-			self.HISTS[cham.display('{S}{R}')]['lct'].Fill(lct.keyWireGroup)
-			for wire in bgWires:
-				if wire.cham != lct.cham: continue
-				self.HISTS[cham.display('{S}{R}')+half]['time'].Fill(wire.timeBin)
-				if wire.timeBin >= 1 and wire.timeBin <= 5:
-					self.HISTS[cham.display('{S}{R}')+half]['occ'].Fill(wire.number)
-					self.HISTS[cham.display('{S}{R}')]['occ'].Fill(wire.number)
-					nWire += 1
-			self.HISTS[cham.display('{S}{R}')+half]['lumi'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(nWire))
-			self.HISTS[cham.display('{S}{R}')+half]['totl'].Fill(self.lumi(t.Event_RunNumber, t.Event_LumiSection), float(1.   ))
+		loopFunction(self, t, PARAMS)
 
 	self.F_OUT.cd()
 	for ring in ULRINGLIST:
@@ -190,20 +174,6 @@ def setup(self, PARAMS):
 def cleanup(self, PARAMS):
 	print ''
 	pass
-
-##### DECLARE ANALYZERS AND RUN ANALYSIS #####
-R.gROOT.SetBatch(True)
-METHODS = ['analyze', 'load', 'setup', 'cleanup']
-ARGS = {
-	'PARAMS'     : [OFN, TYPE, DOGAP, DOZJETS, GAP],
-	'F_DATAFILE' : FDATA
-}
-if TYPE == 'GIF':
-	ARGS['ATTLIST'] = [float('inf')]
-Analyzer = getattr(MS, TYPE+'Analyzer')
-for METHOD in METHODS:
-	setattr(Analyzer, METHOD, locals()[METHOD])
-data = Analyzer(**ARGS)
 
 ##### MAKEPLOT FUNCTIONS #####
 def makeTimePlot(h, ring):
@@ -318,14 +288,53 @@ def makeLCTPlot(h,ring):
 		canvas.save('pdfs/BGWireLCTOcc_'+ring,['.pdf'])
 		canvas.deleteCanvas()
 
-for ring in ULRINGLIST:
-	makeTimePlot(data.HISTS[ring]['time'], ring)
-	makeLumiPlot(data.HISTS[ring]['lumi'], data.HISTS[ring]['totl'], ring)
-	makeNumDum(data.HISTS[ring]['lumi'], ring, 'nwire')
-	makeNumDum(data.HISTS[ring]['totl'], ring, 'lumi')
-	makeOccPlot(data.HISTS[ring]['occ'], ring)
-	makeLCTPlot(data.HISTS[ring]['lct'], ring)
-for ring in RINGLIST:
-	makeLumiPlotFull(data.HISTS[ring+'u']['lumi'],data.HISTS[ring+'l']['lumi'], data.HISTS[ring+'u']['totl'], data.HISTS[ring+'l']['totl'],ring)
-	makeOccPlot(data.HISTS[ring]['occ'],ring)
-	makeLCTPlot(data.HISTS[ring]['lct'], ring)
+if __name__ == '__main__':
+	#### SETUP SCRIPT #####
+	# Output file names
+	CONFIG = {
+		'P5'  : 'BGWire_P5_bgdigitest_TEST.root',
+	}
+	# Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
+	TYPE, OFN, FDATA, REMAINDER = MS.ParseArguments(CONFIG, extraArgs=True)
+
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-ng', '--nogap'     , action='store_false' , dest='NOGAP')
+	parser.add_argument('-nz', '--nozjetcuts', action='store_false' , dest='NOZJETS')
+	parser.add_argument('-f' , '--file'      , default=''           , dest='FILE')
+	parser.add_argument('-g' , '--gapsize'   , default=35, type=int , dest='GAP')
+	parser.add_argument('-fr', '--findroads' , action='store_true'  , dest='DOROAD')
+	args = parser.parse_args(REMAINDER)
+
+	DOROAD  = args.DOROAD
+	DOGAP   = args.NOGAP
+	DOZJETS = args.NOZJETS
+	GAP     = args.GAP
+	OFN = 'BGWire_P5' + ('' if args.FILE == '' else '_') + args.FILE + '.root'
+	if FDATA is not None: FDATA = OFN
+
+	##### DECLARE ANALYZERS AND RUN ANALYSIS #####
+	R.gROOT.SetBatch(True)
+	METHODS = ['analyze', 'load', 'setup', 'cleanup']
+	ARGS = {
+		'PARAMS'     : [OFN, TYPE, DOGAP, DOZJETS, GAP, DOROAD],
+		'F_DATAFILE' : FDATA
+	}
+	if TYPE == 'GIF':
+		ARGS['ATTLIST'] = [float('inf')]
+	Analyzer = getattr(MS, TYPE+'Analyzer')
+	for METHOD in METHODS:
+		setattr(Analyzer, METHOD, locals()[METHOD])
+	data = Analyzer(**ARGS)
+
+	#### MAKE PLOTS ####
+	for ring in ULRINGLIST:
+		makeTimePlot(data.HISTS[ring]['time'], ring)
+		makeLumiPlot(data.HISTS[ring]['lumi'], data.HISTS[ring]['totl'], ring)
+		makeNumDum(data.HISTS[ring]['lumi'], ring, 'nwire')
+		makeNumDum(data.HISTS[ring]['totl'], ring, 'lumi')
+		makeOccPlot(data.HISTS[ring]['occ'], ring)
+		makeLCTPlot(data.HISTS[ring]['lct'], ring)
+	for ring in RINGLIST:
+		makeLumiPlotFull(data.HISTS[ring+'u']['lumi'],data.HISTS[ring+'l']['lumi'], data.HISTS[ring+'u']['totl'], data.HISTS[ring+'l']['totl'],ring)
+		makeOccPlot(data.HISTS[ring]['occ'],ring)
+		makeLCTPlot(data.HISTS[ring]['lct'], ring)

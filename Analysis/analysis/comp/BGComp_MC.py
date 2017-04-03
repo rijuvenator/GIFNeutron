@@ -27,7 +27,11 @@ import Gif.Analysis.MegaStruct as MS
 # HP Thermal OFF
 #MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_OFF/ana_neutronMC_HPThermalOFF_digi_all.root'
 # HP Thermal ON
-MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON_105k_digi_hack.root'
+#MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON_105k_digi_hack.root'
+# HP Thermal ON, + TOF Hack
+MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_25000_Hack3.root'
+# HP Thermal ON, + TOF Hack, No Short Hack
+#MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_25000_NomTOF.root'
 
 RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 
@@ -38,7 +42,9 @@ CONFIG = {
 	#'MC'  : 'BGComp_MC_XS_OFF.root'
 	#'MC'  : 'BGComp_MC_XS_ON.root'
 	#'MC'  : 'BGComp_MC_HP_OFF.root'
-	'MC'  : 'BGComp_MC_HP_ON.root'
+	#'MC'  : 'BGComp_MC_HP_ON.root'
+	'MC'  : 'BGComp_MC_HP_ON_Hack3.root'
+	#'MC'  : 'BGComp_MC_HP_ON_NomTOF.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
 TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
@@ -55,6 +61,7 @@ def analyze(self, t, PARAMS):
 			cham = CH.Chamber(comp.cham)
 			self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
 			#self.HISTS[cham.display('{S}{R}')]['occ' ].Fill(comp.staggeredHalfStrip)
+			if comp.timeBin < 10: continue
 			self.HISTS[cham.display('{S}{R}')]['occ' ].Fill(comp.halfStrip)
 
 	self.F_OUT.cd()
