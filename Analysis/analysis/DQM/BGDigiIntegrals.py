@@ -10,7 +10,7 @@ import Gif.Analysis.BGDigi as BGDigi
 
 ##### GLOBALS #####
 #MS.F_MCDATA = '$WS/public/Neutron/hacktrees2/hacktree.root'
-MS.F_MCDATA = '$WS/public/Neutron/ana_Neutron_MC_25000_Hack3.root'
+MS.F_MCDATA = '$WS/public/Neutron/ana_Neutron_MC_25000_NomTOF.root'
 RINGLIST  = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 ERINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11', '+12', '+13', '+21', '+22', '+31', '+32', '+41', '+42']
 RINGDICT  = dict(zip(ERINGLIST, range(-9,0) + range(1,10)))
@@ -31,6 +31,9 @@ def setup(self, PARAMS):
 	for name in self.HISTS.keys():
 		self.HISTS[name]['int'] = R.TH1F('h'+name+'int', '', 20, -10, 10)
 		self.HISTS[name]['int'].SetDirectory(0)
+
+		self.HISTS[name]['norm'] = R.TH1F('h'+name+'norm', '', 20, -10, 10)
+		self.HISTS[name]['norm'].SetDirectory(0)
 
 		self.HISTS[name]['BX'] = {}
 		self.HISTS[name]['time'] = {}
@@ -93,6 +96,7 @@ def loopFunction(self, t, PARAMS):
 			# Skip Chamber if there's a background road
 			if lct.cham in roadChams and DOROAD: continue
 			cham = CH.Chamber(lct.cham)
+			self.HISTS['comp']['norm'].Fill(RINGDICT[cham.display('{E}{S}{R}')])
 			for comp in bgComps:
 				if comp.cham!=lct.cham: continue
 				self.HISTS['comp']['rainbow'][cham.display('{S}{R}')].Fill(comp.timeBin, diff)
@@ -113,6 +117,7 @@ def loopFunction(self, t, PARAMS):
 			# skip chamber if there's a background track
 			if lct.cham in roadChams and DOROAD: continue
 			cham = CH.Chamber(lct.cham)
+			self.HISTS['wire']['norm'].Fill(RINGDICT[cham.display('{E}{S}{R}')])
 			for wire in bgWires:
 				if wire.cham != lct.cham: continue
 				self.HISTS['wire']['rainbow'][cham.display('{S}{R}')].Fill(wire.timeBin, diff)
@@ -134,7 +139,7 @@ def loopFunction(self, t, PARAMS):
 
 		for wire in wires:
 			if wire.timeBin < 12: continue
-			cham = CH.Chamber(comp.cham)
+			cham = CH.Chamber(wire.cham)
 			self.HISTS['wire']['int'].Fill(RINGDICT[cham.display('{E}{S}{R}')])
 
 def writeHistos(self, PARAMS):
@@ -142,6 +147,7 @@ def writeHistos(self, PARAMS):
 	self.F_OUT.cd()
 	for name in self.HISTS.keys():
 		self.HISTS[name]['int'].Write()
+		self.HISTS[name]['norm'].Write()
 		for ring in RINGLIST:
 			for timeBin in range(0, 16):
 				self.HISTS[name]['BX'][ring][timeBin].Write()
@@ -158,7 +164,7 @@ def analyze(self, t, PARAMS):
 		Primitives.SelectBranches(t, DecList=['COMP','WIRE'])
 	for idx, entry in enumerate(t):
 	#for idx in xrange(START, END+1)
-		if idx == 1000: break
+		#if idx == 1000: break
 		#t.GetEntry(idx)
 		print 'Events:', idx+1, '\r',
 		loopFunction(self, t, PARAMS)
@@ -174,6 +180,9 @@ def load(self, PARAMS):
 	for name in self.HISTS.keys():
 		self.HISTS[name]['int'] = f.Get('h'+name+'int')
 		self.HISTS[name]['int'].SetDirectory(0)
+
+		#self.HISTS[name]['norm'] = f.Get('h'+name+'norm')
+		#self.HISTS[name]['norm'].SetDirectory(0)
 
 		self.HISTS[name]['BX'] = {}
 		self.HISTS[name]['time'] = {}
@@ -198,7 +207,12 @@ def cleanup(self, PARAMS):
 	print ''
 
 ##### MAKEPLOT FUNCTIONS #####
-def makeIntegralsPlot(h, DIGI, ERINGLIST, RINGDICT):
+def makeIntegralsPlot(hh, n, DIGI, ERINGLIST, RINGDICT):
+	h = hh.Clone()
+	try:
+		h.Divide(n)
+	except:
+		h.Scale(1./n)
 	plot = Plotter.Plot(h, option='hist')
 
 	canvas = Plotter.Canvas(lumi='Background {DIGI} by Ring, {TYPE}'.format(DIGI='Comparators' if DIGI=='comp' else 'Wires', TYPE=TYPE), cWidth=1000)
@@ -260,7 +274,7 @@ def makeTimePlot(h, DIGI, RING, BX):
 	plot.SetFillColor(R.kOrange)
 	plot.setTitles(X='Time Bin', Y='Counts')
 	plot.SetMinimum(0)
-	#plot.SetMaximum(700)
+	plot.SetMaximum(1600)
 
 	canvas.finishCanvas()
 	canvas.save('pdfs/TimeBin_{DIGI}_{RING}_{BX}.pdf'.format(DIGI=DIGI, RING=RING, BX=BX))
@@ -282,7 +296,7 @@ def makeBXPlot(h, DIGI, RING, TB):
 	plot.SetFillColor(R.kOrange)
 	plot.setTitles(X='BX After Gap', Y='Counts')
 	plot.SetMinimum(0)
-	#plot.SetMaximum(1400)
+	plot.SetMaximum(1900)
 
 	canvas.finishCanvas()
 	canvas.save('pdfs/BX_{DIGI}_{RING}_{TB}.pdf'.format(DIGI=DIGI, RING=RING, TB=TB))
@@ -348,7 +362,11 @@ if __name__ == '__main__':
 
 	##### MAKE PLOTS #####
 	for DIGI in data.HISTS.keys():
-		makeIntegralsPlot(data.HISTS[DIGI]['int'], DIGI, ERINGLIST, RINGDICT)
+		if TYPE == 'P5':
+			pass
+			#makeIntegralsPlot(data.HISTS[DIGI]['int'], data.HISTS[DIGI]['norm'], DIGI, ERINGLIST, RINGDICT)
+		elif TYPE == 'MC':
+			makeIntegralsPlot(data.HISTS[DIGI]['int'], 25000, DIGI, ERINGLIST, RINGDICT)
 		if TYPE == 'P5':
 			for RING in RINGLIST:
 				makeRainbowPlot(data.HISTS[DIGI]['rainbow'][RING], DIGI, RING)

@@ -37,11 +37,11 @@ ULRINGLIST = [i+'u' for i in RINGLIST] + [i+'l' for i in RINGLIST]
 dataDict = {
 		'comp': {
 			#'file' : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/comp/BGComp_P5_bgdigitest.root',
-			'file' : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/comp/BGComp_P5_lrTest.root',
+			'file' : '../comp/BGComp_P5.root',
 			'hists' : {},
 		},
 		'wire' : {
-			'file' : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/wire/BGWire_P5_bgdigitest.root',
+			'file' : '../wire/BGWire_P5.root',
 			'hists' : {},
 		}
 }
@@ -52,24 +52,29 @@ mcDict = {
 		#	'nEvts' : 25000.,
 		#	'hists' : {},
 		#},
-		'HP_ThermalON' : {
-			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/comp/BGComp_MC_HP_ON.root',
-			'nEvts' : 102100.,
-			'hists' : {},
-		},
-		'HP_ThermalOFF' : {
-			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/comp/BGComp_MC_HP_OFF.root',
-			'nEvts' : 96250.,
-			'hists' : {},
-		},
-		'XS_ThermalON' : {
-			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/comp/BGComp_MC_XS_ON.root',
-			'nEvts' : 100000.,
-			'hists' : {},
-		},
-		'XS_ThermalOFF' : {
-			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/comp/BGComp_MC_XS_OFF.root',
-			'nEvts' : 99000.,
+#		'HP_ThermalON' : {
+#			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/comp/BGComp_MC_HP_ON.root',
+#			'nEvts' : 102100.,
+#			'hists' : {},
+#		},
+#		'HP_ThermalOFF' : {
+#			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/comp/BGComp_MC_HP_OFF.root',
+#			'nEvts' : 96250.,
+#			'hists' : {},
+#		},
+#		'XS_ThermalON' : {
+#			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/comp/BGComp_MC_XS_ON.root',
+#			'nEvts' : 100000.,
+#			'hists' : {},
+#		},
+#		'XS_ThermalOFF' : {
+#			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/comp/BGComp_MC_XS_OFF.root',
+#			'nEvts' : 99000.,
+#			'hists' : {},
+#		},
+		'DigiHack' : {
+			'file'  : '../comp/BGComp_MC_HP_ON_NomTOF.root',
+			'nEvts' : 25000.,
 			'hists' : {},
 		},
 	},
@@ -79,24 +84,29 @@ mcDict = {
 		#	'nEvts' : 25000.,
 		#	'hists' : {},
 		#},
-		'HP_ThermalON' : {
-			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/wire/BGWire_MC_HP_ON.root',
-			'nEvts' : 102100.,
-			'hists' : {},
-		},
-		'HP_ThermalOFF' : {
-			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/wire/BGWire_MC_HP_OFF.root',
-			'nEvts' : 96250.,
-			'hists' : {},
-		},
-		'XS_ThermalON' : {
-			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/wire/BGWire_MC_XS_ON.root',
-			'nEvts' : 100000.,
-			'hists' : {},
-		},
-		'XS_ThermalOFF' : {
-			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/wire/BGWire_MC_XS_OFF.root',
-			'nEvts' : 100000.,
+#		'HP_ThermalON' : {
+#			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/wire/BGWire_MC_HP_ON.root',
+#			'nEvts' : 102100.,
+#			'hists' : {},
+#		},
+#		'HP_ThermalOFF' : {
+#			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/wire/BGWire_MC_HP_OFF.root',
+#			'nEvts' : 96250.,
+#			'hists' : {},
+#		},
+#		'XS_ThermalON' : {
+#			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/wire/BGWire_MC_XS_ON.root',
+#			'nEvts' : 100000.,
+#			'hists' : {},
+#		},
+#		'XS_ThermalOFF' : {
+#			'file'  : '/afs/cern.ch/user/c/cschnaib/Analysis/analysis/wire/BGWire_MC_XS_OFF.root',
+#			'nEvts' : 100000.,
+#			'hists' : {},
+#		},
+		'DigiHack' : {
+			'file'  : '../wire/BGWire_MC_HP_ON_NomTOF.root',
+			'nEvts' : 25000.,
 			'hists' : {},
 		}
 	},

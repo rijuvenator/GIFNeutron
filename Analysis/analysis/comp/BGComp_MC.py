@@ -29,9 +29,9 @@ import Gif.Analysis.MegaStruct as MS
 # HP Thermal ON
 #MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON_105k_digi_hack.root'
 # HP Thermal ON, + TOF Hack
-MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_25000_Hack3.root'
+#MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_25000_Hack3.root'
 # HP Thermal ON, + TOF Hack, No Short Hack
-#MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_25000_NomTOF.root'
+MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_25000_NomTOF.root'
 
 RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 
@@ -43,8 +43,8 @@ CONFIG = {
 	#'MC'  : 'BGComp_MC_XS_ON.root'
 	#'MC'  : 'BGComp_MC_HP_OFF.root'
 	#'MC'  : 'BGComp_MC_HP_ON.root'
-	'MC'  : 'BGComp_MC_HP_ON_Hack3.root'
-	#'MC'  : 'BGComp_MC_HP_ON_NomTOF.root'
+	#'MC'  : 'BGComp_MC_HP_ON_Hack3.root'
+	'MC'  : 'BGComp_MC_HP_ON_NomTOF.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
 TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)

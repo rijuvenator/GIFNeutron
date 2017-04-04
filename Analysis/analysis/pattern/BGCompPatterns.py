@@ -10,7 +10,7 @@ import Gif.Analysis.BGDigi as BGDigi
 
 #### GLOBALS ####
 #MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON_105k_digi_hack.root'
-MS.F_MCDATA = '../timhits/roots/output25000_HPT_Hack3_1Layer.root'
+MS.F_MCDATA = '../timhits/roots/output25000_HPT_NomTOF_1Layer.root'
 
 DOZJETS = False
 DOGAP   = True
@@ -193,7 +193,7 @@ def analyze(self, t, PARAMS):
 	Primitives.SelectBranches(t, DecList=['LCT','COMP','WIRE'], branches=['Event_RunNumber', 'Event_BXCrossing'])
 	for idx, entry in enumerate(t):
 
-		if idx == 1000: break
+		#if idx == 1000: break
 
 		print 'Events:', idx, '\r',
 
@@ -319,11 +319,63 @@ def makePlot(h):
 		lines.append(R.TLine(labels.index(bin_)+1, ymin, labels.index(bin_)+1, ymax))
 		lines[-1].Draw()
 
+	# patterns instead of bin labels; set to False if this is not desired
+	if True:
+		def drawPattern(bin_, label):
+			# This is approximately square. To Do: set the Y limits
+			# based on how wide the X limits are in pixels
+			X1, X2 = bin_+0.1, bin_+1-0.1
+			Y1, Y2 = 0.025   , 0.08
+
+			# Here's the magic. Distribute the edges of the boxes...
+			# linearly in x and logarithmically in y
+			xedges = np.linspace(X1, X2, 4)
+			yedges = np.logspace(np.log10(Y1), np.log10(Y2), 4)
+
+			# Now I just have to define the x1, x2, y1, y2 for each bit box
+			bitdict = {
+				0: (xedges[0], xedges[1], yedges[2], yedges[3]),
+				1: (xedges[1], xedges[2], yedges[2], yedges[3]),
+				2: (xedges[2], xedges[3], yedges[2], yedges[3]),
+				3: (xedges[0], xedges[1], yedges[1], yedges[2]),
+				4: (xedges[1], xedges[2], yedges[1], yedges[2]),
+				5: (xedges[2], xedges[3], yedges[1], yedges[2]),
+				6: (xedges[0], xedges[1], yedges[0], yedges[1]),
+				7: (xedges[1], xedges[2], yedges[0], yedges[1]),
+				8: (xedges[2], xedges[3], yedges[0], yedges[1]),
+			}
+
+			# and then this function is trivial
+			def drawBox(bit):
+				x1, x2, y1, y2 = bitdict[bit]
+				B = R.TBox(x1, y1, x2, y2)
+				B.SetLineWidth(1)
+				B.SetLineColor(R.kWhite)
+				B.SetFillColor(R.kRed)
+				B.Draw('l')
+				return B
+
+			# and this function is also trivial
+			ret = []
+			for bit in bitdict:
+				if label & (1<<bit): # check if bit is on
+					ret.append(drawBox(bit))
+			return ret
+
+		# clear the labels and the axis title and replace them with patterns
+		# maintain references to boxes until they are no longer needed
+		dummy = []
+		canvas.firstPlot.GetXaxis().SetTitle('')
+		for bin_, label in enumerate(labels):
+			canvas.firstPlot.GetXaxis().SetBinLabel(bin_+1, '')
+			dummy.extend(drawPattern(bin_, label))
+
 	# finish up
 	canvas.finishCanvas('BOB')
 	canvas.save('pdfs/BGPatterns_{TYPE}.pdf'.format(TYPE=TYPE))
 	R.SetOwnership(canvas, False)
 
+##### MAIN CODE #####
 if __name__ == '__main__':
 	#### SETUP SCRIPT #####
 	# Output file names
