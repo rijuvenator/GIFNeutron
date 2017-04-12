@@ -9,7 +9,7 @@ def printPattern(pattern):
 	ON = '\033['+str(COLOR)+'m  \033[m'
 	OFF= '  '
 	# e.g. 4: 0b100 -> 100 -> 000000100 -> 001000000 -> [001],[000],[000]
-	bitstring = list('{:0>9s}'.format(bin(pattern)[2:]))[::-1]
+	bitstring = list('{0:0>9s}'.format(bin(pattern)[2:]))[::-1]
 	output = [[ON if i=='1' else OFF for i in bitstring[b:b+3]] for b in (0, 3, 6)]
 	for line in output:
 		print ''.join(line)
