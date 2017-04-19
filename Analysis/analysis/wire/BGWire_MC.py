@@ -20,22 +20,22 @@ import Gif.Analysis.MegaStruct as MS
 #MS.F_MCDATA = '/afs/cern.ch/user/c/cschnaib/Analysis/trees_mc/ana_neutronMC.root'
 
 # XS Thermal OFF
-#MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_OFF/ana_neutronMC_XS_Thermal_OFF.root'
+MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_OFF/ana_neutronMC_XS_Thermal_OFF.root'
 # XS Thermal ON
 #MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_ON/ana_neutronMC_XS_ThermalON.root'
 # HP Thermal OFF
 #MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_OFF/ana_neutronMC_HPThermalOFF_digi_all.root'
 # HP Thermal ON
-MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON_105k_digi_hack.root'
+#MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON_105k_digi_hack.root'
 RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 
 #### SETUP SCRIPT #####
 # Output file names
 CONFIG = {
-	#'MC'  : 'BGWire_MC_XS_OFF.root'
-	#'MC'  : 'BGWire_MC_XS_ON.root'
-	#'MC'  : 'BGWire_MC_HP_OFF.root'
-	'MC'  : 'BGWire_MC_HP_ON.root'
+	'MC'  : 'BGWire_MC_XS_OFF_EC.root'
+	#'MC'  : 'BGWire_MC_XS_ON_EC.root'
+	#'MC'  : 'BGWire_MC_HP_OFF_EC.root'
+	#'MC'  : 'BGWire_MC_HP_ON_EC.root'
 }
 # Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
 TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
@@ -50,24 +50,28 @@ def analyze(self, t, PARAMS):
 
 		for wire in wires:
 			cham = CH.Chamber(wire.cham)
+			self.HISTS[cham.display('{E}{S}{R}')]['time'].Fill(wire.timeBin)
+			self.HISTS[cham.display('{E}{S}{R}')]['occ' ].Fill(wire.number)
 			self.HISTS[cham.display('{S}{R}')]['time'].Fill(wire.timeBin)
 			self.HISTS[cham.display('{S}{R}')]['occ' ].Fill(wire.number)
 
 	self.F_OUT.cd()
 	for ring in RINGLIST:
-		self.HISTS[ring]['time'].Write()
-		self.HISTS[ring]['occ' ].Write()
+		for E in ['+','-','']:
+			self.HISTS[E+ring]['time'].Write()
+			self.HISTS[E+ring]['occ' ].Write()
 
 def load(self, PARAMS):
 	f = R.TFile.Open(self.F_DATAFILE)
 	self.HISTS = {}
 	for ring in RINGLIST:
-		self.HISTS[ring] = {
-			'time' : f.Get('t'+ring),
-			'occ'  : f.Get('o'+ring),
-		}
-		self.HISTS[ring]['time'].SetDirectory(0)
-		self.HISTS[ring]['occ' ].SetDirectory(0)
+		for E in ['+','-','']:
+			self.HISTS[E+ring] = {
+				'time' : f.Get('t'+E+ring),
+				'occ'  : f.Get('o'+E+ring),
+			}
+			self.HISTS[E+ring]['time'].SetDirectory(0)
+			self.HISTS[E+ring]['occ' ].SetDirectory(0)
 
 def setup(self, PARAMS):
 	FN = PARAMS[0]
@@ -75,13 +79,14 @@ def setup(self, PARAMS):
 	self.F_OUT.cd()
 	self.HISTS = {}
 	for ring in RINGLIST:
-		cham = CH.Chamber(CH.serialID(1, int(ring[0]), int(ring[1]), 1))
-		self.HISTS[ring] = {
-			'time': R.TH1F('t'+ring, '', 10, 0., 10.),
-			'occ' : R.TH1F('o'+ring, '', cham.nwires+10, 0., cham.nwires+10),
-		}
-		self.HISTS[ring]['time'].SetDirectory(0)
-		self.HISTS[ring]['occ' ].SetDirectory(0)
+		for E in ['+','-','']:
+			cham = CH.Chamber(CH.serialID(1, int(ring[0]), int(ring[1]), 1))
+			self.HISTS[E+ring] = {
+				'time': R.TH1F('t'+E+ring, '', 10, 0., 10.),
+				'occ' : R.TH1F('o'+E+ring, '', cham.nwires+10, 0., cham.nwires+10),
+			}
+			self.HISTS[E+ring]['time'].SetDirectory(0)
+			self.HISTS[E+ring]['occ' ].SetDirectory(0)
 
 def cleanup(self, PARAMS):
 	pass
@@ -109,6 +114,6 @@ def makePlot(hist, ring, tag):
 	canvas.finishCanvas()
 	canvas.save('pdfs/BGWireMC'+tag+'_'+ring+'.pdf')
 
-for ring in RINGLIST:
-	makePlot(data.HISTS[ring]['time'], ring, 'time')
-	makePlot(data.HISTS[ring]['occ' ], ring, 'occ' )
+#for ring in RINGLIST:
+#	makePlot(data.HISTS[ring]['time'], ring, 'time')
+#	makePlot(data.HISTS[ring]['occ' ], ring, 'occ' )

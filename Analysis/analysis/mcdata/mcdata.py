@@ -31,7 +31,7 @@ import Gif.Analysis.roottools as roottools
 import logging
 R.gROOT.SetBatch(True)
 
-RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
+ERINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 ULRINGLIST = [i+'u' for i in RINGLIST] + [i+'l' for i in RINGLIST]
 
 dataDict = {
@@ -395,6 +395,73 @@ def doCompCumSep(dataDict,mcDict):
 					canvas.save('pdfs/BGCompCum_DataMC_'+ring+('_logy_' if logy else '_')+itype+'_'+mcType,['.pdf'])
 					canvas.deleteCanvas()
 
+def digiIntegrals(mcDict,dataDict,DIGI):
+	''' Plot per BX chamber digi integrals
+		- Takes l/r and u/l digi data histograms, normalizes them individually, then 
+		  integrates them individually and sums them up
+		- Integrates normalized MC digi histograms
+		- Plots data on top of MC
+	'''
+	for mcType in mcDict.keys():
+		dataIntHist = R.TH1F('h'+name+'int', '', 20, -10, 10)
+		mcIntHist = R.TH1F('h'+name+'int', '', 20, -10, 10)
+		ERINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', 
+						'+11', '+12', '+13', '+21', '+22', '+31', '+32', '+41', '+42']
+		RINGDICT  = dict(zip(ERINGLIST, range(-9,0) + range(1,10)))
+		for LOGY in [True,False]:
+			for RING in ERINGLIST:
+				SUMdata = 0.
+				SUMmc = 0.
+				if DIGI=='comp':
+					HALVES = ['l','r']
+				else:
+					HALVES = ['u','l']
+				for HALF in HALVES:
+					# Gather data histograms
+					dataHist = dataDict['hists'][RING+HALF]['occ'].Clone()
+					dataHist.Sumw2()
+					lctDataHist = dataDict['hists'][RING+HALF]['lct'].Clone()
+					lctDataHist.Sumw2()
+					# Divide digi occupancy histograms by the number of times
+					# we "looked" in a RING and counted background digis
+					dataHist.Scale(1./lctDataHist.Integral() if lctDataHist.GetEntries() > 0 else 0.)
+					# Sum up halves
+					SUMdata += dataHist.Integral()
+
+					# Gather MC histograms
+					mcHist = mcDict[mcType]['hists'][RING]['occ'].Clone()
+					# Divide MC comp group occupancy by the number of MC events 
+					# generated (i.e. number of evts used to fill original histogram)
+					mcHist.Scale(1./mcDict[mcType]['nEvts'])
+					# Sum up halves
+					SUMmc += mcHist.Integral()
+
+				dataIntHist.SetBinContent(RINGDICT[RING],SUMdata)
+				mcIntHist.SetBinContent(RINGDICT[RING],SUMmc)
+
+			dataPlot = Plotter.Plot(dataIntHist, option='P')
+			mcPlot = Plotter.Plot(mcIntHist, option='HIST')
+			title = 'Background {DIGI} by Ring, {TYPE}'.format(DIGI='Comparators' if DIGI=='comp' else 'Wires', TYPE=TYPE)
+			canvas = Plotter.Canvas(lumi=title, logy=LOGY, cWidth=1000)
+			canvas.addMainPlot(dataPlot)
+			canvas.addMainPlot(mcPlot)
+			canvas.makeTransparent()
+			h.GetXaxis().SetRangeUser(-9,10)
+			for RING in ERINGLIST:
+				bin_ = RINGDICT[RING] + 11
+				h.GetXaxis().SetBinLabel(bin_, RING.replace('-','#minus'))
+			mcPlot.SetLineColor(0)
+			mcPlot.SetFillColor(R.kOrange)
+			canvas.firstPlot.scaleLabels(1.25, 'X')
+			canvas.firstPlot.setTitles(X='CSC Ring', Y='Counts')
+			canvas.firstPlot.SetMinimum(0)
+			canvas.finishCanvas()
+			canvas.save('pdfs/Integral_{DIGI}.pdf'.format(DIGI=DIGI))
+			R.SetOwnership(canvas, False)
+			canvas.deleteCanvas()
+
+##########################################################################
+# Do stuff:
 
 # Make Wire Group Histograms
 wireDataDict = dataDict['wire']
