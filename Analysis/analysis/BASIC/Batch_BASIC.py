@@ -1,4 +1,4 @@
-import os
+import sys, os
 import numpy as np
 import ROOT as R
 import Gif.Analysis.Primitives as Primitives
@@ -7,55 +7,56 @@ import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 import Gif.Analysis.BGDigi as BGDigi
-from BGDigiIntegrals import setup, loopFunction, writeHistos, RINGLIST, ERINGLIST, RINGDICT, DOZJETS, DOROAD, DOGAP, GAP
 
-##### FUNCTIONS #####
-# runs before file loop; open a file, declare a hist dictionary
-# def setup(self, PARAMS):
+########################################################
+# Batch version of an analyzer, uses GetEntry instead  #
+# Imports setup, cleanup, and analysis loopFunction    #
+from BASIC import setup, cleanup, loopFunction         #
+# Adds extra parameters to handle file parallelization #
+# Should not implement loading or plotter functions    #
+########################################################
 
-# once per file
+#########################
+## IMPLEMENT ANALYZERS ##
+#########################
+
+# analysis function; runs once per tree
 def analyze(self, t, PARAMS):
-	TYPE = PARAMS['TYPE']
-	START = PARAMS['START']
-	END = PARAMS['END']
-	if TYPE == 'P5':
-		Primitives.SelectBranches(t, DecList=['LCT','COMP','WIRE'], branches=['Z_mass','Z_pT','nJets20', 'Event_RunNumber', 'Event_BXCrossing'])
-#	elif TYPE == 'MC':
-#		Primitives.SelectBranches(t, DecList=['COMP','WIRE'])
-	#for idx, entry in enumerate(t):
+	START, END = PARAMS[2], PARAMS[3]
+	#Primitives.SelectBranches(t, DecList=[], branches=['*'])
 	for idx in xrange(START, END+1):
-		#if idx == 1000: break
-		t.GetEntry(idx)
 		#print 'Events:', idx+1, '\r',
+		t.GetEntry(idx)
 		loopFunction(self, t, PARAMS)
 
-	writeHistos(self, PARAMS)
+	self.F_OUT.cd()
+	#self.HISTS[].Write()
 
-# if file is already made
+# load function; loads the file specified in config instead of running analysis
 def load(self, PARAMS):
 	pass
 
-def cleanup(self, PARAMS):
-	pass
-	#print ''
+########################
+##  MAIN MODULE CODE  ##
+########################
 
-##### ACTUAL CODE TO RUN #####
 if __name__ == '__main__':
 	#### SETUP SCRIPT #####
 	# Output file names
 	CONFIG = {
-		'P5'  : 'Integrals_P5.root',
+		'GIF' : 'BASIC_GIF.root',
+		'P5'  : 'BASIC_P5.root',
+		'MC'  : 'BASIC_MC.root'
 	}
 	# Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
 	TYPE, OFN, FDATA, REMAINDER = MS.ParseArguments(CONFIG, extraArgs=True)
 
-	NUM = REMAINDER[0]
+	# Batch specific parameters
+	NUM   = REMAINDER[0]
 	START = int(REMAINDER[1])
-	END = int(REMAINDER[2])
-
+	END   = int(REMAINDER[2])
 	OFN = OFN.replace('.root', '_'+NUM+'.root')
 	FDATA = OFN if FDATA is not None else None
-
 	if FDATA is not None:
 		print 'Use the other script!!'
 		exit()
@@ -64,21 +65,11 @@ if __name__ == '__main__':
 	R.gROOT.SetBatch(True)
 	METHODS = ['analyze', 'load', 'setup', 'cleanup']
 	ARGS = {
-		'PARAMS' : {
-			'OFN':OFN,
-			'TYPE':TYPE,
-			'DOZJETS':DOZJETS,
-			'DOROAD':DOROAD,
-			'DOGAP':DOGAP,
-			'GAP':GAP,
-			'RINGLIST':RINGLIST,
-			'RINGDICT':RINGDICT,
-			'START':START,
-			'END':END
-		},
-
+		'PARAMS'     : [OFN, TYPE, START, END],
 		'F_DATAFILE' : FDATA
 	}
+	if TYPE == 'GIF':
+		ARGS['ATTLIST'] = [float('inf')]
 	Analyzer = getattr(MS, TYPE+'Analyzer')
 	for METHOD in METHODS:
 		setattr(Analyzer, METHOD, locals()[METHOD])

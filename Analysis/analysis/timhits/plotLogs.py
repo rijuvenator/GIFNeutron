@@ -107,16 +107,18 @@ if FILETYPE == 'LOG':
 
 	if SPLITNODIGI:
 		SNDTAGS = {
-			'DS-HD' : ('X' ,),    # hist : Delta S Has Digi
-			'DS-ND' : ('X' ,),    # hist : Delta S No Digi
-			'EG-HD' : ('E' ,),    # hist : Energy GEANT Has Digi
-			'EG-ND' : ('E' ,),    # hist : Energy GEANT No Digi
-			'ET-HD' : ('E' ,),    # hist : Energy Tim Has Digi
-			'ET-ND' : ('E' ,),    # hist : Energy Tim No Digi
-			'NIC-HD': ('N' ,),    # hist : NIC Has Digi
-			'NIC-ND': ('N' ,),    # hist : NIC No Digi
-			'NIE-HD': ('N' ,),    # hist : NIE Has Digi
-			'NIE-ND': ('N' ,),    # hist : NIE No Digi
+			'DS-HD' : ('X' ,),     # hist : Delta S Has Digi
+			'DS-ND' : ('X' ,),     # hist : Delta S No Digi
+			'EG-HD' : ('E' ,),     # hist : Energy GEANT Has Digi
+			'EG-ND' : ('E' ,),     # hist : Energy GEANT No Digi
+			'ET-HD' : ('E' ,),     # hist : Energy Tim Has Digi
+			'ET-ND' : ('E' ,),     # hist : Energy Tim No Digi
+			'NIC-HD': ('N' ,),     # hist : NIC Has Digi
+			'NIC-ND': ('N' ,),     # hist : NIC No Digi
+			'NIE-HD': ('N' ,),     # hist : NIE Has Digi
+			'NIE-ND': ('N' ,),     # hist : NIE No Digi
+			'TOF-HD': ('T','',''), # hist : TOF
+			'TOF-ND': ('T','',''), # hist : TOF
 		}
 		TAGS.update(SNDTAGS)
 
@@ -186,6 +188,7 @@ if FILETYPE == 'LOG':
 				h['ET-HD' ].Fill(simhit.ELossT)
 				h['NIC-HD'].Fill(simhit.NIC   )
 				h['NIE-HD'].Fill(simhit.NIC   )
+				h['TOF-HD'].Fill(simhit.TOF   )
 			else:
 				print 0, simhit.Event, simhit.Cham.id
 				h['DS-ND' ].Fill(simhit.DeltaS)
@@ -193,6 +196,7 @@ if FILETYPE == 'LOG':
 				h['ET-ND' ].Fill(simhit.ELossT)
 				h['NIC-ND'].Fill(simhit.NIC   )
 				h['NIE-ND'].Fill(simhit.NIC   )
+				h['TOF-ND'].Fill(simhit.TOF   )
 
 		if simhit.PID not in PID:
 			PID[simhit.PID] = 0
@@ -229,7 +233,7 @@ def StandardPlot(TAG, LUMI, XAXIS, FN):
 	canvas.addMainPlot(plot)
 	plot.setTitles(X=XAXIS, Y='Counts')
 	canvas.makeTransparent()
-	canvas.mainPad.SetLogx(True)
+	if 'TOF' in TAG: canvas.mainPad.SetLogx(True)
 	canvas.finishCanvas('BOB')
 	canvas.save('pdfs/'+FN)
 	R.SetOwnership(canvas, False)
@@ -368,3 +372,5 @@ if SPLITNODIGI:
 	StandardPlot('EG-ND' , 'Energy Loss, No Digis (GEANT)'           , 'Energy Loss [keV]'             , 'Energy_NoDigi_GEANT.pdf' )
 	StandardPlot('ET-HD' , 'Energy Loss, Has Digis (CSCDigitizer)'   , 'Energy Loss [keV]'             , 'Energy_HasDigi_Tim.pdf'  )
 	StandardPlot('ET-ND' , 'Energy Loss, No Digis (CSCDigitizer)'    , 'Energy Loss [keV]'             , 'Energy_NoDigi_Tim.pdf'   )
+	StandardPlot('TOF-HD', 'Time of Flight, Has Digis'               , 'Time of Flight [ns]'           , 'TOF_HasDigi.pdf'         )
+	StandardPlot('TOF-ND', 'Time of Flight, No Digis'                , 'Time of Flight [ns]'           , 'TOF_NoDigi.pdf'          )

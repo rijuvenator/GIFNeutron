@@ -47,7 +47,7 @@ class Chamber():
 				self.chamber = serial - (limits[0] - 1)
 				break
 
-	def display(self, fstring='ME{S}/{R}/{C}'):
+	def display(self, fstring='ME{E}{S}/{R}/{C}'):
 		fstring = fstring.replace('{E}','{endcap:1s}'  )
 		fstring = fstring.replace('{S}','{station:1d}' )
 		fstring = fstring.replace('{R}','{ring:1d}'    )
