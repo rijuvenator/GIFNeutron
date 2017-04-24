@@ -67,8 +67,8 @@ f = R.TFile.Open('Flat7.root')
 RINGLIST = ('11', '12', '13', '21', '22', '31', '32', '41', '42')
 def Flat7(ring, digi, half, norm=True):
 	print ring, digi, half
-	h = f.Get('E+_R{RING}_D{DIGI}_H{HALF}_T7_ND_ALU'.format(RING=ring, DIGI=digi, HALF=half)).Clone()
-	h.Add(f.Get('E-_R{RING}_D{DIGI}_H{HALF}_T7_ND_ALU'.format(RING=ring, DIGI=digi, HALF=half)))
+	h = f.Get('E+_R{RING}_D{DIGI}_H{HALF}_T{FLAT}_ND_ALU'.format(RING=ring, DIGI=digi, HALF=half, FLAT=7 if digi=='comp' else 8)).Clone()
+	h.Add(f.Get('E-_R{RING}_D{DIGI}_H{HALF}_T{FLAT}_ND_ALU'.format(RING=ring, DIGI=digi, HALF=half, FLAT=7 if digi=='comp' else 8)))
 	if norm:
 		l = f.Get('E+_R{RING}_D{DIGI}_H{HALF}_NL_ALU'.format(RING=ring, DIGI=digi, HALF=half)).Clone()
 		l.Add(f.Get('E-_R{RING}_D{DIGI}_H{HALF}_NL_ALU'.format(RING=ring, DIGI=digi, HALF=half)))

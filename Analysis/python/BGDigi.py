@@ -265,3 +265,23 @@ def removeDigiRoads(digis):
 		#		   comps.remove(comp)
 
 
+def getDigiCandListGIF(lcts, comps):
+	import Gif.Analysis.Auxiliary as Aux
+
+	bgLCTs, bgComps = [], []
+
+	lctchams = [lct.cham for lct in lcts]
+	twolcts = list(set([cham for cham in lctchams if lctchams.count(cham)>1]))
+	for lct in lcts:
+		if lct.cham in twolcts: continue
+		if not Aux.inPad(lct.keyHalfStrip, lct.keyWireGroup, lct.cham): continue
+		bgLCTs.append(lct)
+		for comp in comps:
+			if comp.cham != lct.cham: continue
+			if comp.timeBin > 6: continue
+			if comp.staggeredHalfStrip <= Aux.SCINT[lct.cham]['HS'][0]-8 or \
+			   comp.staggeredHalfStrip >= Aux.SCINT[lct.cham]['HS'][1]+8:
+				bgComps.append(comp)
+
+	return bgLCTs, bgComps
+

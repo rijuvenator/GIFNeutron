@@ -25,7 +25,7 @@ import array
 
 # analysis function; runs once per tree
 def analyze(self, t, PARAMS):
-	#Primitives.SelectBranches(t, DecList=[], branches=['*'])
+	Primitives.SelectBranches(t, DecList=['LCT', 'COMP', 'WIRE'], branches=['Event_RunNumber','Event_BXCrossing','Event_LumiSection'])
 	for idx, entry in enumerate(t):
 		print 'Events:', idx+1, '\r',
 		loopFunction(self, t, PARAMS)
@@ -54,7 +54,7 @@ def loopFunction(self, t, PARAMS):
 	E = Primitives.ETree(t, DecList=['LCT','COMP','WIRE'])
 	lcts  = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham ))]
 	comps = [Primitives.Comp   (E, i) for i in range(len(E.comp_cham))]
-	wires = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham))]
+	wires = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham)) if E.wire_cham[i] != 140]
 
 	LUMI = self.lumi(t.Event_RunNumber, t.Event_LumiSection)
 

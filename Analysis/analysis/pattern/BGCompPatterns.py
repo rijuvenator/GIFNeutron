@@ -10,7 +10,8 @@ import Gif.Analysis.BGDigi as BGDigi
 
 #### GLOBALS ####
 #MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON_105k_digi_hack.root'
-MS.F_MCDATA = '../timhits/roots/output25000_HPT_NomTOF_1Layer.root'
+#MS.F_MCDATA = '../timhits/roots/output25000_HPT_NomTOF_1Layer.root'
+MS.F_MCDATA = '../timhits/roots/output102100_HPT_NomTOF_1Layer.root'
 
 DOZJETS = False
 DOGAP   = True
@@ -165,21 +166,22 @@ def loopFunction(self, t, TYPE):
 		lcts  = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham ))]
 		comps = [Primitives.Comp   (E, i) for i in range(len(E.comp_cham))]
 
-		bgLCTs,oppHalfComps = BGDigi.getBGCompCandList(lcts,comps)
+		bgLCTs,oppHalfComps = BGDigi.getDigiCandListGIF(lcts,comps)
 		if len(bgLCTs)==0: return # skip event if there were no isolated LCTs
 
-		#if DOROAD:
-		#	roadChams = BGDigi.removeDigiRoads(oppHalfComps)
-		#else:
-		#	roadChams = []
+		if DOROAD:
+			roadChams = BGDigi.removeDigiRoads(oppHalfComps)
+		else:
+			roadChams = []
 
-		for lct, half in bgLCTs:
+		for lct in bgLCTs:
 			# Skip Chamber if there's a background road
-			#if lct.cham in roadChams and DOROAD: continue
+			if lct.cham in roadChams and DOROAD: continue
 			cham = CH.Chamber(lct.cham)
 
 			# Make clusters from remaining comps and compute PIDs
-			complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and comp.timeBin <= 5 and comp.timeBin >= 1]
+			#complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and comp.timeBin <= 5 and comp.timeBin >= 1]
+			complist = [comp for comp in oppHalfComps if comp.cham == lct.cham]
 			if complist != []:
 				cc = ClusterCollection(complist)
 				for cluster in cc.ClusterList:
@@ -280,7 +282,7 @@ def makePlot(h):
 	canvas.firstPlot.scaleTitleOffsets(0.6, 'Y')
 	canvas.firstPlot.SetMaximum(10**math.ceil(math.log(canvas.firstPlot.GetMaximum(),10)) - 1)
 	canvas.firstPlot.SetMinimum(10**-1 + 0.0001)
-	canvas.firstPlot.SetMaximum(10**4)
+	canvas.firstPlot.SetMaximum(1*(10**4))
 	#canvas.firstPlot.SetMinimum(10**-1)
 
 	# move legend
@@ -398,7 +400,7 @@ if __name__ == '__main__':
 	}
 	if TYPE == 'GIF':
 		#ARGS['ATTLIST'] = [float('inf')]
-		ARGS['ATTLIST'] = [4.6]
+		ARGS['ATTLIST'] = [330]
 	Analyzer = getattr(MS, TYPE+'Analyzer')
 	for METHOD in METHODS:
 		setattr(Analyzer, METHOD, locals()[METHOD])
