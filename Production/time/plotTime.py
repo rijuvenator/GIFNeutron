@@ -1,100 +1,97 @@
 import ROOT as R
 import numpy as np
 
-R.gROOT.SetBatch(True)
-R.gStyle.SetOptStat("emr")
-R.gStyle.SetTitleBorderSize(0)
-R.gStyle.SetPadTickX(1)
-R.gStyle.SetPadTickY(1)
-R.gStyle.SetTitleW(0.99)
-R.gStyle.SetTitleH(0.05)
-R.gStyle.SetTitleFont(42,'')
-R.gStyle.SetTitleFont(42,'XYZ')
-R.gStyle.SetTitleFontSize(0.04)
-R.gStyle.SetTitleFontSize(0.04)
-R.gStyle.SetLabelFont(42, 'XYZ')
-R.gStyle.SetLabelSize(0.04, 'XYZ')
+mcTypes = ['HP_ThermalON','HP_ThermalOFF','XS_ThermalON']#,'XS_ThermalOFF]
+
+timeTypes = ['MinEventTimeSummary','MaxEventTimeSummary','AvgEventTimeSummary',
+		'TotalJobTimeSummary','TotalLoopTimeSummary','TotalLoopCPUTimeSummary',
+		'TotalJobCPUTimeSummary','CrabUserCpuTime','ExeTime',
+		'EventThoroughput']
+
+fileDict = {mcType:{} for mcType in mcTypes}
+for mcType in fileDict.keys():
+	fileDict[mcType] = {
+		'MinEventTimeSummary'     :{
+			'data':'data/'+mcType+'/MinEventTimeSummary',
+			'hist':R.TH1F(mcType+'_MinEventTimeSummary',''    ,100,0,20000),
+		}
+		'MaxEventTimeSummary'     :{
+			'data':'data/'+mcType+'/MaxEventTimeSummary',
+			'hist':R.TH1F(mcType+'_MaxEventTimeSummary',''    ,100,0,20000),
+		}
+		'AvgEventTimeSummary'     :{
+			'data':'data/'+mcType+'/AvgEventTimeSummary',
+			'hist':R.TH1F(mcType+'_AvgEventTimeSummary',''    ,100,0,1000),
+		}
+		'TotalJobTimeSummary'     :{
+			'data':'data/'+mcType+'/TotalJobTimeSummary',
+			'hist':R.TH1F(mcType+'_TotalJobTimeSummary',''    ,100,0,100000),
+		}
+		'TotalLoopTimeSummary'    :{
+			'data':'data/'+mcType+'/TotalLoopTimeSummary',
+			'hist':R.TH1F(mcType+'_TotalLoopTimeSummary',''   ,100,0,100000),
+		}
+		'TotalJobCPUTimeSummary'  :{
+			'data':'data/'+mcType+'/TotalJobCPUTimeSummary',
+			'hist':R.TH1F(mcType+'_TotalJobCPUTimeSummary','' ,100,0,100000),
+		}
+		'TotalLoopCPUTimeSummary' :{
+			'data':'data/'+mcType+'/TotalLoopCPUTimeSummary',
+			'hist':R.TH1F(mcType+'_TotalLoopCPUTimeSummary','',100,0,100000),
+		}
+		'CrabUserCpuTime'         :{
+			'data':'data/'+mcType+'/CrabUserCpuTime',
+			'hist':R.TH1F(mcType+'_CrabUserCpuTime',''        ,100,0,100000),
+		}
+		'ExeTime'                 :{
+			'data':'data/'+mcType+'/ExeTime',
+			'hist':R.TH1F(mcType+'_ExeTime',''                ,100,0,100000),
+		}
+		'EventThoroughput'        :{
+			'data':'data/'+mcType+'/EventThoroughput',
+			'hist':R.TH1F(mcType+'_EventThoroughput','',      ,100,0,1),
+		}
+	}
+
+for mcType in fileDict.keys():
+	for timeType in fileDict[mcType].keys():
+		for l,line in fileDict[mcType][timeType]['data']:
+			time = float(line.strip('\n'))
+			fileDict[mcType][timeType]['hist'].Fill(time)
 
 
-fileDict = {
-		'MinEventTimeSummary':{
-			'title':'Minimum Event Time',
-			'bins':100,
-			'min':0,
-			'max':11000,
-			},
-		'MaxEventTimeSummary':{
-			'title':'Maximum Event Time',
-			'bins':100,
-			'min':0,
-			'max':11000,
-			},
-		'AvgEventTimeSummary':{
-			'title':'Average Event Time',
-			'bins':100,
-			'min':0,
-			'max':3000,
-			},
-		'TotalJobTimeSummary':{
-			'title':'Time Summary Total Job',
-			'bins':100,
-			'min':0,
-			'max':80000,
-			},
-		'TotalLoopTimeSummary':{
-			'title':'Time Summary Total Loop',
-			'bins':100,
-			'min':0,
-			'max':80000,
-			},
-		'TotalJobCPUSummary':{
-			'title':'CPU Summary Total Job',
-			'bins':100,
-			'min':0,
-			'max':80000,
-			},
-		'TotalLoopCPUSummary':{
-			'title':'CPU Summary Total Loop',
-			'bins':100,
-			'min':0,
-			'max':80000,
-			},
-		'CrabUserCpuTime':{
-			'title':'CRAB User CPU Time',
-			'bins':100,
-			'min':0,
-			'max':80000,
-			},
-		'ExeTime':{
-			'title':'CRAB ExeTime',
-			'bins':100,
-			'min':0,
-			'max':80000,
-			},
-}
+for timeType in timeTypes:
+	hist1 = fileDict['XS_ThermalON'][timeType]['hist']
+	hist1.SetLineColor(R.kGreen)
+	plot1 = Plotter.Plot(hist1,legName='XS Thermal ON',option='hist')
 
-for timeFileName in fileDict.keys():
-	print timeFileName
-	timeFile = open('data/'+timeFileName)
+	#hist2 = fileDict['XS_ThermalOFF'][timeType]['hist']
+	#hist2.SetLineColor(R.kBlue)
+	#plot2 = Plotter.Plot(hist2,legName='XS Thermal OFF',,option='hist')
 
-	timeHist = R.TH1F('h'+timeFileName,'',fileDict[timeFileName]['bins'],fileDict[timeFileName]['min'],fileDict[timeFileName]['max'])
+	hist3 = fileDict['HP_ThermalON'][timeType]['hist']
+	hist3.SetLineColor(R.kOrange+1)
+	plot3 = Plotter.Plot(hist3,legName='HP Thermal ON',,option='hist')
 
-	for l,line in enumerate(timeFile):
-		time = line.strip('\n')
-		timeHist.Fill(float(time))
+	hist4 = fileDict['HP_ThermalOFF'][timeType]['hist']
+	hist4.SetLineColor(R.kRed)
+	plot4 = Plotter.Plot(hist4,legName='HP Thermal OFF',,option='hist')
 
-	c = R.TCanvas()
-	timeHist.Draw()
-	R.gPad.Update()
-	timeHist.SetTitle(fileDict[timeFileName]['title'])
-	timeHist.GetXaxis().SetTitle('time [s]')
-	timeHist.GetYaxis().SetTitle('Counts')
-	timeHist.SetFillColor(R.kOrange)
-	timeHist.SetLineWidth(0)
-	stats = timeHist.FindObject('stats')
-	stats.SetX1NDC(0.6)
-	stats.SetX2NDC(0.8)
-	stats.SetY1NDC(0.6)
-	stats.SetY2NDC(0.8)
-	stats.SetBorderSize(0)
-	c.SaveAs('pdfs/'+timeFileName+'.pdf')
+	canvas = Plotter.Canvas(lumi=TimeType)
+	canvas.addMainPlot(plot1)
+	canvas.addMainPlot(plot2)
+	canvas.addMainPlot(plot3)
+	canvas.addMainPlot(plot4)
+
+	canvas.makeLegend(pos='tr')
+	canvas.addLegendEntry(plot1)
+	canvas.addLegendEntry(plot2)
+	canvas.addLegendEntry(plot3)
+	canvas.addLegendEntry(plot4)
+
+	canvas.makeTransparent()
+	canvas.finishCanvas('BOB')
+	canvas.save('pdfs/'+timeType+'.pdf')
+	canvas.deleteCanvas()
+
+
