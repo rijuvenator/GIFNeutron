@@ -279,8 +279,8 @@ def getDigiCandListGIF(lcts, comps):
 		for comp in comps:
 			if comp.cham != lct.cham: continue
 			if comp.timeBin > 6: continue
-			if comp.staggeredHalfStrip <= Aux.SCINT[lct.cham]['HS'][0]-8 or \
-			   comp.staggeredHalfStrip >= Aux.SCINT[lct.cham]['HS'][1]+8:
+			if comp.staggeredHalfStrip <= Aux.SCINT[lct.cham]['HS'][0]-40 or \
+			   comp.staggeredHalfStrip >= Aux.SCINT[lct.cham]['HS'][1]+40:
 				bgComps.append(comp)
 
 	return bgLCTs, bgComps

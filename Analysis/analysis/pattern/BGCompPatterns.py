@@ -102,8 +102,18 @@ def loopFunction(self, t, TYPE):
 
 		if DOGAP:
 			# Only after gap BXs
-			size, diff, train = self.getBunchInfo(t.Event_RunNumber, t.Event_BXCrossing, minSize=GAP)
-			if not size or diff != 1: return
+			size, BX, train = self.getBunchInfo(t.Event_RunNumber, t.Event_BXCrossing, minSize=GAP)
+			if not size or BX not in (1, 2, 3): return
+
+		def tbselect(BX, TB):
+			if   BX == 1 and TB >= 2 and TB <= 4:
+				return True
+			elif BX == 2 and TB >= 2 and TB <= 3:
+				return True
+			elif BX == 3 and TB >= 2 and TB <= 2:
+				return True
+			else:
+				return False
 
 		# Background comparators
 		if list(t.lct_id) == [] or list(t.comp_id) == []: return
@@ -123,7 +133,8 @@ def loopFunction(self, t, TYPE):
 			cham = CH.Chamber(lct.cham)
 
 			# Make clusters from remaining comps and compute PIDs
-			complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and comp.timeBin <= 5 and comp.timeBin >= 1]
+			#complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and tbselect(BX, comp.timeBin)]
+			complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and BX==1 and comp.timeBin >= 1 and comp.timeBin <= 5]
 			if complist != []:
 				cc = ClusterCollection(complist)
 				for cluster in cc.ClusterList:
@@ -177,7 +188,7 @@ def loopFunction(self, t, TYPE):
 
 			# Make clusters from remaining comps and compute PIDs
 			#complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and comp.timeBin <= 5 and comp.timeBin >= 1]
-			complist = [comp for comp in oppHalfComps if comp.cham == lct.cham]
+			complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and not (lct.cham==1 and comp.layer==6 and comp.staggeredHalfStrip >= 220)]
 			if complist != []:
 				cc = ClusterCollection(complist)
 				for cluster in cc.ClusterList:
@@ -191,7 +202,7 @@ def analyze(self, t, PARAMS):
 	Primitives.SelectBranches(t, DecList=['LCT','COMP','WIRE'], branches=['Event_RunNumber', 'Event_BXCrossing'])
 	for idx, entry in enumerate(t):
 
-		#if idx == 1000: break
+		if idx == 50000: break
 
 		print 'Events:', idx, '\r',
 
@@ -384,8 +395,6 @@ if __name__ == '__main__':
 	}
 	# Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
 	TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
-
-	if TYPE == 'GIF': DOROAD=False
 
 	##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 	R.gROOT.SetBatch(True)
