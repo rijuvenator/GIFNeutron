@@ -27,6 +27,7 @@ import array
 def analyze(self, t, PARAMS):
 	Primitives.SelectBranches(t, DecList=['LCT', 'COMP', 'WIRE'], branches=['Event_RunNumber','Event_BXCrossing','Event_LumiSection'])
 	for idx, entry in enumerate(t):
+		if idx == 50000: break
 		print 'Events:', idx+1, '\r',
 		loopFunction(self, t, PARAMS)
 
@@ -88,6 +89,7 @@ def loopFunction(self, t, PARAMS):
 			self.VARS['D_LAYER'].clear()
 			self.VARS['D_POS'  ].clear()
 			for digi in oppDigis:
+				if digi.cham != lct.cham: continue
 				self.VARS['D_TIME' ].push_back(digi.timeBin)
 				self.VARS['D_LAYER'].push_back(digi.layer)
 				self.VARS['D_POS'  ].push_back(getattr(digi, digipos))
@@ -142,7 +144,7 @@ if __name__ == '__main__':
 	# Output file names
 	CONFIG = {
 		'GIF' : 'GOAT_GIF.root',
-		'P5'  : 'GOAT_P5.root',
+		'P5'  : 'SinatraTest.root',
 		'MC'  : 'GOAT_MC.root'
 	}
 	# Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]

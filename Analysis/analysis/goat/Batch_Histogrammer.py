@@ -21,7 +21,7 @@ logger.addHandler(handler)
 ####################################
 
 if __name__ == '__main__':
-	f = R.TFile.Open('GOAT_P5_Full.root')
+	f = R.TFile.Open('GOAT_P5.root')
 	t = f.Get('t')
 
 	logger.warning('File and tree gotten...')

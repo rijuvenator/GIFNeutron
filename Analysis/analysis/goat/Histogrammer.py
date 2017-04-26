@@ -175,9 +175,11 @@ HISTS = {}
 ## TB distributions for individual BX: E_R_D_H_B_ND_ATB
 #for BX in xrange(1, 50):
 #	HCONFIGS['_B'+str(BX)+'_ND'] = (1, ['TB'])
+
 ## BX distributions for individual TB: E_R_D_H_T_ND_ABX
 #for TB in xrange(0, 16):
 #	HCONFIGS['_T'+str(TB)+'_ND'] = (1, ['BX'])
+
 ## ring integral distributions D_H_NDL_ARI
 #DIGIDICT = {
 #	'comp' : ('l', 'r'),
@@ -202,9 +204,10 @@ HCONFIGS = {
 #	'_B1_NL'      : (1, ['LU']),       # LCT money
 #	'_B1_NL'      : (1, ['HS']),       # LCT HS occupancy
 #	'_B1_NL'      : (1, ['WG']),       # LCT WG occupancy
-#	'_ND'         : (2, ['TB', 'BX']), # rainbow
-	'_T{FLAT}_ND' : (1, ['LU']),       # flat time bin
-	'_NL'         : (1, ['LU']),       # nLCTs
+#	'_ND'         : (2, ['TB', 'BX']), # rainbow - TB is 16 for both
+#	'_NL'         : (1, ['BX']),       # LCT rainbow
+#	'_T{FLAT}_ND' : (1, ['LU']),       # flat time bin
+#	'_NL'         : (1, ['LU']),       # nLCTs
 }
 
 # sets up E_R_D_H, then adds the second half from HCONFIGS
