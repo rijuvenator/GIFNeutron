@@ -21,7 +21,7 @@ import Gif.Analysis.MegaStruct as MS
 #MS.F_MCDATA = '/afs/cern.ch/user/c/cschnaib/Analysis/trees_mc/ana_neutronMC.root'
 
 # XS Thermal OFF
-#MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_OFF/ana_neutronMC_XS_ThermalOFF.root'
+#MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_OFF/ana_neutronMC_XS_Thermal_OFF.root'
 # XS Thermal ON
 #MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_ON/ana_neutronMC_XS_ThermalON.root'
 # HP Thermal OFF
@@ -34,6 +34,7 @@ import Gif.Analysis.MegaStruct as MS
 MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_102100_NomTOF.root'
 
 RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
+#RINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11', '+12', '+13', '+21', '+22', '+31', '+32', '+41', '+42']
 
 #### SETUP SCRIPT #####
 # Output file names
@@ -59,26 +60,30 @@ def analyze(self, t, PARAMS):
 
 		for comp in comps:
 			cham = CH.Chamber(comp.cham)
+			self.HISTS[cham.display('{E}{S}{R}')]['time'].Fill(comp.timeBin)
+			self.HISTS[cham.display('{E}{S}{R}')]['occ' ].Fill(comp.halfStrip)
 			self.HISTS[cham.display('{S}{R}')]['time'].Fill(comp.timeBin)
 			#self.HISTS[cham.display('{S}{R}')]['occ' ].Fill(comp.staggeredHalfStrip)
-			if comp.timeBin < 10: continue
+			#if comp.timeBin < 10: continue
 			self.HISTS[cham.display('{S}{R}')]['occ' ].Fill(comp.halfStrip)
 
 	self.F_OUT.cd()
 	for ring in RINGLIST:
-		self.HISTS[ring]['time'].Write()
-		self.HISTS[ring]['occ' ].Write()
+		for E in ['+','-','']:
+			self.HISTS[E+ring]['time'].Write()
+			self.HISTS[E+ring]['occ' ].Write()
 
 def load(self, PARAMS):
 	f = R.TFile.Open(self.F_DATAFILE)
 	self.HISTS = {}
 	for ring in RINGLIST:
-		self.HISTS[ring] = {
-			'time' : f.Get('t'+ring),
-			'occ'  : f.Get('o'+ring),
-		}
-		self.HISTS[ring]['time'].SetDirectory(0)
-		self.HISTS[ring]['occ' ].SetDirectory(0)
+		for E in ['+','-','']:
+			self.HISTS[E+ring] = {
+				'time' : f.Get('t'+E+ring),
+				'occ'  : f.Get('o'+E+ring),
+			}
+			self.HISTS[E+ring]['time'].SetDirectory(0)
+			self.HISTS[E+ring]['occ' ].SetDirectory(0)
 
 def setup(self, PARAMS):
 	FN = PARAMS[0]
@@ -86,14 +91,15 @@ def setup(self, PARAMS):
 	self.F_OUT.cd()
 	self.HISTS = {}
 	for ring in RINGLIST:
-		cham = CH.Chamber(CH.serialID(1, int(ring[0]), int(ring[1]), 1))
-		bins = cham.nstrips*2+2
-		self.HISTS[ring] = {
-			'time': R.TH1F('t'+ring, '', 10, 0., 10.),
-			'occ' : R.TH1F('o'+ring, '', bins, 0., bins),
-		}
-		self.HISTS[ring]['time'].SetDirectory(0)
-		self.HISTS[ring]['occ' ].SetDirectory(0)
+		for E in ['+','-','']:
+			cham = CH.Chamber(CH.serialID(1, int(ring[0]), int(ring[1]), 1))
+			bins = cham.nstrips*2+2
+			self.HISTS[E+ring] = {
+				'time': R.TH1F('t'+E+ring, '', 10, 0., 10.),
+				'occ' : R.TH1F('o'+E+ring, '', bins, 0., bins),
+			}
+			self.HISTS[E+ring]['time'].SetDirectory(0)
+			self.HISTS[E+ring]['occ' ].SetDirectory(0)
 
 def cleanup(self, PARAMS):
 	pass
@@ -121,6 +127,6 @@ def makePlot(hist, ring, tag):
 	canvas.finishCanvas()
 	canvas.save('pdfs/BGCompMC'+tag+'_'+ring+'.pdf')
 
-for ring in RINGLIST:
-	makePlot(data.HISTS[ring]['time'], ring, 'time')
-	makePlot(data.HISTS[ring]['occ' ], ring, 'occ' )
+#for ring in RINGLIST:
+#	makePlot(data.HISTS[ring]['time'], ring, 'time')
+#	makePlot(data.HISTS[ring]['occ' ], ring, 'occ' )
