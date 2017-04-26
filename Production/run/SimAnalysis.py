@@ -21,7 +21,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 process.CSCGeometryESModule.useGangedStripsInME1a = False
 process.idealForDigiCSCGeometry.useGangedStripsInME1a = False
 
-process.GIFTree = cms.EDAnalyzer('MakeSimpleNeutronSimTree',
+process.GIFTree = cms.EDAnalyzer('MakeOnlySimTree',
 						# CSC
 						#rawDataTag = cms.InputTag("rawDataCollector"),# FOR RAW RUNS
 						#wireDigiTag = cms.InputTag("simMuonCSCDigis","MuonCSCWireDigi"),

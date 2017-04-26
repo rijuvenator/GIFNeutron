@@ -12,11 +12,11 @@
 
 using namespace std;
 
-class MakeSimpleNeutronSimTree : public edm::EDAnalyzer {
+class MakeOnlySimTree : public edm::EDAnalyzer {
     public:
 		const CSCGeometry *theCSC;
-        explicit MakeSimpleNeutronSimTree(const edm::ParameterSet&);
-        ~MakeSimpleNeutronSimTree();
+        explicit MakeOnlySimTree(const edm::ParameterSet&);
+        ~MakeOnlySimTree();
 
     private:
         virtual void beginJob() {};
@@ -51,7 +51,7 @@ class MakeSimpleNeutronSimTree : public edm::EDAnalyzer {
 
 };
 
-MakeSimpleNeutronSimTree::MakeSimpleNeutronSimTree(const edm::ParameterSet& iConfig) :
+MakeOnlySimTree::MakeOnlySimTree(const edm::ParameterSet& iConfig) :
     tree("GIFDigiTree","Tree holding CSCDigis"/*,"test.root"*/)
 //  , eventInfo(tree)
 //  , recHitInfo(tree)
@@ -79,11 +79,11 @@ MakeSimpleNeutronSimTree::MakeSimpleNeutronSimTree(const edm::ParameterSet& iCon
 }
 
 
-MakeSimpleNeutronSimTree::~MakeSimpleNeutronSimTree() {tree.write();}
+MakeOnlySimTree::~MakeOnlySimTree() {tree.write();}
 
 
 void
-MakeSimpleNeutronSimTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+MakeOnlySimTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
 	edm::ESHandle<CSCGeometry> cscGeom;

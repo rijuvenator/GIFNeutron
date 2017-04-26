@@ -22,3 +22,5 @@
 
 <library   name="GifAnalysis" file="MakeSimpleNeutronSimTree.cc">
 </library>
+<library   name="SimAnalysis" file="MakeOnlySimTree.cc">
+</library>
