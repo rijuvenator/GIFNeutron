@@ -20,7 +20,7 @@ P5DATA_PATH  = GITLAB_PATH + 'trees_p5/'
 MCDATA_PATH  = GITLAB_PATH + 'trees_mc/'
 F_GIFDATA    = GIFDATA_PATH + 'ana_XXXX.root'
 F_P5DATA     = P5DATA_PATH  + 'ana_Neutron_P5_ALL.root'
-F_MCDATA     = MCDATA_PATH  + 'ana_neutronMC.root'
+F_MCDATA     = MCDATA_PATH  + 'ana_Neutron_MC_102100_NomTOF.root'
 
 F_MEASGRID = GITLAB_PATH + 'analysis/datafiles/measgrid'
 F_ATTENHUT = GITLAB_PATH + 'analysis/datafiles/attenhut'

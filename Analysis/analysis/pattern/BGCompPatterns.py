@@ -9,10 +9,6 @@ import Gif.Analysis.MegaStruct as MS
 import Gif.Analysis.BGDigi as BGDigi
 
 #### GLOBALS ####
-#MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON_105k_digi_hack.root'
-#MS.F_MCDATA = '../timhits/roots/output25000_HPT_NomTOF_1Layer.root'
-MS.F_MCDATA = '../timhits/roots/output102100_HPT_NomTOF_1Layer.root'
-
 DOZJETS = False
 DOGAP   = True
 DOROAD  = True
