@@ -12,11 +12,14 @@ def analyzeEvent(event):
 	gt    = fedm.Get('GIFTree/GIFDigiTree')
 	fpart = R.TFile.Open('forest/partTree_{NUMBER}.root'.format(NUMBER=event))
 	pt    = fpart.Get('partTree')
+	dic = RT.getTreeDict(scanarg=r'"ID"',num=event)
 	for entry in gt:
 		E = Primitives.ETree(gt, DecList=['SIMHIT'])
 		simhits = [Primitives.SimHit(E, i) for i in range(len(gt.sim_id))]
 
 		if simhits != []:
+			dlog.warning('Starting Event '+str(event))
+
 			log = logging.getLogger('log'+str(event))
 			log.setLevel(logging.INFO)
 			fh = logging.FileHandler('log_'+str(event)+'.log')
@@ -24,8 +27,9 @@ def analyzeEvent(event):
 			log.addHandler(fh)
 
 			log.info('Event {EVENT}'.format(EVENT=event))
-			dic = RT.getTreeDict(scanarg=r'"ID"',num=event)
 			for sh in simhits:
+
+				# printout
 				pt.GetEntry(dic[str(sh.trackID)])
 				log.info('  {cham:3d} {track:7d} {eloss:8.4f} {ds:7.4f} {pid:10d} {name:8s} {proc:20s} {vol:30s}'.format(
 					cham  = sh.cham,
@@ -38,6 +42,8 @@ def analyzeEvent(event):
 					vol   = list(pt.vol)[-1],
 				)
 				)
+
+				# provenance
 				trackID = str(sh.trackID)
 				tstring = '  '
 				while True:
@@ -53,14 +59,21 @@ def analyzeEvent(event):
 					tstring += '<= '
 					trackID = str(pt.parent)
 
+			dlog.warning('Finished Event {EVENT}'.format(EVENT=event))
+
 
 #for i in range(1, 301): analyzeEvent(i)
 
 threads = []
 dlog = logging.getLogger('debug')
 dlog.addHandler(logging.StreamHandler(sys.stdout))
-for i in range(100, 201):
-	dlog.warning('Starting thread '+str(i))
-	t = threading.Thread(target=analyzeEvent, args=(i,))
-	threads.append(t)
-	t.start()
+
+i = 1
+while True:
+	if threading.activeCount() < 10:
+		t = threading.Thread(target=analyzeEvent, args=(i,))
+		threads.append(t)
+		t.start()
+		i += 1
+	if i == 301:
+		break
