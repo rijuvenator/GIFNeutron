@@ -14,4 +14,5 @@ for line in f:
 	fill = int(cols[1].split(':')[1])
 	ls = int(cols[3].split(':')[0])
 	ilumi = float(cols[13])
-	print '{:4d} {:6d} {:5d} {:6.3f}'.format(fill, run, ls, ilumi)
+	pu = float(cols[17])
+	print '{:4d} {:6d} {:5d} {:6.3f} {:4.1f}'.format(fill, run, ls, ilumi, pu)

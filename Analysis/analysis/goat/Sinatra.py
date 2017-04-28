@@ -58,6 +58,7 @@ def loopFunction(self, t, PARAMS):
 	wires = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham)) if E.wire_cham[i] != 140]
 
 	LUMI = self.lumi(t.Event_RunNumber, t.Event_LumiSection)
+	PILEUP = self.pileup(t.Event_RunNumber, t.Event_LumiSection)
 
 	DIGIDICT = {
 		'comp': ('Comp', comps, 'halfStrip', 'keyHalfStrip'),
@@ -88,6 +89,8 @@ def loopFunction(self, t, PARAMS):
 			self.VARS['D_TIME' ].clear()
 			self.VARS['D_LAYER'].clear()
 			self.VARS['D_POS'  ].clear()
+			self.VARS['CHAM'   ][0] = cham.chamber
+			self.VARS['PILEUP' ][0] = PILEUP
 			for digi in oppDigis:
 				if digi.cham != lct.cham: continue
 				self.VARS['D_TIME' ].push_back(digi.timeBin)
@@ -116,7 +119,9 @@ def setup(self, PARAMS):
 		'POS'    : array.array('i', [-1]),
 		'D_TIME' : R.vector('int')(),
 		'D_LAYER': R.vector('int')(),
-		'D_POS'  : R.vector('int')()
+		'D_POS'  : R.vector('int')(),
+		'CHAM'   : array.array('i', [-1]),
+		'PILEUP' : array.array('d', [-1]),
 	}
 
 	self.TREE.Branch('ENDCAP' ,self.VARS['ENDCAP' ])
@@ -129,6 +134,8 @@ def setup(self, PARAMS):
 	self.TREE.Branch('D_TIME' ,self.VARS['D_TIME' ])
 	self.TREE.Branch('D_LAYER',self.VARS['D_LAYER'])
 	self.TREE.Branch('D_POS'  ,self.VARS['D_POS'  ])
+	self.TREE.Branch('CHAM'   ,self.VARS['CHAM'   ], 'CHAM/I')
+	self.TREE.Branch('PILEUP' ,self.VARS['PILEUP' ], 'PILEUP/D')
 
 # post-analysis function; print extra lines, etc.
 def cleanup(self, PARAMS):
