@@ -31,7 +31,7 @@ import Gif.Analysis.MegaStruct as MS
 # HP Thermal ON, + TOF Hack
 #MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_25000_Hack3.root'
 # HP Thermal ON, + TOF Hack, No Short Hack
-MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_25000_NomTOF.root'
+MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_102100_NomTOF.root'
 
 RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 #RINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11', '+12', '+13', '+21', '+22', '+31', '+32', '+41', '+42']

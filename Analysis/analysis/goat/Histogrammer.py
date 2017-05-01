@@ -134,7 +134,10 @@ def loopFunction(t, HISTS):
 ##          MODULE CODE           ##
 ####################################
 
-##### LOGGING SETUP #####
+#########################
+##    LOGGING SETUP    ##
+#########################
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
@@ -142,7 +145,10 @@ formatter = logging.Formatter('%(asctime)s %(name)s %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-##### MODULE GLOBALS #####
+##########################
+##    MODULE GLOBALS    ##
+##########################
+
 RINGLIST = ('11', '12', '13', '21', '22', '31', '32', '41', '42')
 
 # AXES encodes axis types and binning. A new fill value = a new axis.
@@ -156,27 +162,24 @@ AXES = {
 	'RI' : (19, -9, 10)
 }
 
-# HISTOGRAM SETUP
+#####################
+## HISTOGRAM SETUP ##
+#####################
+
 HISTS = {}
 
-# second half of every histogram; the axes will be appended
-HCONFIGS = {
-#	'_B1_T1:5_ND' : (1, ['LU']),       # digi money
-#	'_B1_T1:5_ND' : (1, ['HS']),       # digi HS occupancy
-#	'_B1_T1:5_ND' : (1, ['WG']),       # digi WG occupancy
-#	'_B1_NL'      : (1, ['LU']),       # LCT money
-#	'_B1_NL'      : (1, ['HS']),       # LCT HS occupancy
-#	'_B1_NL'      : (1, ['WG']),       # LCT WG occupancy
-#	'_ND'         : (2, ['TB', 'BX']), # rainbow
-	'_T7_ND'      : (1, ['LU']),       # time bin 7
-	'_NL'         : (1, ['LU']),       # nLCTs
-}
+####################
+##    ONE OFFS    ##
+####################
+
 ## TB distributions for individual BX: E_R_D_H_B_ND_ATB
 #for BX in xrange(1, 50):
 #	HCONFIGS['_B'+str(BX)+'_ND'] = (1, ['TB'])
+
 ## BX distributions for individual TB: E_R_D_H_T_ND_ABX
 #for TB in xrange(0, 16):
 #	HCONFIGS['_T'+str(TB)+'_ND'] = (1, ['BX'])
+
 ## ring integral distributions D_H_NDL_ARI
 #DIGIDICT = {
 #	'comp' : ('l', 'r'),
@@ -189,6 +192,24 @@ HCONFIGS = {
 #			conf = (1, ['RI'], AXES['RI'], name)
 #			HISTS[name] = Hist(*conf)
 
+########################
+##   HCONFIGS LOOP    ##
+########################
+
+# second half of every histogram; the axes will be appended
+HCONFIGS = {
+#	'_B1_T1:5_ND' : (1, ['LU']),       # digi money
+#	'_B1_T1:5_ND' : (1, ['HS']),       # digi HS occupancy
+#	'_B1_T1:5_ND' : (1, ['WG']),       # digi WG occupancy
+#	'_B1_NL'      : (1, ['LU']),       # LCT money
+#	'_B1_NL'      : (1, ['HS']),       # LCT HS occupancy
+#	'_B1_NL'      : (1, ['WG']),       # LCT WG occupancy
+#	'_ND'         : (2, ['TB', 'BX']), # rainbow - TB is 16 for both
+#	'_NL'         : (1, ['BX']),       # LCT rainbow
+#	'_T{FLAT}_ND' : (1, ['LU']),       # flat time bin
+#	'_NL'         : (1, ['LU']),       # nLCTs
+}
+
 # sets up E_R_D_H, then adds the second half from HCONFIGS
 for endcap in ('+', '-'):
 	for ring in RINGLIST:
@@ -196,10 +217,10 @@ for endcap in ('+', '-'):
 		binsComp = cham.nstrips*2+2
 		binsWire = cham.nwires+2
 		DIGIDICT = {
-			'comp' : ('HS', ('l', 'r'), 10, binsComp),
-			'wire' : ('WG', ('u', 'l'), 16, binsWire),
+			'comp' : ('HS', ('l', 'r'), 10, binsComp, 7),
+			'wire' : ('WG', ('u', 'l'), 16, binsWire, 8),
 		}
-		for digi, (DAXIS, HALFLIST, TBMAX, DBINS) in DIGIDICT.iteritems():
+		for digi, (DAXIS, HALFLIST, TBMAX, DBINS, FLAT) in DIGIDICT.iteritems():
 			AXES['TB'] = (TBMAX, 0, TBMAX)
 			AXES[DAXIS] = (DBINS, 0, DBINS)
 			for half in HALFLIST:
@@ -210,7 +231,7 @@ for endcap in ('+', '-'):
 						continue
 					if (digi == 'comp' and 'WG' in axisTags) or (digi == 'wire' and 'HS' in axisTags): continue
 					axis = []
-					realNameTail = str(nameTail)
+					realNameTail = nameTail.format(**locals())
 					for axisTag in axisTags:
 						axis.extend(AXES[axisTag])
 						realNameTail += '_A'+axisTag
@@ -237,6 +258,7 @@ if __name__ == '__main__':
 	for i, entry in enumerate(t):
 
 		if i%1000==0: logger.warning(str(i)+' events completed')
+		if i == 10000: break
 
 		loopFunction(t, HISTS)
 

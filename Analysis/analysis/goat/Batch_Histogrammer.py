@@ -21,7 +21,7 @@ logger.addHandler(handler)
 ####################################
 
 if __name__ == '__main__':
-	f = R.TFile.Open('SinatraTest.root')
+	f = R.TFile.Open('GOAT_P5.root')
 	t = f.Get('t')
 
 	logger.warning('File and tree gotten...')
@@ -50,8 +50,8 @@ if __name__ == '__main__':
 	####################################
 
 	# write them all
-	#g = R.TFile('$WS/public/hists/test_'+NUM+'.root', 'RECREATE')
-	g = R.TFile('test_'+NUM+'.root', 'RECREATE')
+	g = R.TFile('$WS/public/hists/test_'+NUM+'.root', 'RECREATE')
+	#g = R.TFile('test_'+NUM+'.root', 'RECREATE')
 	g.cd()
 	for name in HISTS:
 		HISTS[name].hist.Write()

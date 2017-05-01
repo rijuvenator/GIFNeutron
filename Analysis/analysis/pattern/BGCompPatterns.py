@@ -9,9 +9,6 @@ import Gif.Analysis.MegaStruct as MS
 import Gif.Analysis.BGDigi as BGDigi
 
 #### GLOBALS ####
-#MS.F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON_105k_digi_hack.root'
-MS.F_MCDATA = '../timhits/roots/output25000_HPT_NomTOF_1Layer.root'
-
 DOZJETS = False
 DOGAP   = True
 DOROAD  = True
@@ -105,8 +102,18 @@ def loopFunction(self, t, TYPE):
 
 		if DOGAP:
 			# Only after gap BXs
-			size, diff, train = self.getBunchInfo(t.Event_RunNumber, t.Event_BXCrossing, minSize=GAP)
-			if not size or diff != 1: return
+			size, BX, train = self.getBunchInfo(t.Event_RunNumber, t.Event_BXCrossing, minSize=GAP)
+			if not size or BX not in (1, 2, 3): return
+
+		def tbselect(BX, TB):
+			if   BX == 1 and TB >= 2 and TB <= 4:
+				return True
+			elif BX == 2 and TB >= 2 and TB <= 3:
+				return True
+			elif BX == 3 and TB >= 2 and TB <= 2:
+				return True
+			else:
+				return False
 
 		# Background comparators
 		if list(t.lct_id) == [] or list(t.comp_id) == []: return
@@ -126,7 +133,8 @@ def loopFunction(self, t, TYPE):
 			cham = CH.Chamber(lct.cham)
 
 			# Make clusters from remaining comps and compute PIDs
-			complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and comp.timeBin <= 5 and comp.timeBin >= 1]
+			#complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and tbselect(BX, comp.timeBin)]
+			complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and BX==1 and comp.timeBin >= 1 and comp.timeBin <= 5]
 			if complist != []:
 				cc = ClusterCollection(complist)
 				for cluster in cc.ClusterList:
@@ -165,21 +173,22 @@ def loopFunction(self, t, TYPE):
 		lcts  = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham ))]
 		comps = [Primitives.Comp   (E, i) for i in range(len(E.comp_cham))]
 
-		bgLCTs,oppHalfComps = BGDigi.getBGCompCandList(lcts,comps)
+		bgLCTs,oppHalfComps = BGDigi.getDigiCandListGIF(lcts,comps)
 		if len(bgLCTs)==0: return # skip event if there were no isolated LCTs
 
-		#if DOROAD:
-		#	roadChams = BGDigi.removeDigiRoads(oppHalfComps)
-		#else:
-		#	roadChams = []
+		if DOROAD:
+			roadChams = BGDigi.removeDigiRoads(oppHalfComps)
+		else:
+			roadChams = []
 
-		for lct, half in bgLCTs:
+		for lct in bgLCTs:
 			# Skip Chamber if there's a background road
-			#if lct.cham in roadChams and DOROAD: continue
+			if lct.cham in roadChams and DOROAD: continue
 			cham = CH.Chamber(lct.cham)
 
 			# Make clusters from remaining comps and compute PIDs
-			complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and comp.timeBin <= 5 and comp.timeBin >= 1]
+			#complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and comp.timeBin <= 5 and comp.timeBin >= 1]
+			complist = [comp for comp in oppHalfComps if comp.cham == lct.cham and not (lct.cham==1 and comp.layer==6 and comp.staggeredHalfStrip >= 220)]
 			if complist != []:
 				cc = ClusterCollection(complist)
 				for cluster in cc.ClusterList:
@@ -193,7 +202,7 @@ def analyze(self, t, PARAMS):
 	Primitives.SelectBranches(t, DecList=['LCT','COMP','WIRE'], branches=['Event_RunNumber', 'Event_BXCrossing'])
 	for idx, entry in enumerate(t):
 
-		#if idx == 1000: break
+		if idx == 50000: break
 
 		print 'Events:', idx, '\r',
 
@@ -280,7 +289,7 @@ def makePlot(h):
 	canvas.firstPlot.scaleTitleOffsets(0.6, 'Y')
 	canvas.firstPlot.SetMaximum(10**math.ceil(math.log(canvas.firstPlot.GetMaximum(),10)) - 1)
 	canvas.firstPlot.SetMinimum(10**-1 + 0.0001)
-	canvas.firstPlot.SetMaximum(10**4)
+	canvas.firstPlot.SetMaximum(1*(10**4))
 	#canvas.firstPlot.SetMinimum(10**-1)
 
 	# move legend
@@ -387,8 +396,6 @@ if __name__ == '__main__':
 	# Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
 	TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 
-	if TYPE == 'GIF': DOROAD=False
-
 	##### DECLARE ANALYZERS AND RUN ANALYSIS #####
 	R.gROOT.SetBatch(True)
 	METHODS = ['analyze', 'load', 'setup', 'cleanup']
@@ -398,7 +405,7 @@ if __name__ == '__main__':
 	}
 	if TYPE == 'GIF':
 		#ARGS['ATTLIST'] = [float('inf')]
-		ARGS['ATTLIST'] = [4.6]
+		ARGS['ATTLIST'] = [330]
 	Analyzer = getattr(MS, TYPE+'Analyzer')
 	for METHOD in METHODS:
 		setattr(Analyzer, METHOD, locals()[METHOD])

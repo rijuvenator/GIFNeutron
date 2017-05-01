@@ -18,7 +18,7 @@ rm -f core.*
 '''.format(**locals())
 
 	open('sh/job_{NUM}.sh'.format(**locals()), 'w').write(submitScript)
-	bash.call('bsub -q 8nh -J ana_{NUM} < sh/job_{NUM}.sh'.format(**locals()), shell=True)
+	bash.call('bsub -q 8nm -J ana_{NUM} < sh/job_{NUM}.sh'.format(**locals()), shell=True)
 
 	#bash.call('python Batch_BGDigiIntegrals.py -r P5 {NUM} {START} {END}'.format(**locals()), shell=True)
 	#print 'Finished', NUM

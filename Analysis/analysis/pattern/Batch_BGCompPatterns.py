@@ -41,7 +41,7 @@ if __name__ == '__main__':
 	#### SETUP SCRIPT #####
 	# Output file names
 	CONFIG = {
-		'P5'  : 'bgpatterns_P5.root',
+		'P5'  : '$WS/public/patterns/bgpatterns_P5.root',
 	}
 	# Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
 	TYPE, OFN, FDATA, REMAINDER = MS.ParseArguments(CONFIG, extraArgs=True)

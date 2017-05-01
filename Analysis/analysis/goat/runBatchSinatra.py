@@ -19,7 +19,6 @@ cd {CMSSW_BASE}src
 eval `scramv1 runtime -sh`
 cd {RUNDIR}
 python Batch_Sinatra.py -r P5 {NUM} {START} {END}
-#python Batch_Histogrammer.py {NUM} {START} {END}
 rm -f core.*
 '''.format(**locals())
 

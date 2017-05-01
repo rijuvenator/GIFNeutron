@@ -25,8 +25,9 @@ import array
 
 # analysis function; runs once per tree
 def analyze(self, t, PARAMS):
-	#Primitives.SelectBranches(t, DecList=[], branches=['*'])
+	Primitives.SelectBranches(t, DecList=['LCT', 'COMP', 'WIRE'], branches=['Event_RunNumber','Event_BXCrossing','Event_LumiSection'])
 	for idx, entry in enumerate(t):
+		if idx == 50000: break
 		print 'Events:', idx+1, '\r',
 		loopFunction(self, t, PARAMS)
 
@@ -54,9 +55,10 @@ def loopFunction(self, t, PARAMS):
 	E = Primitives.ETree(t, DecList=['LCT','COMP','WIRE'])
 	lcts  = [Primitives.LCT    (E, i) for i in range(len(E.lct_cham ))]
 	comps = [Primitives.Comp   (E, i) for i in range(len(E.comp_cham))]
-	wires = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham))]
+	wires = [Primitives.Wire   (E, i) for i in range(len(E.wire_cham)) if E.wire_cham[i] != 140]
 
 	LUMI = self.lumi(t.Event_RunNumber, t.Event_LumiSection)
+	PILEUP = self.pileup(t.Event_RunNumber, t.Event_LumiSection)
 
 	DIGIDICT = {
 		'comp': ('Comp', comps, 'halfStrip', 'keyHalfStrip'),
@@ -87,7 +89,10 @@ def loopFunction(self, t, PARAMS):
 			self.VARS['D_TIME' ].clear()
 			self.VARS['D_LAYER'].clear()
 			self.VARS['D_POS'  ].clear()
+			self.VARS['CHAM'   ][0] = cham.chamber
+			self.VARS['PILEUP' ][0] = PILEUP
 			for digi in oppDigis:
+				if digi.cham != lct.cham: continue
 				self.VARS['D_TIME' ].push_back(digi.timeBin)
 				self.VARS['D_LAYER'].push_back(digi.layer)
 				self.VARS['D_POS'  ].push_back(getattr(digi, digipos))
@@ -114,7 +119,9 @@ def setup(self, PARAMS):
 		'POS'    : array.array('i', [-1]),
 		'D_TIME' : R.vector('int')(),
 		'D_LAYER': R.vector('int')(),
-		'D_POS'  : R.vector('int')()
+		'D_POS'  : R.vector('int')(),
+		'CHAM'   : array.array('i', [-1]),
+		'PILEUP' : array.array('d', [-1]),
 	}
 
 	self.TREE.Branch('ENDCAP' ,self.VARS['ENDCAP' ])
@@ -127,6 +134,8 @@ def setup(self, PARAMS):
 	self.TREE.Branch('D_TIME' ,self.VARS['D_TIME' ])
 	self.TREE.Branch('D_LAYER',self.VARS['D_LAYER'])
 	self.TREE.Branch('D_POS'  ,self.VARS['D_POS'  ])
+	self.TREE.Branch('CHAM'   ,self.VARS['CHAM'   ], 'CHAM/I')
+	self.TREE.Branch('PILEUP' ,self.VARS['PILEUP' ], 'PILEUP/D')
 
 # post-analysis function; print extra lines, etc.
 def cleanup(self, PARAMS):
@@ -142,7 +151,7 @@ if __name__ == '__main__':
 	# Output file names
 	CONFIG = {
 		'GIF' : 'GOAT_GIF.root',
-		'P5'  : 'GOAT_P5.root',
+		'P5'  : 'SinatraTest.root',
 		'MC'  : 'GOAT_MC.root'
 	}
 	# Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]

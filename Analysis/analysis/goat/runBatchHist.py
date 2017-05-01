@@ -6,7 +6,7 @@ RUNDIR = CMSSW_BASE + 'src/Gif/Analysis/analysis/goat/'
 
 bash.call('mkdir -p shH', shell=True)
 
-TREESIZE = 5525880
+TREESIZE = 5585955
 SPLIT    = 10000
 
 NJOBS    = int(math.ceil(float(TREESIZE)/SPLIT))
@@ -23,4 +23,4 @@ rm -f core.*
 '''.format(**locals())
 
 	open('shH/job_{NUM}.sh'.format(**locals()), 'w').write(submitScript)
-	bash.call('bsub -q 1nh -J ana_{NUM} < shH/job_{NUM}.sh'.format(**locals()), shell=True)
+	bash.call('bsub -q 8nm -J ana_{NUM} < shH/job_{NUM}.sh'.format(**locals()), shell=True)

@@ -23,7 +23,7 @@ from Sinatra import setup, cleanup, loopFunction, load #
 # analysis function; runs once per tree
 def analyze(self, t, PARAMS):
 	START, END = PARAMS.START, PARAMS.END
-	#Primitives.SelectBranches(t, DecList=[], branches=['*'])
+	Primitives.SelectBranches(t, DecList=['LCT', 'COMP', 'WIRE'], branches=['Event_RunNumber','Event_BXCrossing','Event_LumiSection'])
 	for idx in xrange(START, END+1):
 		#print 'Events:', idx+1, '\r',
 		t.GetEntry(idx)

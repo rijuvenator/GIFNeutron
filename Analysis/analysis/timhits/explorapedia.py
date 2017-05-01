@@ -3,7 +3,7 @@ import argparse
 import subprocess as bash
 
 # parse arguments
-FCHOICES = ['500_3', '1000_3', '1000_1', '1000_Hack1_1', '25000_HPT_1', '25000_HPT_Hack2_1', '25000_HPT_Hack3_1', '25000_HPT_NomTOF_1']
+FCHOICES = ['500_3', '1000_3', '1000_1', '1000_Hack1_1', '25000_HPT_1', '25000_HPT_Hack2_1', '25000_HPT_Hack3_1', '25000_HPT_NomTOF_1', '77100_HPT_NomTOF_1']
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file'   , dest='FILE'   , default='1000_1'   , choices=FCHOICES, help='which data file to use'   )

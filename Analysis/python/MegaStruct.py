@@ -20,7 +20,7 @@ P5DATA_PATH  = GITLAB_PATH + 'trees_p5/'
 MCDATA_PATH  = GITLAB_PATH + 'trees_mc/'
 F_GIFDATA    = GIFDATA_PATH + 'ana_XXXX.root'
 F_P5DATA     = P5DATA_PATH  + 'ana_Neutron_P5_ALL.root'
-F_MCDATA     = MCDATA_PATH  + 'ana_neutronMC.root'
+F_MCDATA     = MCDATA_PATH  + 'ana_Neutron_MC_102100_NomTOF.root'
 
 F_MEASGRID = GITLAB_PATH + 'analysis/datafiles/measgrid'
 F_ATTENHUT = GITLAB_PATH + 'analysis/datafiles/attenhut'
@@ -172,20 +172,24 @@ class P5MegaStruct():
 		self.fillRunLumi()
 		self.fillBunches()
 	
-	# general fill run and lumi data function
+	# general fill run and lumi data function (and pileup!)
 	def fillRunLumi(self):
 		f = open(F_RUNGRID)
 		self.RUNLUMIDATA = {}
+		self.PILEUPDATA = {}
 		for line in f:
-			cols = line.strip('\n').split()
-			FILL = int(cols[0])
-			RUN = int(cols[1])
-			LS = int(cols[2])
-			ILUMI = float(cols[3])*1.e33
+			cols   = line.strip('\n').split()
+			FILL   = int(cols[0])
+			RUN    = int(cols[1])
+			LS     = int(cols[2])
+			ILUMI  = float(cols[3])*1.e33
+			PILEUP = float(cols[4])
 			if RUN not in self.RUNLUMIDATA.keys():
 				self.RUNLUMIDATA[RUN] = {}
+				self.PILEUPDATA [RUN] = {}
 			self.RUNLUMIDATA[RUN]['FILL'] = FILL
-			self.RUNLUMIDATA[RUN][LS] = ILUMI
+			self.RUNLUMIDATA[RUN][LS    ] = ILUMI
+			self.PILEUPDATA [RUN][LS    ] = PILEUP
 		f.close()
 
 	# general fill gap data function
@@ -224,6 +228,15 @@ class P5MegaStruct():
 	# get a luminosity given a run and lumisection
 	def lumi(self, run, ls):
 		return self.RUNLUMIDATA[run][ls]
+
+	# get a pileup given a run and lumisection
+	def pileup(self, run, ls):
+		return self.PILEUPDATA[run][ls]
+
+	# get fill fraction
+	def getFillFraction(self, run):
+		fill = self.RUNLUMIDATA[run]['FILL']
+		return sum([end-start+1 for start, end in self.BUNCHDATA[fill]])/float(LHC_BUNCHES)
 
 	# get bunch information
 	def getBunchInfo(self, run, bx, minSize=1, maxSize=3564):

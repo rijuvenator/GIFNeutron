@@ -9,8 +9,6 @@ import Gif.Analysis.MegaStruct as MS
 import Gif.Analysis.BGDigi as BGDigi
 
 ##### GLOBALS #####
-#MS.F_MCDATA = '$WS/public/Neutron/hacktrees2/hacktree.root'
-MS.F_MCDATA = '$WS/public/Neutron/ana_Neutron_MC_25000_NomTOF.root'
 RINGLIST  = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 ERINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11', '+12', '+13', '+21', '+22', '+31', '+32', '+41', '+42']
 RINGDICT  = dict(zip(ERINGLIST, range(-9,0) + range(1,10)))
