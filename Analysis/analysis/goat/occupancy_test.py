@@ -95,10 +95,10 @@ if RECREATE:
 	for ring in RINGLIST:
 		for ec in ECLIST:
 			cham = CH.Chamber(CH.serialID(1, int(ring[0]), int(ring[1]), 1))
-			nhs = cham.nstrips*2+2
-			nwg = cham.nwires+2
+			nhs = cham.nstrips*2
+			nwg = cham.nwires
 			for digi in PLOT.keys():
-				lim = nhs if digi=='comp' else nwg
+				lim = nhs+2 if digi=='comp' else nwg+2
 				for half in HALVES[digi]:
 					for bx in BXDICT[digi].keys():
 						HISTS[ec+ring][digi][bx][half] = {
@@ -158,12 +158,14 @@ if RECREATE:
 else:
 	# Get histograms from already created output file
 	HISTS = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ring in RINGLIST for ec in ECLIST}
+	PHI = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ring in RINGLIST for ec in ECLIST}
 	FOUT = R.TFile.Open('root/occupancy'+('_'+NAME if NAME != '' else '')+'.root','READ')
 	for ring in RINGLIST:
 		for ec in ECLIST:
 			for digi in BXDICT.keys():
 				for half in HALVES[digi]:
 					for bx in BXDICT[digi].keys():
+						# Get occupancy histograms
 						HISTS[ec+ring][digi][bx][half] = {
 								'num' :FOUT.Get('num_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
 								'den' :FOUT.Get('den_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
@@ -172,7 +174,7 @@ else:
 						HISTS[ec+ring][digi][bx][half]['num'].SetDirectory(0)
 						HISTS[ec+ring][digi][bx][half]['den'].SetDirectory(0)
 						HISTS[ec+ring][digi][bx][half]['rate'].SetDirectory(0)
-						print 'num_phi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)
+						# Get chamber occupancy histograms (global phi)
 						PHI[ec+ring][digi][bx][half] = {
 								'num' :FOUT.Get('num_phi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
 								'den' :FOUT.Get('den_phi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
@@ -210,8 +212,6 @@ def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 	if mc!='':
 		mcname = mc.replace('_',' ')
 		mchist = MCHISTS[mc][ec+ring][digi]['occ'].Clone()
-		#scale = PLOT[digi][when]['tb']/16.
-		#mchist.Scale(scale)
 		mcPlot = Plotter.Plot(mchist,legType='f',option='hist',legName=mcname)
 	for LOGY in [False]:#,True]:
 		canvas = Plotter.Canvas(lumi=TITLE,logy=LOGY)
@@ -223,7 +223,7 @@ def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 			canvas.makeLegend(pos='tr')
 			canvas.legend.moveLegend(X=-0.2)
 			canvas.legend.resizeHeight()
-			canvas.drawText('MC : {:1.2f}'.format(mcPlot.Integral()),pos=(0.6,0.7))
+			canvas.drawText('MC : {:1.4f}'.format(mcPlot.Integral()),pos=(0.6,0.7))
 		mcMax = mcPlot.GetMaximum() if mc!='' else 0.
 		maximum = max(dataPlot.GetMaximum(),mcMax)
 		canvas.firstPlot.SetMaximum(maximum * 1.2)
@@ -231,7 +231,7 @@ def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 		x = 'Comparator Half Strip' if digi=='comp' else 'Wire Group Number'
 		y = 'Counts/cm^{2}/s' if SCALE else 'Counts/BX'
 		canvas.firstPlot.setTitles(X=x, Y=y)
-		canvas.drawText('Data : {:1.2f}'.format(dataPlot.Integral()),pos=(0.6,0.6))
+		canvas.drawText('Data : {:1.4f}'.format(dataPlot.Integral()),pos=(0.6,0.6))
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.makeTransparent()
 		canvas.finishCanvas('BOB')
@@ -249,8 +249,6 @@ def makePhiPlot(dataHist,digi,when,ec,ring,mc):
 	if mc!='':
 		mcname = mc.replace('_',' ')
 		mchist = MCHISTS[mc][ec+ring][digi]['phi'].Clone()
-		#scale = PLOT[digi][when]['tb']/16.
-		#mchist.Scale(scale)
 		mcPlot = Plotter.Plot(mchist,legType='f',option='hist',legName=mcname)
 	for LOGY in [False]:#,True]:
 		canvas = Plotter.Canvas(lumi=TITLE,logy=LOGY)
@@ -289,8 +287,6 @@ def makeIntegralPlot(dataHist,digi,when,mc):
 			# MC
 			totalMC = MCHISTS[mc][ring][digi]['occ']
 			integralMC.SetBinContent(b+1,totalMC.Integral())
-			#scale = PLOT[digi][when]['tb']/16.
-			#integralMC.Scale(scale)
 		mcname = mc.replace('_',' ')
 		mcPlot = Plotter.Plot(integralMC,option='hist',legName=mcname,legType='f')
 	for LOGY in [False]:#True]:
@@ -334,10 +330,13 @@ for mc in MCLIST:
 	for ring in RINGLIST:
 		for ec in ECLIST:
 			for digi in PLOT.keys():
-				# Scale MC to the number of events
+				# Scale MC to the number of pp collisions generated in each MC
 				MCHISTS[mc][ec+ring][digi]['occ'].Scale(1./MCNORM[mc])
+				MCHISTS[mc][ec+ring][digi]['phi'].Scale(1./MCNORM[mc])
+				# Scale to a single time bin
 				tbins = 16.
 				MCHISTS[mc][ec+ring][digi]['occ'].Scale(1./tbins)
+				MCHISTS[mc][ec+ring][digi]['phi'].Scale(1./tbins)
 				if SCALE:
 					# Scale by area
 					MCHISTS[mc][ec+ring][digi]['occ'].Divide(areaHists[digi][ring])
@@ -390,8 +389,10 @@ for ring in RINGLIST:
 				totalphi.Scale(1./PLOT[digi][when]['tb'])
 				if SCALE:
 					# Convert the per time bin number into per seconds
-					total.Scale(1./(25*10**(-9)))
-					totalphi.Scale(1./(25*10**(-9)))
+					# 25 ns/bx * 10(-9) s/ns
+					bxtosecconv = 25. * 10**(-9)
+					total.Scale(1./bxtosecconv)
+					totalphi.Scale(1./bxtosecconv)
 					# Convert into per cm^2
 					total.Divide(areaHists[digi][ring])
 					#totalphi.Divide(areaHists[digi][ring]) # hmmm... maybe need to fill with a weight of the digi area
@@ -421,7 +422,8 @@ for digi in PLOT.keys():
 			total.Scale(1./PLOT[digi][when]['tb'])
 			if SCALE:
 				# Convert the per time bin number into per seconds
-				integralData.Scale(1./(25.*10**(-9)))
+				bxtosecconv = 25.*10**(-9)
+				integralData.Scale(1./bxtosecconv)
 				# scale to per cm^2
 				total.Divide(areaHists[digi][ring])
 			# Set integralData contents and labels
