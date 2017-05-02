@@ -91,7 +91,10 @@ if RECREATE:
 	FOUT = R.TFile('root/occupancy'+('_'+NAME if NAME != '' else '')+'.root','RECREATE')
 	FOUT.cd()
 	HISTS = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ring in RINGLIST for ec in ECLIST}
-	PHI = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ec in ECLIST for ring in RINGLIST}
+	PHI = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ring in RINGLIST for ec in ECLIST}
+	LUMI = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ring in RINGLIST for ec in ECLIST}
+	lumiBins = 30
+	maxLumi = 1.5e34
 	for ring in RINGLIST:
 		for ec in ECLIST:
 			cham = CH.Chamber(CH.serialID(1, int(ring[0]), int(ring[1]), 1))
@@ -101,6 +104,7 @@ if RECREATE:
 				lim = nhs+2 if digi=='comp' else nwg+2
 				for half in HALVES[digi]:
 					for bx in BXDICT[digi].keys():
+						# Set occupancy histograms
 						HISTS[ec+ring][digi][bx][half] = {
 								'num':R.TH1D('num_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx),'',  lim,0,lim),
 								'den':R.TH1D('den_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx),'',  1,0,1),
@@ -109,6 +113,7 @@ if RECREATE:
 						HISTS[ec+ring][digi][bx][half]['num'].SetDirectory(0)
 						HISTS[ec+ring][digi][bx][half]['den'].SetDirectory(0)
 						HISTS[ec+ring][digi][bx][half]['rate'].SetDirectory(0)
+						# Set global phi histograms
 						if ring=='21' or ring=='31' or ring=='41':
 							ncham = 18
 						else:
@@ -121,6 +126,16 @@ if RECREATE:
 						PHI[ec+ring][digi][bx][half]['num'].SetDirectory(0)
 						PHI[ec+ring][digi][bx][half]['den'].SetDirectory(0)
 						PHI[ec+ring][digi][bx][half]['rate'].SetDirectory(0)
+						# Set luminosity histograms
+						LUMI[ec+ring][digi][bx][half] = {
+							'num' :R.TH1D('num_lumi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx), '',lumiBins,0,maxLumi),
+							'den' :R.TH1D('den_lumi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx), '',lumiBins,0,maxLumi),
+							'rate':R.TH1D('rate_lumi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx),'',lumiBins,0,maxLumi),
+						}
+						LUMI[ec+ring][digi][bx][half]['num'].SetDirectory(0)
+						LUMI[ec+ring][digi][bx][half]['den'].SetDirectory(0)
+						LUMI[ec+ring][digi][bx][half]['rate'].SetDirectory(0)
+
 
 	############################
 	### Fill Data Histograms ###
@@ -137,16 +152,27 @@ if RECREATE:
 			for idigi,time in enumerate(entry.D_TIME):
 				if time >= BXDICT[digi][entry.BX]['lower'] and \
 				   time <= BXDICT[digi][entry.BX]['upper']:
+					# Fill occupancy numerator
 					HISTS[ecr][digi][entry.BX][half]['num'].Fill(entry.D_POS[idigi],weight)
 					HISTS[ring][digi][entry.BX][half]['num'].Fill(entry.D_POS[idigi],weight)
+					# Fill global phi numerator
 					PHI[ecr][digi][entry.BX][half]['num'].Fill(entry.CHAM,weight)
 					PHI[ring][digi][entry.BX][half]['num'].Fill(entry.CHAM,weight)
+					# Fill luminosity numerator
+					LUMI[ecr][digi][entry.BX][half]['num'].Fill(entry.LUMI,1.)
+					LUMI[ring][digi][entry.BX][half]['num'].Fill(entry.LUMI,1.)
+			# Fill occupancy denominator
 			HISTS[ecr][digi][entry.BX][half]['den'].Fill(0,1.)
 			HISTS[ring][digi][entry.BX][half]['den'].Fill(0,1.)
+			# Fill global phi denominator
 			PHI[ecr][digi][entry.BX][half]['den'].Fill(entry.CHAM,1.)
 			PHI[ring][digi][entry.BX][half]['den'].Fill(entry.CHAM,1.)
+			# Fill luminosity denominator
+			LUMI[ecr][digi][entry.BX][half]['den'].Fill(entry.LUMI,1.)
+			LUMI[ring][digi][entry.BX][half]['den'].Fill(entry.LUMI,1.)
 
 	# Write histograms to output file
+	FOUT.cd()
 	for ring in RINGLIST:
 		for ec in ECLIST:
 			for digi in BXDICT.keys():
@@ -155,10 +181,12 @@ if RECREATE:
 						for TYPE in ['num','den','rate']:
 							HISTS[ec+ring][digi][bx][half][TYPE].Write()
 							PHI[ec+ring][digi][bx][half][TYPE].Write()
+							LUMI[ec+ring][digi][bx][half][TYPE].Write()
 else:
 	# Get histograms from already created output file
 	HISTS = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ring in RINGLIST for ec in ECLIST}
 	PHI = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ring in RINGLIST for ec in ECLIST}
+	LUMI = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ring in RINGLIST for ec in ECLIST}
 	FOUT = R.TFile.Open('root/occupancy'+('_'+NAME if NAME != '' else '')+'.root','READ')
 	for ring in RINGLIST:
 		for ec in ECLIST:
@@ -183,6 +211,15 @@ else:
 						PHI[ec+ring][digi][bx][half]['num'].SetDirectory(0)
 						PHI[ec+ring][digi][bx][half]['den'].SetDirectory(0)
 						PHI[ec+ring][digi][bx][half]['rate'].SetDirectory(0)
+						# Get luminosity histograms
+						LUMI[ec+ring][digi][bx][half] = {
+								'num' :FOUT.Get('num_lumi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
+								'den' :FOUT.Get('den_lumi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
+								'rate':FOUT.Get('rate_lumi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
+								}
+						LUMI[ec+ring][digi][bx][half]['num'].SetDirectory(0)
+						LUMI[ec+ring][digi][bx][half]['den'].SetDirectory(0)
+						LUMI[ec+ring][digi][bx][half]['rate'].SetDirectory(0)
 
 #########################
 ### Get MC histograms ###
@@ -270,7 +307,7 @@ def makePhiPlot(dataHist,digi,when,ec,ring,mc):
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.makeTransparent()
 		canvas.finishCanvas('BOB')
-		name = 'phi_'+ec+ring+'_'+digi+'_'+when+('_'+NAME if NAME != '' else '')+('_logy' if LOGY else '')+('_'+mc if mc!='' else '')
+		name = 'phi_'+ec+ring+'_'+digi+'_'+when+('_'+NAME if NAME != '' else '')+('_logy' if LOGY else '')+('_'+mc if mc!='' else '')+'_test'
 		name = name.replace('+','p')
 		name = name.replace('-','m')
 		canvas.save('pdfs/'+name+'.pdf')
@@ -283,10 +320,11 @@ def makeIntegralPlot(dataHist,digi,when,mc):
 	# Make MC Plot
 	if mc!='':
 		integralMC   = R.TH1D('integralMC_'+digi+'_mc','',18,0,18)
-		for b,ring in enumerate(ERINGLIST):
+		for b,ering in enumerate(ERINGLIST):
 			# MC
-			totalMC = MCHISTS[mc][ring][digi]['occ']
+			totalMC = MCHISTS[mc][ering][digi]['occ'].Clone()
 			integralMC.SetBinContent(b+1,totalMC.Integral())
+			integralMC.GetXaxis().SetBinLabel(b+1,ering.replace('-','#minus'))
 		mcname = mc.replace('_',' ')
 		mcPlot = Plotter.Plot(integralMC,option='hist',legName=mcname,legType='f')
 	for LOGY in [False]:#True]:
@@ -294,7 +332,7 @@ def makeIntegralPlot(dataHist,digi,when,mc):
 		if mc!='': 
 			canvas.addMainPlot(mcPlot)
 			mcPlot.SetFillColor(R.kOrange)
-		canvas.addMainPlot(dataPlot)
+		canvas.addMainPlot(dataPlot,addToPlotList=False)
 		if mc!='':
 			canvas.makeLegend(pos='tr')
 			canvas.legend.moveLegend(X=-0.2)
@@ -303,13 +341,62 @@ def makeIntegralPlot(dataHist,digi,when,mc):
 		maximum = max(dataPlot.GetMaximum(),mcMax)
 		canvas.firstPlot.SetMaximum(maximum * 1.1)
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
-		x = 'Comparator Half Strip' if digi=='comp' else 'Wire Group Number'
+		x = 'CSC Ring'
+		for ibin,ring in enumerate(ERINGLIST):
+			canvas.firstPlot.GetXaxis().SetBinLabel(ibin+1, ring.replace('-','#minus'))
+		y = 'Counts/cm^{2}/s' if SCALE else 'Counts/BX'
+		canvas.firstPlot.setTitles(Y=y)
+		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
+		canvas.makeTransparent()
+		canvas.finishCanvas('BOB')
+		name = 'integral_'+digi+'_'+when+('_'+NAME if NAME != '' else '')+('_logy' if LOGY else '')+('_'+mc if mc!='' else '')
+		canvas.save('pdfs/'+name+'.pdf')
+		canvas.deleteCanvas()
+
+def makeLuminosityPlot(dataHist,digi,when,ec,ring):
+	# Make occupancy plot for each digi and plot type
+	dataPlot = Plotter.Plot(dataHist.Clone(),option='p')
+	TITLE = 'ME'+ec+ring+' '+('Comparator ' if digi=='comp' else 'Wire Group ')+'Occupancy'
+	for LOGY in [False]:#,True]:
+		canvas = Plotter.Canvas(lumi=TITLE,logy=LOGY)
+		canvas.addMainPlot(dataPlot,addToPlotList=False)
+		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
+		x = 'Luminosity [cm^{-2}s^{-1}]'
 		y = 'Counts/cm^{2}/s' if SCALE else 'Counts/BX'
 		canvas.firstPlot.setTitles(X=x, Y=y)
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.makeTransparent()
 		canvas.finishCanvas('BOB')
-		name = 'integral_'+digi+'_'+when+('_'+NAME if NAME != '' else '')+('_logy' if LOGY else '')+('_'+mc if mc!='' else '')
+		name = 'luminosity_'+ec+ring+'_'+digi+'_'+when+('_'+NAME if NAME != '' else '')+('_logy' if LOGY else '')
+		name = name.replace('+','p')
+		name = name.replace('-','m')
+		canvas.save('pdfs/'+name+'.pdf')
+		canvas.deleteCanvas()
+
+def makeSepPlot(hist1,hist2,digi,when,ec,ring):
+	# Make counts vs. luminosity plots for each half separately and plot them on 
+	# the same axis
+	plot1 = Plotter.Plot(hist1,legType='p',legName='Upper half' if digi=='wire' else 'Right half',option='p')
+	plot2 = Plotter.Plot(hist2,legType='p',legName='Lower half' if digi=='wire' else 'Left half',option='p')
+	TITLE = 'ME'+ring+(' Wire Group Rate ' if digi=='wire' else ' Comparator Rate ')+'vs. Luminosity'
+	for LOGY in [False]:#,True]:
+		canvas = Plotter.Canvas(lumi=TITLE,logy=LOGY)
+		canvas.addMainPlot(plot1)
+		canvas.addMainPlot(plot2)
+		plot1.SetLineColor(R.kRed)
+		plot1.SetMarkerColor(R.kRed)
+		plot2.SetLineColor(R.kBlue)
+		plot2.SetMarkerColor(R.kBlue)
+		maximum = max(plot1.GetMaximum(),plot2.GetMaximum())
+		canvas.firstPlot.SetMaximum(maximum * 1.075)
+		canvas.firstPlot.SetMinimum(1E-3 if LOGY else 0.)
+		canvas.firstPlot.setTitles(X='Luminosity [cm^{-2}s^{-1}]', Y='Rate')
+		canvas.makeLegend(pos='tl')
+		canvas.makeTransparent()
+		canvas.finishCanvas('BOB')
+		name = 'luminosity_sep_'+ec+ring+'_'+digi+'_'+when+('_'+NAME if NAME != '' else '')+('_logy' if LOGY else '')
+		name = name.replace('+','p')
+		name = name.replace('-','m')
 		canvas.save('pdfs/'+name+'.pdf')
 		canvas.deleteCanvas()
 
@@ -333,10 +420,19 @@ for mc in MCLIST:
 				# Scale MC to the number of pp collisions generated in each MC
 				MCHISTS[mc][ec+ring][digi]['occ'].Scale(1./MCNORM[mc])
 				MCHISTS[mc][ec+ring][digi]['phi'].Scale(1./MCNORM[mc])
-				# Scale to a single time bin
-				tbins = 16.
-				MCHISTS[mc][ec+ring][digi]['occ'].Scale(1./tbins)
-				MCHISTS[mc][ec+ring][digi]['phi'].Scale(1./tbins)
+				# Scale to a single chamber 
+				if ring in ['21','31','41']:
+					if ec=='':
+						ncham = 36.
+					else:
+						ncham = 18.
+				else:
+					if ec=='':
+						ncham = 72.
+					else:
+						ncham = 36.
+				MCHISTS[mc][ec+ring][digi]['occ'].Scale(1./ncham)
+				MCHISTS[mc][ec+ring][digi]['phi'].Scale(1./ncham)
 				if SCALE:
 					# Scale by area
 					MCHISTS[mc][ec+ring][digi]['occ'].Divide(areaHists[digi][ring])
@@ -369,33 +465,57 @@ for ring in RINGLIST:
 					PHI[ec+ring][digi][bx][HALVES[digi][i]]['den'].Sumw2()
 					# Normalize each half individually
 					PHI[ec+ring][digi][bx][HALVES[digi][i]]['rate'].Add(PHI[ec+ring][digi][bx][HALVES[digi][i]]['num'])
-					PHI[ec+ring][digi][bx][HALVES[digi][i]]['rate'].Divide(PHI[ec+ring][digi][bx][HALVES[digi][i]]['den'])
+					PHI[ec+ring][digi][bx][HALVES[digi][i]]['rate'].Scale(1./PHI[ec+ring][digi][bx][HALVES[digi][i]]['den'].GetEntries())
 					# Add to normalized histogram to total
 					PHI[ec+ring][digi][bx]['a']['rate'].Add(PHI[ec+ring][digi][bx][HALVES[digi][i]]['rate'])
+					#################################################################
+					LUMI[ec+ring][digi][bx][HALVES[digi][i]]['num'].Sumw2()
+					LUMI[ec+ring][digi][bx][HALVES[digi][i]]['den'].Sumw2()
+					# Normalize each half individually
+					LUMI[ec+ring][digi][bx][HALVES[digi][i]]['rate'].Add(LUMI[ec+ring][digi][bx][HALVES[digi][i]]['num'])
+					LUMI[ec+ring][digi][bx][HALVES[digi][i]]['rate'].Divide(LUMI[ec+ring][digi][bx][HALVES[digi][i]]['den'])
+					# Add to normalized histogram to total
+					LUMI[ec+ring][digi][bx]['a']['rate'].Add(LUMI[ec+ring][digi][bx][HALVES[digi][i]]['rate'])
+					#################################################################
 			#########################
 			## Make Occupancy plot ##
 			#########################
 			for when in PLOT[digi].keys():
-				# Clone the first bx for this plot
-				total = HISTS[ec+ring][digi][PLOT[digi][when]['bx'][0]]['a']['rate'].Clone()
+				# Clone the first bx for this plot type
+				total  = HISTS[ec+ring][digi][PLOT[digi][when]['bx'][0]]['a']['rate'].Clone()
 				totalphi = PHI[ec+ring][digi][PLOT[digi][when]['bx'][0]]['a']['rate'].Clone()
-				# Add in the rest
+				totallumi =   LUMI[ec+ring][digi][PLOT[digi][when]['bx'][0]]['a']['rate'].Clone()
+				totallumiLL = LUMI[ec+ring][digi][PLOT[digi][when]['bx'][0]][HALVES[digi][0]]['rate'].Clone()
+				totallumiRU = LUMI[ec+ring][digi][PLOT[digi][when]['bx'][0]][HALVES[digi][1]]['rate'].Clone()
+				# Add in the rest of the bx
 				if len(PLOT[digi][when]['bx'])>1:
 					for i,bx in enumerate(PLOT[digi][when]['bx'][1:]):
-						total.Add(HISTS[ec+ring][digi][bx]['a']['rate'])
+						total.Add( HISTS[ec+ring][digi][bx]['a']['rate'])
 						totalphi.Add(PHI[ec+ring][digi][bx]['a']['rate'])
+						totallumi.Add(LUMI[ec+ring][digi][bx]['a']['rate'])
+						totallumiLL.Add(LUMI[ec+ring][digi][bx][HALVES[digi][0]]['rate'])
+						totallumiRU.Add(LUMI[ec+ring][digi][bx][HALVES[digi][1]]['rate'])
 				# Scale by number of time bins added together
-				total.Scale(1./PLOT[digi][when]['tb'])
+				total.Scale(   1./PLOT[digi][when]['tb'])
 				totalphi.Scale(1./PLOT[digi][when]['tb'])
+				totallumi.Scale(1./PLOT[digi][when]['tb'])
+				totallumiLL.Scale(1./PLOT[digi][when]['tb'])
+				totallumiRU.Scale(1./PLOT[digi][when]['tb'])
 				if SCALE:
 					# Convert the per time bin number into per seconds
 					# 25 ns/bx * 10(-9) s/ns
 					bxtosecconv = 25. * 10**(-9)
 					total.Scale(1./bxtosecconv)
 					totalphi.Scale(1./bxtosecconv)
+					totallumi.Scale(1./bxtosecconv)
+					totallumiRU.Scale(1./bxtosecconv)
+					totallumiLL.Scale(1./bxtosecconv)
 					# Convert into per cm^2
 					total.Divide(areaHists[digi][ring])
 					#totalphi.Divide(areaHists[digi][ring]) # hmmm... maybe need to fill with a weight of the digi area
+					#totallumi{,RU,LL} same here.. need to fill with the weight of the area
+				makeLuminosityPlot(totallumi,digi,when,ec,ring)
+				makeSepPlot(totallumiRU,totallumiLL,digi,when,ec,ring)
 				### Make Plot
 				for mc in MCLIST+['']:
 					makeOccupancyPlot(total,digi,when,ec,ring,mc)
@@ -432,6 +552,6 @@ for digi in PLOT.keys():
 			errRU2 = 1./totalRU.GetEntries() if totalRU.GetEntries()>0 else 0
 			err = total.Integral() * math.sqrt( errLL2 + errRU2 )
 			integralData.SetBinError(b+1,err)
-			integralData.GetXaxis().SetBinLabel(b+1,ring)
+			integralData.GetXaxis().SetBinLabel(b+1,ring.replace('-','#minus'))
 		for mc in MCLIST+['']:
 			makeIntegralPlot(integralData,digi,when,mc)

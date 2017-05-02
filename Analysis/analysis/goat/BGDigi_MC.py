@@ -113,8 +113,8 @@ def load(self, PARAMS):
 			self.HISTS[E+ring]['comp' ].SetDirectory(0)
 			self.HISTS[E+ring]['wire' ].SetDirectory(0)
 			self.PHI[E+ring] = {
-				'comp'  : f.Get(E+ring+'_comp_occ'),
-				'wire'  : f.Get(E+ring+'_wire_occ'),
+				'comp'  : f.Get('phi_'+E+ring+'_comp_occ'),
+				'wire'  : f.Get('phi_'+E+ring+'_wire_occ'),
 			}
 			self.PHI[E+ring]['comp' ].SetDirectory(0)
 			self.PHI[E+ring]['wire' ].SetDirectory(0)
