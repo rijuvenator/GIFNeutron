@@ -68,6 +68,41 @@ PLOT = {
 			'late':{'bx':[48],'tb':1.},
 			},
 		}
+LIMITS = {
+		'occ':{
+			'early':{
+				'comp':{
+					'11':50e-6,
+					'12':12e-6,
+					'13':15e-6,
+					'21':45e-6,
+					'22':10e-6,
+					'31':30e-6,
+					'32':15e-6,
+					'41':30e-6,
+					'42':25e-6,
+					},
+				'wire':{
+					'11':0.25e-3,
+					'12':12e-6,
+					'13':16e-6,
+					'21':0.1e-3,
+					'22':26e-6,
+					'31':0.08e-3,
+					'32':40e-6,
+					'41':0.06e-3,
+					'42':0.06e-3,
+					},
+				},
+			},
+		'int':{
+			'early':{
+				'comp':0.005,
+				'wire':0.007,
+				},
+			},
+		}
+
 ### Set permenant dictionaries
 RINGLIST = ['42', '41', '32', '31', '22', '21', '13', '12', '11']
 ERINGLIST = ['-42','-41','-32','-31','-22','-21','-13','-12','-11',
@@ -263,7 +298,13 @@ def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 			canvas.drawText('MC : {:1.4f}'.format(mcPlot.Integral()),pos=(0.6,0.7))
 		mcMax = mcPlot.GetMaximum() if mc!='' else 0.
 		maximum = max(dataPlot.GetMaximum(),mcMax)
-		canvas.firstPlot.SetMaximum(maximum * 1.2)
+		if when=='early':
+			if ring in ['11','12','13','21','22','31','32','41','42']:
+				canvas.firstPlot.SetMaximum(LIMITS['occ']['early'][digi][ring])
+			else:
+				canvas.firstPlot.SetMaximum(maximum * 1.2)
+		else:
+			canvas.firstPlot.SetMaximum(maximum * 1.2)
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'Comparator Half Strip' if digi=='comp' else 'Wire Group Number'
 		y = 'Counts/cm^{2}/s' if SCALE else 'Counts/BX'
@@ -337,9 +378,12 @@ def makeIntegralPlot(dataHist,digi,when,mc):
 			canvas.makeLegend(pos='tr')
 			canvas.legend.moveLegend(X=-0.2)
 			canvas.legend.resizeHeight()
-		mcMax = mcPlot.GetMaximum() if mc!='' else 0.
-		maximum = max(dataPlot.GetMaximum(),mcMax)
-		canvas.firstPlot.SetMaximum(maximum * 1.1)
+		if when=='early':
+			canvas.firstPlot.SetMaximum(LIMITS['int']['early'][digi])
+		else:
+			mcMax = mcPlot.GetMaximum() if mc!='' else 0.
+			maximum = max(dataPlot.GetMaximum(),mcMax)
+			canvas.firstPlot.SetMaximum(maximum * 1.1)
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'CSC Ring'
 		for ibin,ring in enumerate(ERINGLIST):
