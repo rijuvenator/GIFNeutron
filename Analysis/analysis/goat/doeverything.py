@@ -7,6 +7,9 @@ import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 import Gif.Analysis.BGDigi as BGDigi
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)
 R.gROOT.SetBatch(True)
 # area histograms calculated on the fly
 import areas as areas
@@ -17,36 +20,123 @@ parser = argparse.ArgumentParser()
 # recreate
 parser.add_argument('-r','--recreate',action='store_true',dest='RECREATE',
 		default=False,help='whether or not to (re)create an output data file')
-# name
-parser.add_argument('-n','--name',dest='NAME',default='',help='extra name to output data file')
-# scale
-parser.add_argument('-s','--scale',dest='SCALE',action='store_true',
-		default=False,help='whether or not to scale to counts/cm^2/s')
+# input/output root file name
+parser.add_argument('-n','--name',dest='NAME',default='',
+		help='extra name to identify output (if -r is used) and input (if no -r) root file')
+# histogram name
+parser.add_argument('-hn','--histname',dest='HISTNAME',default='',
+		help='extra name to identify output histograms')
+# area
+parser.add_argument('-a','--area',dest='AREA',action='store_true',
+		default=False,help='whether or not to scale to counts/cm^2')
+# time
+parser.add_argument('-t','--time',dest='TIME',action='store_true',
+		default=False,help='whether or not to scale to counts/s')
+# pile-up
+parser.add_argument('-pu','--pileup',dest='PILEUP',action='store_true',
+		default=False,help='whether or not to scale to counts/pp-collision')
+# whether or not to include MC on plots
+parser.add_argument('-mc','--mc',dest='MC',action='store_true',
+		default=False,help='whether or not to make plots that include MC')
 args = parser.parse_args()
 RECREATE = args.RECREATE
 NAME = args.NAME
-SCALE = args.SCALE
+HISTNAME = args.HISTNAME
+PILEUP = args.PILEUP
+AREA = args.AREA
+TIME = args.TIME
+MC = args.MC
 
 # Which time bins to use in each BX
 BXDICT = {
 		'wire':{
+			# Early Thermal
 			1:{'lower':1,'upper':5},
 			2:{'lower':1,'upper':4},
 			3:{'lower':1,'upper':3},
 			4:{'lower':1,'upper':2},
 			5:{'lower':1,'upper':1},
+			# Middle Thermal + Fast + Pileup
+			12:{'lower':1,'upper':5},
+			13:{'lower':1,'upper':5},
+			14:{'lower':1,'upper':5},
+			15:{'lower':1,'upper':5},
+			16:{'lower':1,'upper':5},
+			17:{'lower':1,'upper':5},
+			18:{'lower':1,'upper':5},
+			19:{'lower':1,'upper':5},
+			20:{'lower':1,'upper':5},
+			21:{'lower':1,'upper':5},
+			22:{'lower':1,'upper':5},
+			23:{'lower':1,'upper':5},
+			24:{'lower':1,'upper':5},
+			25:{'lower':1,'upper':5},
+			26:{'lower':1,'upper':5},
+			27:{'lower':1,'upper':5},
+			28:{'lower':1,'upper':5},
+			29:{'lower':1,'upper':5},
+			30:{'lower':1,'upper':5},
+			31:{'lower':1,'upper':5},
+			32:{'lower':1,'upper':5},
+			33:{'lower':1,'upper':5},
+			34:{'lower':1,'upper':5},
+			35:{'lower':1,'upper':5},
+			36:{'lower':1,'upper':5},
+			37:{'lower':1,'upper':5},
+			38:{'lower':1,'upper':5},
+			39:{'lower':1,'upper':5},
+			40:{'lower':1,'upper':5},
+			# Late Thermal + Fast
 			46:{'lower':13,'upper':15},
 			47:{'lower':14,'upper':15},
 			48:{'lower':15,'upper':15},
 			},
 		'comp':{
+			# Early Thermal
 			1:{'lower':2,'upper':4},
 			2:{'lower':2,'upper':3},
 			3:{'lower':2,'upper':2},
+			# Middle Thermal + Fast + Pileup
+			12:{'lower':2,'upper':4},
+			13:{'lower':2,'upper':4},
+			14:{'lower':2,'upper':4},
+			15:{'lower':2,'upper':4},
+			16:{'lower':2,'upper':4},
+			17:{'lower':2,'upper':4},
+			18:{'lower':2,'upper':4},
+			19:{'lower':2,'upper':4},
+			20:{'lower':2,'upper':4},
+			21:{'lower':2,'upper':4},
+			22:{'lower':2,'upper':4},
+			23:{'lower':2,'upper':4},
+			24:{'lower':2,'upper':4},
+			25:{'lower':2,'upper':4},
+			26:{'lower':2,'upper':4},
+			27:{'lower':2,'upper':4},
+			28:{'lower':2,'upper':4},
+			29:{'lower':2,'upper':4},
+			30:{'lower':2,'upper':4},
+			31:{'lower':2,'upper':4},
+			32:{'lower':2,'upper':4},
+			33:{'lower':2,'upper':4},
+			34:{'lower':2,'upper':4},
+			35:{'lower':2,'upper':4},
+			36:{'lower':2,'upper':4},
+			37:{'lower':2,'upper':4},
+			38:{'lower':2,'upper':4},
+			39:{'lower':2,'upper':4},
+			40:{'lower':2,'upper':4},
+			# Late Thermal + Fast
 			48:{'lower':9,'upper':9},
 			},
 		}
 # Which BXs to use in each plot
+# format:
+# 'digi':{
+#     'hist-type':{
+#         'bx':[list of bx to use],'tb':total number of time bins (user input)
+#         }
+#     }
 PLOT = {
 		'wire':{
 			'early':{'bx':[1,2,3,4,5],'tb':15.},
@@ -55,6 +145,38 @@ PLOT = {
 			'bx3':{'bx':[3],'tb':3.},
 			'bx4':{'bx':[4],'tb':2.},
 			'bx5':{'bx':[5],'tb':1.},
+
+			'total':{'bx':range(12,41),'tb':145.},
+			'bx12':{'bx':[12],'tb':5.},
+			'bx13':{'bx':[13],'tb':5.},
+			'bx14':{'bx':[14],'tb':5.},
+			'bx15':{'bx':[15],'tb':5.},
+			'bx16':{'bx':[16],'tb':5.},
+			'bx17':{'bx':[17],'tb':5.},
+			'bx18':{'bx':[18],'tb':5.},
+			'bx19':{'bx':[19],'tb':5.},
+			'bx20':{'bx':[20],'tb':5.},
+			'bx21':{'bx':[21],'tb':5.},
+			'bx22':{'bx':[22],'tb':5.},
+			'bx23':{'bx':[23],'tb':5.},
+			'bx24':{'bx':[24],'tb':5.},
+			'bx25':{'bx':[25],'tb':5.},
+			'bx26':{'bx':[26],'tb':5.},
+			'bx27':{'bx':[27],'tb':5.},
+			'bx28':{'bx':[28],'tb':5.},
+			'bx29':{'bx':[29],'tb':5.},
+			'bx30':{'bx':[30],'tb':5.},
+			'bx31':{'bx':[31],'tb':5.},
+			'bx32':{'bx':[32],'tb':5.},
+			'bx33':{'bx':[33],'tb':5.},
+			'bx34':{'bx':[34],'tb':5.},
+			'bx35':{'bx':[35],'tb':5.},
+			'bx36':{'bx':[36],'tb':5.},
+			'bx37':{'bx':[37],'tb':5.},
+			'bx38':{'bx':[38],'tb':5.},
+			'bx39':{'bx':[39],'tb':5.},
+			'bx40':{'bx':[40],'tb':5.},
+
 			'late':{'bx':[46,47,48],'tb':6.},
 			'bx46':{'bx':[46],'tb':1.},
 			'bx47':{'bx':[47],'tb':2.},
@@ -65,10 +187,47 @@ PLOT = {
 			'bx1':{'bx':[1],'tb':3.},
 			'bx2':{'bx':[2],'tb':2.},
 			'bx3':{'bx':[3],'tb':1.},
+
+			'total':{'bx':range(12,41),'tb':87.},
+			'bx12':{'bx':[12],'tb':4.},
+			'bx13':{'bx':[13],'tb':4.},
+			'bx14':{'bx':[14],'tb':4.},
+			'bx15':{'bx':[15],'tb':4.},
+			'bx16':{'bx':[16],'tb':4.},
+			'bx17':{'bx':[17],'tb':4.},
+			'bx18':{'bx':[18],'tb':4.},
+			'bx19':{'bx':[19],'tb':4.},
+			'bx20':{'bx':[20],'tb':4.},
+			'bx21':{'bx':[21],'tb':4.},
+			'bx22':{'bx':[22],'tb':4.},
+			'bx23':{'bx':[23],'tb':4.},
+			'bx24':{'bx':[24],'tb':4.},
+			'bx25':{'bx':[25],'tb':4.},
+			'bx26':{'bx':[26],'tb':4.},
+			'bx27':{'bx':[27],'tb':4.},
+			'bx28':{'bx':[28],'tb':4.},
+			'bx29':{'bx':[29],'tb':4.},
+			'bx30':{'bx':[30],'tb':4.},
+			'bx31':{'bx':[31],'tb':4.},
+			'bx32':{'bx':[32],'tb':4.},
+			'bx33':{'bx':[33],'tb':4.},
+			'bx34':{'bx':[34],'tb':4.},
+			'bx35':{'bx':[35],'tb':4.},
+			'bx36':{'bx':[36],'tb':4.},
+			'bx37':{'bx':[37],'tb':4.},
+			'bx38':{'bx':[38],'tb':4.},
+			'bx39':{'bx':[39],'tb':4.},
+			'bx40':{'bx':[40],'tb':4.},
+
 			'late':{'bx':[48],'tb':1.},
 			},
 		}
+# User input limits of plots
 LIMITS = {
+		'int':{
+			'wire':0.0052,
+			'comp':0.004,
+			},
 		'occ':{
 			'early':{
 				'comp':{
@@ -112,7 +271,10 @@ HALVES = {
 		'comp':['l','r','a'],
 		'wire':['l','u','a'],
 		}
-MCLIST = ['XS_Thermal_ON','XS_Thermal_OFF','HP_Thermal_ON','HP_Thermal_OFF']
+if MC:
+	MCLIST = ['XS_Thermal_ON','XS_Thermal_OFF','HP_Thermal_ON','HP_Thermal_OFF']
+else:
+	MCLIST = []
 
 #####################################
 ### Get/make occupancy histograms ###
@@ -182,11 +344,20 @@ if RECREATE:
 		bx = str(entry.BX)
 		half = str(entry.HALF)
 		digi = str(entry.DIGI)
-		weight = 1./entry.PILEUP
+		weight = 1.
 		if entry.BX in BXDICT[digi].keys():
 			for idigi,time in enumerate(entry.D_TIME):
 				if time >= BXDICT[digi][entry.BX]['lower'] and \
 				   time <= BXDICT[digi][entry.BX]['upper']:
+					# Set histogram weights
+					# weight each event by pileup to get per pp-collision
+					pileup = 1./entry.PILEUP if PILEUP else 1.
+					# area of each wg/hs for 6 layers in cm^2
+					area = 1./areaHists[digi][ring].GetBinContent(entry.D_POS[idigi]) if AREA else 1.
+					# convert per 25 ns to per s
+					time = 1./(25.*10**(-9)) if TIME else 1.
+					# weight
+					weight = pileup*area*time
 					# Fill occupancy numerator
 					HISTS[ecr][digi][entry.BX][half]['num'].Fill(entry.D_POS[idigi],weight)
 					HISTS[ring][digi][entry.BX][half]['num'].Fill(entry.D_POS[idigi],weight)
@@ -194,8 +365,8 @@ if RECREATE:
 					PHI[ecr][digi][entry.BX][half]['num'].Fill(entry.CHAM,weight)
 					PHI[ring][digi][entry.BX][half]['num'].Fill(entry.CHAM,weight)
 					# Fill luminosity numerator
-					LUMI[ecr][digi][entry.BX][half]['num'].Fill(entry.LUMI,1.)
-					LUMI[ring][digi][entry.BX][half]['num'].Fill(entry.LUMI,1.)
+					LUMI[ecr][digi][entry.BX][half]['num'].Fill(entry.LUMI,weight)
+					LUMI[ring][digi][entry.BX][half]['num'].Fill(entry.LUMI,weight)
 			# Fill occupancy denominator
 			HISTS[ecr][digi][entry.BX][half]['den'].Fill(0,1.)
 			HISTS[ring][digi][entry.BX][half]['den'].Fill(0,1.)
@@ -259,18 +430,20 @@ else:
 #########################
 ### Get MC histograms ###
 #########################
-MCHISTS = {mc:{ec+ring:{digi:{} for digi in PLOT.keys()} for ec in ECLIST for ring in RINGLIST} for mc in MCLIST}
-for mc in MCLIST:
-	FMC = R.TFile.Open('root/hists_'+mc+'.root')
-	for ring in RINGLIST:
-		for ec in ECLIST:
-			for digi in PLOT.keys():
-				MCHISTS[mc][ec+ring][digi] = {
-						'occ' : FMC.Get(ec+ring+'_'+digi+'_occ').Clone(),
-						'phi' : FMC.Get('phi_'+ec+ring+'_'+digi+'_occ').Clone(),
-						}
-				MCHISTS[mc][ec+ring][digi]['occ'].SetDirectory(0)
-				MCHISTS[mc][ec+ring][digi]['phi'].SetDirectory(0)
+if MC:
+	MCHISTS = {mc:{ec+ring:{digi:{} for digi in PLOT.keys()} for ec in ECLIST for ring in RINGLIST} for mc in MCLIST}
+	for mc in MCLIST:
+		FMC = R.TFile.Open('root/hists_'+mc+'_TOF'+('_AREA' if AREA else '')+('_TIME' if TIME else '')+'.root')
+		print 'root/hists_'+mc+'_TOF'+('_AREA' if AREA else '')+('_TIME' if TIME else '')+'.root'
+		for ring in RINGLIST:
+			for ec in ECLIST:
+				for digi in PLOT.keys():
+					MCHISTS[mc][ec+ring][digi] = {
+							'occ' : FMC.Get(ec+ring+'_'+digi+'_occ').Clone(),
+							'phi' : FMC.Get('phi_'+ec+ring+'_'+digi+'_occ').Clone(),
+							}
+					MCHISTS[mc][ec+ring][digi]['occ'].SetDirectory(0)
+					MCHISTS[mc][ec+ring][digi]['phi'].SetDirectory(0)
 
 ###########################
 ### Make plot functions ###
@@ -278,27 +451,32 @@ for mc in MCLIST:
 
 def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 	# Make occupancy plot for each digi and plot type
-	dataPlot = Plotter.Plot(dataHist.Clone(),option='p')
-	TITLE = 'ME'+ec+ring+' '+('Comparator ' if digi=='comp' else 'Wire Group ')+'Occupancy'
+	dataPlot = Plotter.Plot(dataHist.Clone(),option='p',legType='p',legName='Data')
+	title = 'ME'+ec+ring+' '+('Comparator ' if digi=='comp' else 'Wire Group ')+'Occupancy'
 	# Make MC plot
 	if mc!='':
 		mcname = mc.replace('_',' ')
 		mchist = MCHISTS[mc][ec+ring][digi]['occ'].Clone()
 		mcPlot = Plotter.Plot(mchist,legType='f',option='hist',legName=mcname)
 	for LOGY in [False]:#,True]:
+		if mc!='':
+			mcname = mc.replace('_',' ')
+			TITLE = mcname
+		else:
+			TITLE = title
 		canvas = Plotter.Canvas(lumi=TITLE,logy=LOGY)
 		if mc!='':
 			canvas.addMainPlot(mcPlot)
 			mcPlot.SetFillColor(R.kOrange)
-		canvas.addMainPlot(dataPlot,addToPlotList=False)
+		canvas.addMainPlot(dataPlot)
 		if mc!='':
 			canvas.makeLegend(pos='tr')
 			canvas.legend.moveLegend(X=-0.2)
 			canvas.legend.resizeHeight()
-			canvas.drawText('MC : {:1.4f}'.format(mcPlot.Integral()),pos=(0.6,0.7))
+			canvas.drawText('MC integral : {:1.4f}'.format(mcPlot.Integral()),pos=(0.6,0.7))
 		mcMax = mcPlot.GetMaximum() if mc!='' else 0.
 		maximum = max(dataPlot.GetMaximum(),mcMax)
-		if when=='early':
+		if False:#when=='early':
 			if ring in ['11','12','13','21','22','31','32','41','42']:
 				canvas.firstPlot.SetMaximum(LIMITS['occ']['early'][digi][ring])
 			else:
@@ -307,13 +485,19 @@ def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 			canvas.firstPlot.SetMaximum(maximum * 1.2)
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'Comparator Half Strip' if digi=='comp' else 'Wire Group Number'
-		y = 'Counts/cm^{2}/s' if SCALE else 'Counts/BX'
+		y = 'Counts'
+		if AREA:
+			y += '/cm^{2}'
+		if TIME:
+			y += '/s'
+		else:
+			y += '/BX'
 		canvas.firstPlot.setTitles(X=x, Y=y)
-		canvas.drawText('Data : {:1.4f}'.format(dataPlot.Integral()),pos=(0.6,0.6))
+		canvas.drawText('Data integral : {:1.4f}'.format(dataPlot.Integral()),pos=(0.6,0.6))
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.makeTransparent()
 		canvas.finishCanvas('BOB')
-		name = 'occupancy_'+ec+ring+'_'+digi+'_'+when+('_'+NAME if NAME != '' else '')+('_logy' if LOGY else '')+('_'+mc if mc!='' else '')
+		name = 'occupancy_'+ec+ring+'_'+digi+'_'+when+('_'+HISTNAME if HISTNAME!= '' else '')+('_logy' if LOGY else '')+('_'+mc if mc!='' else '')
 		name = name.replace('+','p')
 		name = name.replace('-','m')
 		canvas.save('pdfs/'+name+'.pdf')
@@ -343,12 +527,12 @@ def makePhiPlot(dataHist,digi,when,ec,ring,mc):
 		canvas.firstPlot.SetMaximum(maximum * 1.2)
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'CSC Chamber'
-		y = 'Counts/cm^{2}/s' if SCALE else 'Counts/BX'
+		y = 'Counts/cm^{2}/s' if AREA else 'Counts/BX'
 		canvas.firstPlot.setTitles(X=x, Y=y)
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.makeTransparent()
 		canvas.finishCanvas('BOB')
-		name = 'phi_'+ec+ring+'_'+digi+'_'+when+('_'+NAME if NAME != '' else '')+('_logy' if LOGY else '')+('_'+mc if mc!='' else '')+'_test'
+		name = 'phi_'+ec+ring+'_'+digi+'_'+when+('_'+HISTNAME if HISTNAME != '' else '')+('_logy' if LOGY else '')+('_'+mc if mc!='' else '')+'_test'
 		name = name.replace('+','p')
 		name = name.replace('-','m')
 		canvas.save('pdfs/'+name+'.pdf')
@@ -356,8 +540,8 @@ def makePhiPlot(dataHist,digi,when,ec,ring,mc):
 
 def makeIntegralPlot(dataHist,digi,when,mc):
 	# Make integral plot for each digi and plot type
-	dataPlot = Plotter.Plot(dataHist.Clone(),option='p')
-	TITLE = ('Comparator ' if digi=='comp' else 'Wire Group ')+'Integral Occupancy'
+	dataPlot = Plotter.Plot(dataHist.Clone(),option='p',legType='p',legName='Data')
+	title = ('Comparator ' if digi=='comp' else 'Wire Group ')+'Integral Occupancy'
 	# Make MC Plot
 	if mc!='':
 		integralMC   = R.TH1D('integralMC_'+digi+'_mc','',18,0,18)
@@ -369,16 +553,21 @@ def makeIntegralPlot(dataHist,digi,when,mc):
 		mcname = mc.replace('_',' ')
 		mcPlot = Plotter.Plot(integralMC,option='hist',legName=mcname,legType='f')
 	for LOGY in [False]:#True]:
+		if mc!='':
+			mcname = mc.replace('_',' ')
+			TITLE = mcname
+		else:
+			TITLE = title
 		canvas = Plotter.Canvas(lumi=TITLE,logy=LOGY)
 		if mc!='': 
 			canvas.addMainPlot(mcPlot)
 			mcPlot.SetFillColor(R.kOrange)
-		canvas.addMainPlot(dataPlot,addToPlotList=False)
+		canvas.addMainPlot(dataPlot)
 		if mc!='':
 			canvas.makeLegend(pos='tr')
 			canvas.legend.moveLegend(X=-0.2)
 			canvas.legend.resizeHeight()
-		if when=='early':
+		if False:#when=='early':
 			canvas.firstPlot.SetMaximum(LIMITS['int']['early'][digi])
 		else:
 			mcMax = mcPlot.GetMaximum() if mc!='' else 0.
@@ -388,12 +577,12 @@ def makeIntegralPlot(dataHist,digi,when,mc):
 		x = 'CSC Ring'
 		for ibin,ring in enumerate(ERINGLIST):
 			canvas.firstPlot.GetXaxis().SetBinLabel(ibin+1, ring.replace('-','#minus'))
-		y = 'Counts/cm^{2}/s' if SCALE else 'Counts/BX'
+		y = 'Counts/cm^{2}/s' if AREA else 'Counts/BX'
 		canvas.firstPlot.setTitles(Y=y)
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.makeTransparent()
 		canvas.finishCanvas('BOB')
-		name = 'integral_'+digi+'_'+when+('_'+NAME if NAME != '' else '')+('_logy' if LOGY else '')+('_'+mc if mc!='' else '')
+		name = 'integral_'+digi+'_'+when+('_'+HISTNAME if HISTNAME != '' else '')+('_logy' if LOGY else '')+('_'+mc if mc!='' else '')
 		canvas.save('pdfs/'+name+'.pdf')
 		canvas.deleteCanvas()
 
@@ -406,12 +595,12 @@ def makeLuminosityPlot(dataHist,digi,when,ec,ring):
 		canvas.addMainPlot(dataPlot,addToPlotList=False)
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'Luminosity [cm^{-2}s^{-1}]'
-		y = 'Counts/cm^{2}/s' if SCALE else 'Counts/BX'
+		y = 'Counts/cm^{2}/s' if AREA else 'Counts/BX'
 		canvas.firstPlot.setTitles(X=x, Y=y)
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.makeTransparent()
 		canvas.finishCanvas('BOB')
-		name = 'luminosity_'+ec+ring+'_'+digi+'_'+when+('_'+NAME if NAME != '' else '')+('_logy' if LOGY else '')
+		name = 'luminosity_'+ec+ring+'_'+digi+'_'+when+('_'+HISTNAME if HISTNAME != '' else '')+('_logy' if LOGY else '')
 		name = name.replace('+','p')
 		name = name.replace('-','m')
 		canvas.save('pdfs/'+name+'.pdf')
@@ -438,7 +627,7 @@ def makeSepPlot(hist1,hist2,digi,when,ec,ring):
 		canvas.makeLegend(pos='tl')
 		canvas.makeTransparent()
 		canvas.finishCanvas('BOB')
-		name = 'luminosity_sep_'+ec+ring+'_'+digi+'_'+when+('_'+NAME if NAME != '' else '')+('_logy' if LOGY else '')
+		name = 'luminosity_sep_'+ec+ring+'_'+digi+'_'+when+('_'+HISTNAME if HISTNAME != '' else '')+('_logy' if LOGY else '')
 		name = name.replace('+','p')
 		name = name.replace('-','m')
 		canvas.save('pdfs/'+name+'.pdf')
@@ -477,12 +666,6 @@ for mc in MCLIST:
 						ncham = 36.
 				MCHISTS[mc][ec+ring][digi]['occ'].Scale(1./ncham)
 				MCHISTS[mc][ec+ring][digi]['phi'].Scale(1./ncham)
-				if SCALE:
-					# Scale by area
-					MCHISTS[mc][ec+ring][digi]['occ'].Divide(areaHists[digi][ring])
-					# Scale by time
-					time = 25.*10**(-9)
-					MCHISTS[mc][ec+ring][digi]['occ'].Scale(1./time)
 
 ### Normalize and combine Data histograms; then make plot
 for ring in RINGLIST:
@@ -521,9 +704,9 @@ for ring in RINGLIST:
 					# Add to normalized histogram to total
 					LUMI[ec+ring][digi][bx]['a']['rate'].Add(LUMI[ec+ring][digi][bx][HALVES[digi][i]]['rate'])
 					#################################################################
-			#########################
-			## Make Occupancy plot ##
-			#########################
+			################
+			## Make plots ##
+			################
 			for when in PLOT[digi].keys():
 				# Clone the first bx for this plot type
 				total  = HISTS[ec+ring][digi][PLOT[digi][when]['bx'][0]]['a']['rate'].Clone()
@@ -545,22 +728,14 @@ for ring in RINGLIST:
 				totallumi.Scale(1./PLOT[digi][when]['tb'])
 				totallumiLL.Scale(1./PLOT[digi][when]['tb'])
 				totallumiRU.Scale(1./PLOT[digi][when]['tb'])
-				if SCALE:
-					# Convert the per time bin number into per seconds
-					# 25 ns/bx * 10(-9) s/ns
-					bxtosecconv = 25. * 10**(-9)
-					total.Scale(1./bxtosecconv)
-					totalphi.Scale(1./bxtosecconv)
-					totallumi.Scale(1./bxtosecconv)
-					totallumiRU.Scale(1./bxtosecconv)
-					totallumiLL.Scale(1./bxtosecconv)
-					# Convert into per cm^2
-					total.Divide(areaHists[digi][ring])
-					#totalphi.Divide(areaHists[digi][ring]) # hmmm... maybe need to fill with a weight of the digi area
-					#totallumi{,RU,LL} same here.. need to fill with the weight of the area
+				###########################
+				## Make Luminosity Plots ##
+				###########################
 				makeLuminosityPlot(totallumi,digi,when,ec,ring)
 				makeSepPlot(totallumiRU,totallumiLL,digi,when,ec,ring)
-				### Make Plot
+				##############################
+				## Make Occupancy/Phi Plots ##
+				##############################
 				for mc in MCLIST+['']:
 					makeOccupancyPlot(total,digi,when,ec,ring,mc)
 					makePhiPlot(totalphi,digi,when,ec,ring,mc)
@@ -584,12 +759,6 @@ for digi in PLOT.keys():
 					totalRU.Add(HISTS[ring][digi][bx][HALVES[digi][1]]['rate'])
 			# Scale by number of time bins added together
 			total.Scale(1./PLOT[digi][when]['tb'])
-			if SCALE:
-				# Convert the per time bin number into per seconds
-				bxtosecconv = 25.*10**(-9)
-				integralData.Scale(1./bxtosecconv)
-				# scale to per cm^2
-				total.Divide(areaHists[digi][ring])
 			# Set integralData contents and labels
 			integralData.SetBinContent(b+1,total.Integral())
 			errLL2 = 1./totalLL.GetEntries() if totalLL.GetEntries()>0 else 0
