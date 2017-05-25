@@ -5,6 +5,15 @@ import ROOT as R
 import Gif.Analysis.Plotter as Plotter
 import Gif.Analysis.ChamberHandler as CH
 
+import logging
+logger = logging.getLogger('default')
+logger.setLevel(logging.WARNING)
+#handler = logging.StreamHandler()
+handler = logging.FileHandler('output.log')
+formatter = logging.Formatter('%(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 R.gROOT.SetBatch(True)
 
 parser = argparse.ArgumentParser()
@@ -34,6 +43,9 @@ class SimHit(object):
 		self.AvgELoss = data[8 ]
 		self.AvgStep  = data[9 ]
 		self.Cham     = data[10]
+	
+	def __repr__(self):
+		return '{DeltaS:6.4f} {ELossG:9.4f} {ELossT:9.4f} {TOF:10.1f} {PID:4d} {disp:} {NIE:5d}'.format(disp=self.Cham.display(), **self.__dict__)
 
 ##### CREATE HISTOGRAMS FROM A LOG #####
 if FILETYPE == 'LOG':
@@ -181,27 +193,30 @@ if FILETYPE == 'LOG':
 			orig += 1
 
 		if SPLITNODIGI:
-			if simhit.Event in DigiDict and simhit.Cham.id in DigiDict[simhit.Event]:
-				print 1, simhit.Event, simhit.Cham.id
-				h['DS-HD' ].Fill(simhit.DeltaS)
-				h['EG-HD' ].Fill(simhit.ELossG)
-				h['ET-HD' ].Fill(simhit.ELossT)
-				h['NIC-HD'].Fill(simhit.NIC   )
-				h['NIE-HD'].Fill(simhit.NIC   )
-				h['TOF-HD'].Fill(simhit.TOF   )
-			else:
-				print 0, simhit.Event, simhit.Cham.id
-				h['DS-ND' ].Fill(simhit.DeltaS)
-				h['EG-ND' ].Fill(simhit.ELossG)
-				h['ET-ND' ].Fill(simhit.ELossT)
-				h['NIC-ND'].Fill(simhit.NIC   )
-				h['NIE-ND'].Fill(simhit.NIC   )
-				h['TOF-ND'].Fill(simhit.TOF   )
+			#if not (simhit.DeltaS < 0.3 and abs(simhit.PID) == 11):
+			if True:
+				if simhit.Event in DigiDict and simhit.Cham.id in DigiDict[simhit.Event]:
+					#print 1, simhit.Event, simhit.Cham.id
+					h['DS-HD' ].Fill(simhit.DeltaS)
+					h['EG-HD' ].Fill(simhit.ELossG)
+					h['ET-HD' ].Fill(simhit.ELossT)
+					h['NIC-HD'].Fill(simhit.NIC   )
+					h['NIE-HD'].Fill(simhit.NIC   )
+					h['TOF-HD'].Fill(simhit.TOF   )
+				else:
+					#print 0, simhit.Event, simhit.Cham.id
+					h['DS-ND' ].Fill(simhit.DeltaS)
+					h['EG-ND' ].Fill(simhit.ELossG)
+					h['ET-ND' ].Fill(simhit.ELossT)
+					h['NIC-ND'].Fill(simhit.NIC   )
+					h['NIE-ND'].Fill(simhit.NIC   )
+					h['TOF-ND'].Fill(simhit.TOF   )
+					logger.warning(simhit.__repr__())
 
 		if simhit.PID not in PID:
 			PID[simhit.PID] = 0
 		PID[simhit.PID] += 1
-	print mod, orig
+	#print mod, orig
 
 	#for pid, count in PID.iteritems():
 	#	print pid, count
@@ -263,7 +278,7 @@ def EnergyPlot():
 	canvas.addMainPlot(plotG)
 	canvas.firstPlot.setTitles(X='Energy Loss [keV]', Y='Counts')
 	canvas.firstPlot.SetMinimum(0)
-	canvas.firstPlot.SetMaximum(3500)
+	#canvas.firstPlot.SetMaximum(3500)
 	plotT.SetLineColor(R.kBlue)
 	plotG.SetLineColor(R.kRed)
 	canvas.makeLegend()
@@ -310,7 +325,7 @@ def EnergyStackPlot():
 	canvas.makeTransparent()
 	canvas.firstPlot.setTitles(X='Energy Loss [keV]', Y='Counts')
 	canvas.firstPlot.SetMinimum(0)
-	canvas.firstPlot.SetMaximum(3500)
+	#canvas.firstPlot.SetMaximum(3500)
 	canvas.finishCanvas('BOB')
 	canvas.save('pdfs/Energy_Stack.pdf')
 	R.SetOwnership(canvas, False)

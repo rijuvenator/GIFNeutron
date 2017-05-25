@@ -107,10 +107,86 @@ def Flat7(ring, digi, half, norm=True):
 #		Flat7(ring, digi, half)
 
 #############
+##  LOOKS  ##
+#############
+
+def Looks(ring, digi, whichHalf=None):
+	nameDict = {
+		('comp', 'l') : ('Comparators', 'Left' ),
+		('comp', 'r') : ('Comparators', 'Right'),
+		('wire', 'l') : ('Wires'      , 'Lower'),
+		('wire', 'u') : ('Wires'      , 'Upper'),
+	}
+	SUBS = {
+		'DIGI' : digi,
+		'DIGIU': nameDict[(digi, 'l')][0],
+		'RING' : ring,
+		'HALFU': None if whichHalf is None else nameDict[(digi, whichHalf)][1]
+	}
+	# if whichHalf is specified, then make the plot only for a specific half
+	# otherwise, combine the two (and make the file and title names reflect that)
+	if whichHalf is None:
+		HALFLIST = ('l', 'r') if digi=='comp' else ('l', 'u')
+	else:
+		HALFLIST = (whichHalf,)
+
+	# gets/normalizes the histograms. it was originally developed for combining halves,
+	# hence the dictionary which is redundant if there's just one histogram,
+	# but the same code works for both, now
+	DLNAME = 'E{EC}_R{RING}_D{DIGI}_H{HALF}_NL_ABX'
+	LHISTS = {}
+	for half in HALFLIST:
+		LHISTS[half] =   f.Get(DLNAME.format(EC='+', HALF=half, **SUBS)).Clone()
+		LHISTS[half].Add(f.Get(DLNAME.format(EC='-', HALF=half, **SUBS)))
+
+	# make "h" the final histogram that goes into Plotter; also make the title and fn
+	if len(HALFLIST) == 1:
+		h = LHISTS[HALFLIST[0]].Clone()
+		title = 'nLooks vs. BX After Gap: {HALFU} {DIGIU}, ME{RING}'.format(**SUBS)
+		fn    = 'pdfs/Looks_{DIGI}_{HALFU}_{RING}.pdf'.format(**SUBS)
+	elif len(HALFLIST) == 2:
+		h = LHISTS[HALFLIST[0]].Clone()
+		h.Add(LHISTS[HALFLIST[1]])
+		title = 'nLooks vs. BX After Gap: {DIGIU}, ME{RING}'.format(**SUBS)
+		fn    = 'pdfs/Looks_{DIGI}_{RING}.pdf'.format(**SUBS)
+
+	# text file dumps of the histograms
+	if True:
+		fout = open(fn.replace('.pdf', '.txt'), 'w')
+		cleartext = ''
+		for BX in xrange(48, 0, -1):
+			cleartext += '{:4d} '.format(int(h.GetBinContent(BX))) + '\n'
+		fout.write(cleartext)
+
+	# plotting code begins here
+	plot = Plotter.Plot(h, option='hist')
+	canvas = Plotter.Canvas(lumi=title)
+
+	canvas.addMainPlot(plot)
+	canvas.makeTransparent()
+	plot.SetLineColor(0)
+	plot.SetFillColor(R.kOrange)
+	plot.setTitles(X='BX After Gap', Y='Number of Looks')
+	plot.SetMinimum(0)
+	h.GetXaxis().SetRangeUser(1, 49)
+
+	canvas.finishCanvas()
+	canvas.save(fn)
+	R.SetOwnership(canvas, False)
+	canvas.deleteCanvas()
+
+f = R.TFile.Open('rainbow.root')
+for ring in RINGLIST:
+	for digi in ('comp', 'wire'):
+		Looks(ring, digi)
+		for half in ('l', 'r') if digi=='comp' else ('l', 'u'):
+			Looks(ring, digi, half)
+
+#############
 ## RAINBOW ##
 #############
 
-def Rainbow(ring, digi, whichHalf=None, norm=False):
+def Rainbow(ring, digi, whichHalf=None, norm=True):
 	nameDict = {
 		('comp', 'l') : ('Comparators', 'Left' ),
 		('comp', 'r') : ('Comparators', 'Right'),
@@ -146,9 +222,9 @@ def Rainbow(ring, digi, whichHalf=None, norm=False):
 			LHISTS[half].Add(f.Get(DLNAME.format(EC='-', HALF=half, **SUBS)))
 
 		DIVVALS = {}
-		for BX in xrange(1, 50):
+		for BX in xrange(1, 49):
 			for half in HALFLIST:
-				DIVVALS[half] = LHISTS[half].GetBinContent(BX)
+				DIVVALS[half] = LHISTS[half].GetBinContent(BX)/(LHISTS[half].Integral(1, 48)/48.)
 			for TB in xrange(0, 16):
 				for half in HALFLIST:
 					DHISTS[half].SetBinContent(TB+1, BX, DHISTS[half].GetBinContent(TB+1, BX)/DIVVALS[half])
@@ -165,10 +241,10 @@ def Rainbow(ring, digi, whichHalf=None, norm=False):
 		fn    = 'pdfs/Rainbow_{DIGI}_{RING}.pdf'.format(**SUBS)
 
 	# text file dumps of the histograms
-	if False:
+	if True:
 		fout = open(fn.replace('.pdf', '.txt'), 'w')
 		cleartext = ''
-		for BX in xrange(49, 0, -1):
+		for BX in xrange(48, 0, -1):
 			for TB in xrange(0, 16):
 				cleartext += '{:4d} '.format(int(h.GetBinContent(TB+1, BX)))
 			cleartext += '\n'
@@ -185,6 +261,7 @@ def Rainbow(ring, digi, whichHalf=None, norm=False):
 	plot.setTitles(X='Time Bin', Y='BX After Gap')
 	plot.SetMinimum(0)
 	canvas.scaleMargins(1.7, 'R')
+	h.GetYaxis().SetRangeUser(1, 49)
 
 	canvas.finishCanvas()
 	canvas.save(fn)

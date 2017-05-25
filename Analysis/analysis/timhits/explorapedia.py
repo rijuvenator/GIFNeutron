@@ -3,7 +3,7 @@ import argparse
 import subprocess as bash
 
 # parse arguments
-FCHOICES = ['500_3', '1000_3', '1000_1', '1000_Hack1_1', '25000_HPT_1', '25000_HPT_Hack2_1', '25000_HPT_Hack3_1', '25000_HPT_NomTOF_1', '77100_HPT_NomTOF_1']
+FCHOICES = ['500_3', '1000_3', '1000_1', '1000_Hack1_1', '25000_HPT_1', '25000_HPT_Hack2_1', '25000_HPT_Hack3_1', '25000_HPT_NomTOF_1', '77100_HPT_NomTOF_1', '102100_HPT_NomTOF_1', '25000_HPT_Hack3TOF_1', '77100_HPT_Hack3TOF_1','102100_HPT_Hack3TOF_1',]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file'   , dest='FILE'   , default='1000_1'   , choices=FCHOICES, help='which data file to use'   )
@@ -32,7 +32,7 @@ f = R.TFile.Open('roots/output'+args.FILE+'Layer.root')
 t = f.Get('GIFTree/GIFDigiTree')
 
 t.SetBranchStatus('*', 0)
-BranchList = ['sim_id', 'comp_id', 'wire_id', 'strip_id', 'lct_id', 'alct_id', 'clct_id']
+BranchList = ['sim_id', 'comp_id', 'wire_id', 'strip_id', 'lct_id', 'alct_id', 'clct_id', 'Event_EventNumber']
 for br in BranchList:
 	t.SetBranchStatus(br, 1)
 
@@ -43,7 +43,8 @@ for idx, entry in enumerate(t):
 	if len(t.sim_id) > 0:
 		N_EVENTS_SIM += 1
 		N_SIM += len(t.sim_id)
-		if idx+1 in gaslist:
+		#if idx+1 in gaslist:
+		if t.Event_EventNumber in gaslist:
 			N_SIM_WITH_TIM += len(t.sim_id)
 
 			if PRINTCHAMDICT:
@@ -52,7 +53,8 @@ for idx, entry in enumerate(t):
 					fullchamlist.extend(list(getattr(t, br)))
 				digichamlist = list(set([str(cham) for cham in list(t.sim_id) if cham in fullchamlist]))
 				if digichamlist != []:
-					print idx+1, ' '.join(digichamlist)
+					#print idx+1, ' '.join(digichamlist)
+					print t.Event_EventNumber, ' '.join(digichamlist)
 
 			if PRINTDIGI:
 				print '{idx:3d}: {sim} {tim} {comp} {wire} {strip} {alct} {clct} {lct}'.format(
