@@ -134,25 +134,34 @@ class FillGIFStripInfo : public FillInfo
 
 		FillGIFStripInfo(TreeContainer& tree) :FillInfo(tree)
 		{
-			book("strip_id"    ,strip_id    );
-			book("strip_lay"   ,strip_lay   );
-			book("strip_number",strip_number);
-			book("strip_ADC"   ,strip_ADC   );
+			book("strip_id"               ,strip_id              );
+			book("strip_lay"              ,strip_lay             );
+			book("strip_number"           ,strip_number          );
+			book("strip_ADC"              ,strip_ADC             );
+			book("strip_ADCOverflow"      ,strip_ADCOverflow     );
+			book("strip_OverlappedSample" ,strip_OverlappedSample);
+			book("strip_Errorstat"        ,strip_Errorstat       );
 		}
 		virtual ~FillGIFStripInfo() {};
 
 	private:
-		std::vector<size16>           strip_id;
-		std::vector<size8>            strip_lay;
-		std::vector<size8>            strip_number;
-		std::vector<std::vector<int>> strip_ADC;
+		std::vector<size16>                strip_id;
+		std::vector<size8>                 strip_lay;
+		std::vector<size8>                 strip_number;
+		std::vector<std::vector<int>>      strip_ADC;
+		std::vector<std::vector<uint16_t>> strip_ADCOverflow;
+		std::vector<std::vector<uint16_t>> strip_OverlappedSample;
+		std::vector<std::vector<uint16_t>> strip_Errorstat;
 
 		virtual void reset()
 		{
-			strip_id    .clear();
-			strip_lay   .clear();
-			strip_number.clear();
-			strip_ADC   .clear();
+			strip_id              .clear();
+			strip_lay             .clear();
+			strip_number          .clear();
+			strip_ADC             .clear();
+			strip_ADCOverflow     .clear();
+			strip_OverlappedSample.clear();
+			strip_Errorstat       .clear();
 		}
 
 	public:
@@ -195,14 +204,14 @@ class FillGIFCompInfo : public FillInfo
 
 		virtual void reset()
 		{
-			comp_id    .clear();
-			comp_lay   .clear();
-			comp_strip .clear();
-			comp_comp  .clear();
-			comp_time  .clear();
-			comp_timeOn.clear();
-			comp_pos_x.clear();
-			comp_pos_y.clear();
+			comp_id       .clear();
+			comp_lay      .clear();
+			comp_strip    .clear();
+			comp_comp     .clear();
+			comp_time     .clear();
+			comp_timeOn   .clear();
+			comp_pos_x    .clear();
+			comp_pos_y    .clear();
 			comp_pos_glb_x.clear();
 			comp_pos_glb_y.clear();
 			comp_pos_glb_z.clear();
@@ -218,14 +227,15 @@ class FillGIFWireInfo : public FillInfo
 	public:
 		FillGIFWireInfo(TreeContainer& tree) :FillInfo(tree)
 		{
-			book("wire_id"  ,wire_id      );
-			book("wire_lay" ,wire_lay     );
-			book("wire_grp" ,wire_grp     );
-			book("wire_time",wire_time    );
-			book("wire_bx"  ,wire_bx      );
-			book("wire_nlay",wire_nlay,"I");
-			book("wire_pos_x",wire_pos_x);
-			book("wire_pos_y",wire_pos_y);
+			book("wire_id"       ,wire_id       );
+			book("wire_lay"      ,wire_lay      );
+			book("wire_grp"      ,wire_grp      );
+			book("wire_time"     ,wire_time     );
+			book("wire_timeOn"   ,wire_timeOn   );
+			book("wire_bx"       ,wire_bx       );
+			book("wire_nlay"     ,wire_nlay,"I" );
+			book("wire_pos_x"    ,wire_pos_x    );
+			book("wire_pos_y"    ,wire_pos_y    );
 			book("wire_pos_glb_x",wire_pos_glb_x);
 			book("wire_pos_glb_y",wire_pos_glb_y);
 			book("wire_pos_glb_z",wire_pos_glb_z);
@@ -233,27 +243,29 @@ class FillGIFWireInfo : public FillInfo
 		virtual ~FillGIFWireInfo() {};
 
 	private:
-		std::vector<size16> wire_id  ;
-		std::vector<size8>  wire_lay ;
-		std::vector<size8>  wire_grp ;
-		std::vector<size8>  wire_time;
-		std::vector<int>    wire_bx  ;
+		std::vector<size16>           wire_id  ;
+		std::vector<size8>            wire_lay ;
+		std::vector<size8>            wire_grp ;
+		std::vector<size8>            wire_time;
+		std::vector<std::vector<int>> wire_timeOn;
+		std::vector<int>              wire_bx  ;
 		std::vector<float>            wire_pos_x;
 		std::vector<float>            wire_pos_y;
 		std::vector<float>            wire_pos_glb_x;
 		std::vector<float>            wire_pos_glb_y;
 		std::vector<float>            wire_pos_glb_z;
-		int                 wire_nlay;
+		int                           wire_nlay;
 
 		virtual void reset()
 		{
-			wire_id  .clear();
-			wire_lay .clear();
-			wire_grp .clear();
-			wire_time.clear();
-			wire_bx  .clear();
-			wire_pos_x.clear();
-			wire_pos_y.clear();
+			wire_id       .clear();
+			wire_lay      .clear();
+			wire_grp      .clear();
+			wire_time     .clear();
+			wire_timeOn   .clear();
+			wire_bx       .clear();
+			wire_pos_x    .clear();
+			wire_pos_y    .clear();
 			wire_pos_glb_x.clear();
 			wire_pos_glb_y.clear();
 			wire_pos_glb_z.clear();

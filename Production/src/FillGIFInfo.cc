@@ -101,6 +101,9 @@ void FillGIFStripInfo::fill(const CSCStripDigiCollection& strips, std::vector<st
       strip_lay.push_back(GIFHelper::convertTo<size8>(id.layer(),"strip_lay"));
       strip_number.push_back(GIFHelper::convertTo<size8>(stripIter->getStrip(),"strip_number"));
 	  strip_ADC.push_back(myADCVals);
+	  strip_ADCOverflow.push_back(stripIter->getADCOverflow());
+	  strip_OverlappedSample.push_back(stripIter->getOverlappedSample());
+	  strip_Errorstat.push_back(stripIter->getErrorstat());
     }
   } // end strip loop
 }
@@ -154,6 +157,7 @@ void FillGIFWireInfo::fill(const CSCGeometry * theCSC,const CSCWireDigiCollectio
         wire_lay .push_back(GIFHelper::convertTo<size8>(layer,"wire_lay"));
         wire_grp .push_back(GIFHelper::convertTo<size8>((*digiItr).getWireGroup(),"wire_grp"));
         wire_time.push_back(GIFHelper::convertTo<size8>((*digiItr).getTimeBin(),"wire_time"));
+        wire_timeOn.push_back((*digiItr).getTimeBinsOn());
 		wire_bx  .push_back(GIFHelper::convertTo<int>((*digiItr).getWireGroupBX(),"wire_bx"));
 	    CSCDetId chamberId(id.rawId());
 	    const CSCChamber *wireChamber = theCSC->chamber(chamberId);
