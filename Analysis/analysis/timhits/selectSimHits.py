@@ -1,9 +1,11 @@
 import ROOT as R
 import sys
 
-if sys.argv[1] == '-t':
+FILE = sys.argv[1]
+
+if sys.argv[2] == '-t':
 	TRACK = True
-elif sys.argv[1] == '-d':
+elif sys.argv[2] == '-d':
 	TRACK = False
 else:
 	exit()
@@ -13,7 +15,8 @@ else:
 #for line in f:
 #	haveList.append(tuple([int(i) for i in line.strip('\n').split()]))
 
-f = R.TFile.Open('roots/output25000_HPT_Hack9TOF_1Layer.root')
+#f = R.TFile.Open('roots/output25000_HPT_Hack9TOF_1Layer.root')
+f = R.TFile.Open(FILE)
 t = f.Get('GIFTree/GIFDigiTree')
 
 nChamND, nCham, nTracks = 0, 0, 0

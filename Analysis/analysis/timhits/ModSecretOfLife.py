@@ -8,14 +8,13 @@ import Gif.Analysis.ChamberHandler as CH
 #R.gROOT.SetBatch(True)
 R.gStyle.SetPalette(55)
 
-#FILE = 'logs/log25000_HPT_Hack6TOF_1Layer.log'
-#NLINES = 17654848
-#FILE = 'logs/log25000_HPT_Hack7TOF_1Layer.log'
-#NLINES = 17759603
-#FILE = 'logs/log25000_HPT_Hack8TOF_1Layer.log'
-#NLINES = 23047863
-FILE = 'logs/log25000_HPT_Hack9TOF_1Layer.log'
-NLINES = 26766897
+#NLINES, FILE = 26766897, 'logs/skysong_92.log'
+#NLINES, FILE = 21459460, 'logs/skysong_no50el.log'
+#NLINES, FILE = 26792232, 'logs/skysong_noTOF.log'
+#NLINES, FILE = 8097366 , 'logs/skysong_noLay.log'
+NLINES, FILE = 26609958, 'logs/skysong_noBad.log'
+
+ROOTFILE = FILE.replace('logs/','roots/').replace('.log','.root')
 
 ##### FILL DATA STRUCTURE #####
 class SimHit(object):
@@ -176,7 +175,7 @@ print '100% of file parsed'
 
 TrackDict = {}
 #CHAMDICTRAW = bash.check_output('python SOLCriteria.py -t 2>/dev/null', shell=True).split('\n')
-CHAMDICTRAW = bash.check_output('python selectSimHits.py -t 2>/dev/null', shell=True).split('\n')
+CHAMDICTRAW = bash.check_output('python selectSimHits.py {FILE} -t 2>/dev/null'.format(FILE=ROOTFILE), shell=True).split('\n')
 for line in CHAMDICTRAW:
 	if line == '': continue
 	cols = line.strip('\n').split()
@@ -188,7 +187,7 @@ print len(TrackDict), '; TrackDict obtained'
 
 DigiDict = {}
 #CHAMDICTRAW = bash.check_output('python SOLCriteria.py -d 2>/dev/null', shell=True).split('\n')
-CHAMDICTRAW = bash.check_output('python selectSimHits.py -d 2>/dev/null', shell=True).split('\n')
+CHAMDICTRAW = bash.check_output('python selectSimHits.py {FILE} -d 2>/dev/null'.format(FILE=ROOTFILE), shell=True).split('\n')
 for line in CHAMDICTRAW:
 	if line == '': continue
 	cols = line.strip('\n').split()
