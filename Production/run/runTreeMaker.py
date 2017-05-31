@@ -119,7 +119,7 @@ rm -f core.*
 		bash.call('bash {SUBMITPATH}'.format(**locals()), shell=True)
 	elif SUBMIT and BATCH:
 		print i
-		bash.call('bsub -q 8nh -J ana_{NUM} < {SUBMITPATH}'.format(NUM=i,**locals()), shell=True)
+		bash.call('bsub -q 8nm -J ana_{NUM} < {SUBMITPATH}'.format(NUM=i,**locals()), shell=True)
 	
 	if CLEANUP:
 		bash.call('rm {SUBMITPATH} {CONFIGPATH}'.format(**locals()), shell=True)
