@@ -16,7 +16,7 @@ args = parser.parse_args()
 if args.TRACK:
 	import Gif.Analysis.Primitives as Primitives
 
-FILE = '25000_HPT_Hack3_1'
+FILE = '25000_HPT_Hack6TOF_1'
 
 # make gaslist and timlist
 eventHitList = bash.check_output('python printLogStats.py logs/log'+FILE+'Layer.log -e -s', shell=True)
@@ -35,18 +35,20 @@ t = f.Get('GIFTree/GIFDigiTree')
 
 if args.DIGI:
 	t.SetBranchStatus('*', 0)
-	BranchList = ['sim_id', 'comp_id', 'wire_id', 'strip_id', 'lct_id', 'alct_id', 'clct_id']
+	BranchList = ['sim_id', 'comp_id', 'wire_id', 'strip_id', 'lct_id', 'alct_id', 'clct_id', 'Event_EventNumber']
 	for br in BranchList:
 		t.SetBranchStatus(br, 1)
 
 for idx, entry in enumerate(t):
 	if len(t.sim_id) > 0:
-		if idx+1 in gaslist:
+		#if idx+1 in gaslist:
+		if t.Event_EventNumber in gaslist:
 
 			if args.DIGI:
 				digichamlist = list(set([str(cham) for cham in list(t.sim_id) if cham in list(t.wire_id)]))
 				if digichamlist != []:
-					print idx+1, ' '.join(digichamlist)
+					#print idx+1, ' '.join(digichamlist)
+					print t.Event_EventNumber, ' '.join(digichamlist)
 
 			if args.TRACK:
 				E = Primitives.ETree(t, DecList=['WIRE','SIMHIT'])
@@ -56,4 +58,4 @@ for idx, entry in enumerate(t):
 					return sum([sh.layer==wire.layer and abs(sh.wirePos-wire.number)<1 for wire in wires])>0
 				for sh in simhits:
 					if isNearWH(sh):
-						print idx+1, sh.trackID
+						print t.Event_EventNumber, sh.trackID

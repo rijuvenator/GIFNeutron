@@ -1,0 +1,53 @@
+== Full Change Menu
+25000 events, of which 10076 have SimHits, of which 9634 have wire group hits (so 442 did not)
+18713 chambers had SimHits, of which 1505 did not have wire group hits (so 17208 did)
+71398 SimHits, of which 1538 were in chambers without digis
+#Total: 91.95%
+
+== 50% of electrons dropped
+25000 events, of which 10076 have SimHits, of which 9621 have wire group hits (so 455 did not)
+18713 chambers had SimHits, of which 1541 did not have wire group hits (so 17172 did)
+71398 SimHits, of which 1574 were in chambers without digis
+#Total: 91.77%
+
+== No TOF Hack
+25000 events, of which 10076 have SimHits, of which 3766 have wire group hits (so 6310 did not)
+18713 chambers had SimHits, of which 13734 did not have wire group hits (so 4979 did)
+71398 SimHits, of which 36807 were in chambers without digis
+#Total: 26.61%
+
+== 3 Layers
+25000 events, of which 10076 have SimHits, of which 2394 have wire group hits (so 7682 did not)
+18713 chambers had SimHits, of which 15725 did not have wire group hits (so 2988 did)
+71398 SimHits, of which 49636 were in chambers without digis
+#Total: 15.97%
+
+== No Bad Chambers
+25000 events, of which 10076 have SimHits, of which 9597 have wire group hits (so 479 did not)
+18713 chambers had SimHits, of which 1648 did not have wire group hits (so 17065 did)
+71398 SimHits, of which 2064 were in chambers without digis
+#Total: 91.19%
+
+== No Threshold
+25000 events, of which 10076 have SimHits, of which 9626 have wire group hits (so 450 did not)
+18713 chambers had SimHits, of which 1521 did not have wire group hits (so 17192 did)
+71398 SimHits, of which 1555 were in chambers without digis
+#Total: 91.87%
+
+== No Short
+25000 events, of which 10076 have SimHits, of which 9259 have wire group hits (so 817 did not)
+18713 chambers had SimHits, of which 2624 did not have wire group hits (so 16089 did)
+71398 SimHits, of which 3762 were in chambers without digis
+#Total: 85.98%
+
+== No GEANT
+25000 events, of which 10076 have SimHits, of which 9411 have wire group hits (so 665 did not)
+18713 chambers had SimHits, of which 2171 did not have wire group hits (so 16542 did)
+71398 SimHits, of which 2524 were in chambers without digis
+#Total: 88.40%
+
+== No Both
+25000 events, of which 10076 have SimHits, of which 9275 have wire group hits (so 801 did not)
+18713 chambers had SimHits, of which 2573 did not have wire group hits (so 16140 did)
+71398 SimHits, of which 3658 were in chambers without digis
+#Total: 86.25%
