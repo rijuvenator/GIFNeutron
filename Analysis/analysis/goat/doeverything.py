@@ -26,6 +26,9 @@ parser.add_argument('-n','--name',dest='NAME',default='',
 # histogram name
 parser.add_argument('-hn','--histname',dest='HISTNAME',default='',
 		help='extra name to identify output histograms')
+# do track removal
+parser.add_argument('-road','--road',dest='DOROADS',action='store_true',
+		default=False,help='Wether or not to remove extra tracks found in roads')
 # area
 parser.add_argument('-a','--area',dest='AREA',action='store_true',
 		default=False,help='whether or not to scale to counts/cm^2')
@@ -36,16 +39,28 @@ parser.add_argument('-t','--time',dest='TIME',action='store_true',
 parser.add_argument('-pu','--pileup',dest='PILEUP',action='store_true',
 		default=False,help='whether or not to scale to counts/pp-collision')
 # whether or not to include MC on plots
-parser.add_argument('-mc','--mc',dest='MC',action='store_true',
-		default=False,help='whether or not to make plots that include MC')
+parser.add_argument('-mc','--mc',dest='MC',
+		default='',help='whether or not to make plots that include MC')
+# Simulation geometry to use
+parser.add_argument('-geo','--GEO',dest='GEO',
+		default='',help='Which simulation geometry to use')
+# Extra name for MC files for special use cases
+parser.add_argument('-extra','--extra',dest='EXTRA',
+		default='',help='Extra name for MC files for special use cases')
 args = parser.parse_args()
 RECREATE = args.RECREATE
 NAME = args.NAME
 HISTNAME = args.HISTNAME
+DOROADS = args.DOROADS
 PILEUP = args.PILEUP
 AREA = args.AREA
 TIME = args.TIME
 MC = args.MC
+GEO = args.GEO
+EXTRA = args.EXTRA
+if GEO=='' and MC!='':
+	print 'Choose a geometry'
+	exit()
 
 # Which time bins to use in each BX
 BXDICT = {
@@ -140,84 +155,84 @@ BXDICT = {
 PLOT = {
 		'wire':{
 			'early':{'bx':[1,2,3,4,5],'tb':15.},
-			'bx1':{'bx':[1],'tb':5.},
-			'bx2':{'bx':[2],'tb':4.},
-			'bx3':{'bx':[3],'tb':3.},
-			'bx4':{'bx':[4],'tb':2.},
-			'bx5':{'bx':[5],'tb':1.},
+#			'bx1':{'bx':[1],'tb':5.},
+#			'bx2':{'bx':[2],'tb':4.},
+#			'bx3':{'bx':[3],'tb':3.},
+#			'bx4':{'bx':[4],'tb':2.},
+#			'bx5':{'bx':[5],'tb':1.},
 
 			'total':{'bx':range(12,41),'tb':145.},
-			'bx12':{'bx':[12],'tb':5.},
-			'bx13':{'bx':[13],'tb':5.},
-			'bx14':{'bx':[14],'tb':5.},
-			'bx15':{'bx':[15],'tb':5.},
-			'bx16':{'bx':[16],'tb':5.},
-			'bx17':{'bx':[17],'tb':5.},
-			'bx18':{'bx':[18],'tb':5.},
-			'bx19':{'bx':[19],'tb':5.},
-			'bx20':{'bx':[20],'tb':5.},
-			'bx21':{'bx':[21],'tb':5.},
-			'bx22':{'bx':[22],'tb':5.},
-			'bx23':{'bx':[23],'tb':5.},
-			'bx24':{'bx':[24],'tb':5.},
-			'bx25':{'bx':[25],'tb':5.},
-			'bx26':{'bx':[26],'tb':5.},
-			'bx27':{'bx':[27],'tb':5.},
-			'bx28':{'bx':[28],'tb':5.},
-			'bx29':{'bx':[29],'tb':5.},
-			'bx30':{'bx':[30],'tb':5.},
-			'bx31':{'bx':[31],'tb':5.},
-			'bx32':{'bx':[32],'tb':5.},
-			'bx33':{'bx':[33],'tb':5.},
-			'bx34':{'bx':[34],'tb':5.},
-			'bx35':{'bx':[35],'tb':5.},
-			'bx36':{'bx':[36],'tb':5.},
-			'bx37':{'bx':[37],'tb':5.},
-			'bx38':{'bx':[38],'tb':5.},
-			'bx39':{'bx':[39],'tb':5.},
-			'bx40':{'bx':[40],'tb':5.},
+#			'bx12':{'bx':[12],'tb':5.},
+#			'bx13':{'bx':[13],'tb':5.},
+#			'bx14':{'bx':[14],'tb':5.},
+#			'bx15':{'bx':[15],'tb':5.},
+#			'bx16':{'bx':[16],'tb':5.},
+#			'bx17':{'bx':[17],'tb':5.},
+#			'bx18':{'bx':[18],'tb':5.},
+#			'bx19':{'bx':[19],'tb':5.},
+#			'bx20':{'bx':[20],'tb':5.},
+#			'bx21':{'bx':[21],'tb':5.},
+#			'bx22':{'bx':[22],'tb':5.},
+#			'bx23':{'bx':[23],'tb':5.},
+#			'bx24':{'bx':[24],'tb':5.},
+#			'bx25':{'bx':[25],'tb':5.},
+#			'bx26':{'bx':[26],'tb':5.},
+#			'bx27':{'bx':[27],'tb':5.},
+#			'bx28':{'bx':[28],'tb':5.},
+#			'bx29':{'bx':[29],'tb':5.},
+#			'bx30':{'bx':[30],'tb':5.},
+#			'bx31':{'bx':[31],'tb':5.},
+#			'bx32':{'bx':[32],'tb':5.},
+#			'bx33':{'bx':[33],'tb':5.},
+#			'bx34':{'bx':[34],'tb':5.},
+#			'bx35':{'bx':[35],'tb':5.},
+#			'bx36':{'bx':[36],'tb':5.},
+#			'bx37':{'bx':[37],'tb':5.},
+#			'bx38':{'bx':[38],'tb':5.},
+#			'bx39':{'bx':[39],'tb':5.},
+#			'bx40':{'bx':[40],'tb':5.},
 
 			'late':{'bx':[46,47,48],'tb':6.},
-			'bx46':{'bx':[46],'tb':1.},
-			'bx47':{'bx':[47],'tb':2.},
-			'bx48':{'bx':[48],'tb':3.},
+#			'bx46':{'bx':[46],'tb':1.},
+#			'bx47':{'bx':[47],'tb':2.},
+#			'bx48':{'bx':[48],'tb':3.},
 			},
 		'comp':{
 			'early':{'bx':[1,2,3],'tb':6.},
-			'bx1':{'bx':[1],'tb':3.},
-			'bx2':{'bx':[2],'tb':2.},
-			'bx3':{'bx':[3],'tb':1.},
+#			'bx1':{'bx':[1],'tb':3.},
+#			'bx2':{'bx':[2],'tb':2.},
+#			'bx3':{'bx':[3],'tb':1.},
 
 			'total':{'bx':range(12,41),'tb':87.},
-			'bx12':{'bx':[12],'tb':4.},
-			'bx13':{'bx':[13],'tb':4.},
-			'bx14':{'bx':[14],'tb':4.},
-			'bx15':{'bx':[15],'tb':4.},
-			'bx16':{'bx':[16],'tb':4.},
-			'bx17':{'bx':[17],'tb':4.},
-			'bx18':{'bx':[18],'tb':4.},
-			'bx19':{'bx':[19],'tb':4.},
-			'bx20':{'bx':[20],'tb':4.},
-			'bx21':{'bx':[21],'tb':4.},
-			'bx22':{'bx':[22],'tb':4.},
-			'bx23':{'bx':[23],'tb':4.},
-			'bx24':{'bx':[24],'tb':4.},
-			'bx25':{'bx':[25],'tb':4.},
-			'bx26':{'bx':[26],'tb':4.},
-			'bx27':{'bx':[27],'tb':4.},
-			'bx28':{'bx':[28],'tb':4.},
-			'bx29':{'bx':[29],'tb':4.},
-			'bx30':{'bx':[30],'tb':4.},
-			'bx31':{'bx':[31],'tb':4.},
-			'bx32':{'bx':[32],'tb':4.},
-			'bx33':{'bx':[33],'tb':4.},
-			'bx34':{'bx':[34],'tb':4.},
-			'bx35':{'bx':[35],'tb':4.},
-			'bx36':{'bx':[36],'tb':4.},
-			'bx37':{'bx':[37],'tb':4.},
-			'bx38':{'bx':[38],'tb':4.},
-			'bx39':{'bx':[39],'tb':4.},
-			'bx40':{'bx':[40],'tb':4.},
+#			'bx12':{'bx':[12],'tb':4.},
+#			'bx13':{'bx':[13],'tb':4.},
+#			'bx14':{'bx':[14],'tb':4.},
+#			'bx15':{'bx':[15],'tb':4.},
+#			'bx16':{'bx':[16],'tb':4.},
+#			'bx17':{'bx':[17],'tb':4.},
+#			'bx18':{'bx':[18],'tb':4.},
+#			'bx19':{'bx':[19],'tb':4.},
+#			'bx20':{'bx':[20],'tb':4.},
+#			'bx21':{'bx':[21],'tb':4.},
+#			'bx22':{'bx':[22],'tb':4.},
+#			'bx23':{'bx':[23],'tb':4.},
+#			'bx24':{'bx':[24],'tb':4.},
+#			'bx25':{'bx':[25],'tb':4.},
+#			'bx26':{'bx':[26],'tb':4.},
+#			'bx27':{'bx':[27],'tb':4.},
+#			'bx28':{'bx':[28],'tb':4.},
+#			'bx29':{'bx':[29],'tb':4.},
+#			'bx30':{'bx':[30],'tb':4.},
+#			'bx31':{'bx':[31],'tb':4.},
+#			'bx32':{'bx':[32],'tb':4.},
+#			'bx33':{'bx':[33],'tb':4.},
+#			'bx34':{'bx':[34],'tb':4.},
+#			'bx35':{'bx':[35],'tb':4.},
+#			'bx36':{'bx':[36],'tb':4.},
+#			'bx37':{'bx':[37],'tb':4.},
+#			'bx38':{'bx':[38],'tb':4.},
+#			'bx39':{'bx':[39],'tb':4.},
+#			'bx40':{'bx':[40],'tb':4.},
 
 			'late':{'bx':[48],'tb':1.},
 			},
@@ -225,9 +240,19 @@ PLOT = {
 # User input limits of plots
 LIMITS = {
 		'int':{
-			'wire':0.0052,
-			'comp':0.004,
+			'early':{
+				'wire':0.0052,
+				'comp':0.004,
 			},
+			'late':{
+				'wire':0.0052,
+				'comp':0.004,
+			},
+			'total':{
+				'wire':0.0052,
+				'comp':0.004,
+			},
+		},
 		'occ':{
 			'early':{
 				'comp':{
@@ -242,24 +267,47 @@ LIMITS = {
 					'42':25e-6,
 					},
 				'wire':{
-					'11':0.25e-3,
+					'11':0.2e-3,
 					'12':12e-6,
 					'13':16e-6,
-					'21':0.1e-3,
+					'21':0.08e-3,
 					'22':26e-6,
 					'31':0.08e-3,
 					'32':40e-6,
 					'41':0.06e-3,
-					'42':0.06e-3,
+					'42':0.05e-3,
 					},
 				},
-			},
-		'int':{
-			'early':{
-				'comp':0.005,
-				'wire':0.007,
+			'late':{
+				'wire':{},
+				'comp':{},
+				},
+			'total':{
+				'wire':{},
+				'comp':{},
 				},
 			},
+		'phi':{
+			'early':{
+				'wire':{
+					'22':0.0012,
+					'32':0.001,
+					'42':0.0025,
+					},
+				'comp':{
+					},
+				},
+			'late':{
+				'wire':{},
+				'comp':{},
+				},
+			'total':{
+				'wire':{},
+				'comp':{},
+				},
+			},
+
+
 		}
 
 ### Set permenant dictionaries
@@ -271,10 +319,6 @@ HALVES = {
 		'comp':['l','r','a'],
 		'wire':['l','u','a'],
 		}
-if MC:
-	MCLIST = ['XS_Thermal_ON','XS_Thermal_OFF','HP_Thermal_ON','HP_Thermal_OFF']
-else:
-	MCLIST = []
 
 #####################################
 ### Get/make occupancy histograms ###
@@ -282,7 +326,10 @@ else:
 
 if RECREATE:
 	# Get Tree
-	FILE = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/goatees/GOAT_P5.root')
+	if DOROADS:
+		FILE = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/goatees/GOAT_P5.root')
+	else:
+		FILE = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/goatees/GOAT_P5_noTrackRemoval_good.root')
 	tree = FILE.Get('t')
 	### Set Histograms
 	FOUT = R.TFile('root/occupancy'+('_'+NAME if NAME != '' else '')+'.root','RECREATE')
@@ -353,7 +400,8 @@ if RECREATE:
 					# weight each event by pileup to get per pp-collision
 					pileup = 1./entry.PILEUP if PILEUP else 1.
 					# area of each wg/hs for 6 layers in cm^2
-					area = 1./areaHists[digi][ring].GetBinContent(entry.D_POS[idigi]) if AREA else 1.
+					binnum = entry.D_POS[idigi] if digi=='wire' else entry.D_POS[idigi]+1 # add one for comp hs which count from 0
+					area = 1./areaHists[digi][ring].GetBinContent(binnum) if AREA else 1.
 					# convert per 25 ns to per s
 					time = 1./(25.*10**(-9)) if TIME else 1.
 					# weight
@@ -430,20 +478,61 @@ else:
 #########################
 ### Get MC histograms ###
 #########################
+
+### Normalize MC histograms
+# Number of events in each MC file
+# I make this to be user input, but it doesn't have to be
+MCNORM = {
+		'HP_Thermal_ON':102100.,
+		'HP_Thermal_OFF':98250.,
+		'XS_Thermal_ON':99000.,
+		'XS_Thermal_OFF':100000.,
+		'XS_ThermalOFF':100000.,
+		}
+
+# Set MC
+if MC=='':
+	MCLIST = ['']
+elif MC=='all':
+	MCLIST = ['XS_ThermalON','XS_ThermalOFF','HP_Thermal_ON','HP_ThermalOFF']
+else:
+	MCLIST = [MC]
+
 if MC:
 	MCHISTS = {mc:{ec+ring:{digi:{} for digi in PLOT.keys()} for ec in ECLIST for ring in RINGLIST} for mc in MCLIST}
 	for mc in MCLIST:
-		FMC = R.TFile.Open('root/hists_'+mc+'_TOF'+('_AREA' if AREA else '')+('_TIME' if TIME else '')+'.root')
-		print 'root/hists_'+mc+'_TOF'+('_AREA' if AREA else '')+('_TIME' if TIME else '')+'.root'
+		mcName = mc+'_TOF'+'_'+GEO+('_AREA' if AREA else '')+('_TIME' if TIME else '')+('_'+EXTRA if EXTRA!='' else '')
+		FMC = R.TFile.Open('root/hists_'+mcName+'.root')
+		print 'root/hists_'+mcName+'.root'
 		for ring in RINGLIST:
 			for ec in ECLIST:
 				for digi in PLOT.keys():
+					# Get histos
 					MCHISTS[mc][ec+ring][digi] = {
 							'occ' : FMC.Get(ec+ring+'_'+digi+'_occ').Clone(),
 							'phi' : FMC.Get('phi_'+ec+ring+'_'+digi+'_occ').Clone(),
 							}
 					MCHISTS[mc][ec+ring][digi]['occ'].SetDirectory(0)
 					MCHISTS[mc][ec+ring][digi]['phi'].SetDirectory(0)
+					# Scale MC to the number of pp collisions generated in each MC
+					MCHISTS[mc][ec+ring][digi]['occ'].Scale(1./MCNORM[mc])
+					MCHISTS[mc][ec+ring][digi]['phi'].Scale(1./MCNORM[mc])
+					# Scale to a single chamber 
+					if ring in ['21','31','41']:
+						if ec=='':
+							ncham = 36.
+						else:
+							ncham = 18.
+					else:
+						if ec=='':
+							ncham = 72.
+						else:
+							ncham = 36.
+					MCHISTS[mc][ec+ring][digi]['occ'].Scale(1./ncham)
+					if ec=='':
+						MCHISTS[mc][ec+ring][digi]['phi'].Scale(1./2)
+					else:
+						MCHISTS[mc][ec+ring][digi]['phi'].Scale(1.)
 
 ###########################
 ### Make plot functions ###
@@ -476,12 +565,9 @@ def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 			canvas.drawText('MC integral : {:1.4f}'.format(mcPlot.Integral()),pos=(0.6,0.7))
 		mcMax = mcPlot.GetMaximum() if mc!='' else 0.
 		maximum = max(dataPlot.GetMaximum(),mcMax)
-		if False:#when=='early':
-			if ring in ['11','12','13','21','22','31','32','41','42']:
-				canvas.firstPlot.SetMaximum(LIMITS['occ']['early'][digi][ring])
-			else:
-				canvas.firstPlot.SetMaximum(maximum * 1.2)
-		else:
+		if ring in LIMITS['occ'][when][digi].keys():
+			canvas.firstPlot.SetMaximum(LIMITS['occ'][when][digi][ring])
+		else: # set maximum dynamically
 			canvas.firstPlot.SetMaximum(maximum * 1.2)
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'Comparator Half Strip' if digi=='comp' else 'Wire Group Number'
@@ -505,7 +591,7 @@ def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 
 def makePhiPlot(dataHist,digi,when,ec,ring,mc):
 	# Make occupancy plot for each digi and plot type
-	dataPlot = Plotter.Plot(dataHist.Clone(),option='p')
+	dataPlot = Plotter.Plot(dataHist.Clone(),option='p',legName='Data',legType='p')
 	TITLE = 'ME'+ec+ring+' '+('Comparator ' if digi=='comp' else 'Wire Group ')+'Occupancy per Chamber'
 	# Make MC plot
 	if mc!='':
@@ -522,17 +608,22 @@ def makePhiPlot(dataHist,digi,when,ec,ring,mc):
 			canvas.makeLegend(pos='tr')
 			canvas.legend.moveLegend(X=-0.2)
 			canvas.legend.resizeHeight()
+			canvas.drawText('MC integral : {:1.4f}'.format(mcPlot.Integral()),pos=(0.6,0.7))
 		mcMax = mcPlot.GetMaximum() if mc!='' else 0.
 		maximum = max(dataPlot.GetMaximum(),mcMax)
-		canvas.firstPlot.SetMaximum(maximum * 1.2)
+		if ring in LIMITS['phi'][when][digi].keys():
+				canvas.firstPlot.SetMaximum(LIMITS['phi'][when][digi][ring])
+		else: # set maximum dynamically
+			canvas.firstPlot.SetMaximum(maximum * 1.2)
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'CSC Chamber'
 		y = 'Counts/cm^{2}/s' if AREA else 'Counts/BX'
 		canvas.firstPlot.setTitles(X=x, Y=y)
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
+		canvas.drawText('Data integral : {:1.4f}'.format(dataPlot.Integral()),pos=(0.6,0.6))
 		canvas.makeTransparent()
 		canvas.finishCanvas('BOB')
-		name = 'phi_'+ec+ring+'_'+digi+'_'+when+('_'+HISTNAME if HISTNAME != '' else '')+('_logy' if LOGY else '')+('_'+mc if mc!='' else '')+'_test'
+		name = 'phi_'+ec+ring+'_'+digi+'_'+when+('_'+HISTNAME if HISTNAME != '' else '')+('_logy' if LOGY else '')+('_'+mc if mc!='' else '')
 		name = name.replace('+','p')
 		name = name.replace('-','m')
 		canvas.save('pdfs/'+name+'.pdf')
@@ -567,9 +658,10 @@ def makeIntegralPlot(dataHist,digi,when,mc):
 			canvas.makeLegend(pos='tr')
 			canvas.legend.moveLegend(X=-0.2)
 			canvas.legend.resizeHeight()
-		if False:#when=='early':
-			canvas.firstPlot.SetMaximum(LIMITS['int']['early'][digi])
-		else:
+		#canvas.firstPlot.SetMaximum(0.0052 if digi=='wire' else 0.004)
+		if digi in LIMITS['int'][when].keys():
+			canvas.firstPlot.SetMaximum(LIMITS['int'][when][digi])
+		else: # set maximum dynamically
 			mcMax = mcPlot.GetMaximum() if mc!='' else 0.
 			maximum = max(dataPlot.GetMaximum(),mcMax)
 			canvas.firstPlot.SetMaximum(maximum * 1.1)
@@ -637,36 +729,6 @@ def makeSepPlot(hist1,hist2,digi,when,ec,ring):
 #### Make Plots! ####
 #####################
 
-### Normalize MC histograms
-# Number of events in each MC file
-# I make this to be user input, but it doesn't have to be
-MCNORM = {
-		'HP_Thermal_ON':102100.,
-		'HP_Thermal_OFF':98250.,
-		'XS_Thermal_ON':99000.,
-		'XS_Thermal_OFF':100000.,
-		}
-for mc in MCLIST:
-	for ring in RINGLIST:
-		for ec in ECLIST:
-			for digi in PLOT.keys():
-				# Scale MC to the number of pp collisions generated in each MC
-				MCHISTS[mc][ec+ring][digi]['occ'].Scale(1./MCNORM[mc])
-				MCHISTS[mc][ec+ring][digi]['phi'].Scale(1./MCNORM[mc])
-				# Scale to a single chamber 
-				if ring in ['21','31','41']:
-					if ec=='':
-						ncham = 36.
-					else:
-						ncham = 18.
-				else:
-					if ec=='':
-						ncham = 72.
-					else:
-						ncham = 36.
-				MCHISTS[mc][ec+ring][digi]['occ'].Scale(1./ncham)
-				MCHISTS[mc][ec+ring][digi]['phi'].Scale(1./ncham)
-
 ### Normalize and combine Data histograms; then make plot
 for ring in RINGLIST:
 	for ec in ECLIST:
@@ -692,7 +754,7 @@ for ring in RINGLIST:
 					PHI[ec+ring][digi][bx][HALVES[digi][i]]['den'].Sumw2()
 					# Normalize each half individually
 					PHI[ec+ring][digi][bx][HALVES[digi][i]]['rate'].Add(PHI[ec+ring][digi][bx][HALVES[digi][i]]['num'])
-					PHI[ec+ring][digi][bx][HALVES[digi][i]]['rate'].Scale(1./PHI[ec+ring][digi][bx][HALVES[digi][i]]['den'].GetEntries())
+					PHI[ec+ring][digi][bx][HALVES[digi][i]]['rate'].Divide(PHI[ec+ring][digi][bx][HALVES[digi][i]]['den'])
 					# Add to normalized histogram to total
 					PHI[ec+ring][digi][bx]['a']['rate'].Add(PHI[ec+ring][digi][bx][HALVES[digi][i]]['rate'])
 					#################################################################
@@ -731,12 +793,13 @@ for ring in RINGLIST:
 				###########################
 				## Make Luminosity Plots ##
 				###########################
-				makeLuminosityPlot(totallumi,digi,when,ec,ring)
-				makeSepPlot(totallumiRU,totallumiLL,digi,when,ec,ring)
+				if MC=='':
+					makeLuminosityPlot(totallumi,digi,when,ec,ring)
+					makeSepPlot(totallumiRU,totallumiLL,digi,when,ec,ring)
 				##############################
 				## Make Occupancy/Phi Plots ##
 				##############################
-				for mc in MCLIST+['']:
+				for mc in MCLIST:
 					makeOccupancyPlot(total,digi,when,ec,ring,mc)
 					makePhiPlot(totalphi,digi,when,ec,ring,mc)
 
@@ -746,6 +809,7 @@ for ring in RINGLIST:
 for digi in PLOT.keys():
 	for when in PLOT[digi].keys():
 		integralData = R.TH1D('integralData_'+digi+'_'+when,'',18,0,18)
+		print '***', when
 		for b,ring in enumerate(ERINGLIST):
 			### Clone the first bx for this plot
 			total   = HISTS[ring][digi][PLOT[digi][when]['bx'][0]]['a']['rate'].Clone()
@@ -760,11 +824,13 @@ for digi in PLOT.keys():
 			# Scale by number of time bins added together
 			total.Scale(1./PLOT[digi][when]['tb'])
 			# Set integralData contents and labels
-			integralData.SetBinContent(b+1,total.Integral())
+			integ = total.Integral()
+			integralData.SetBinContent(b+1,integ)
 			errLL2 = 1./totalLL.GetEntries() if totalLL.GetEntries()>0 else 0
 			errRU2 = 1./totalRU.GetEntries() if totalRU.GetEntries()>0 else 0
-			err = total.Integral() * math.sqrt( errLL2 + errRU2 )
+			err = integ * math.sqrt( errLL2 + errRU2 )
 			integralData.SetBinError(b+1,err)
 			integralData.GetXaxis().SetBinLabel(b+1,ring.replace('-','#minus'))
-		for mc in MCLIST+['']:
+			print '***', ring, integ, err
+		for mc in MCLIST:
 			makeIntegralPlot(integralData,digi,when,mc)

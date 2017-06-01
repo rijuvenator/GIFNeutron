@@ -272,7 +272,7 @@ class Canvas(R.TCanvas):
 		if not self.axesDrawn:
 			self.axesDrawn = True
 			self.firstPlot = plot
-			if type(plot.plot) is R.TGraph:
+			if type(plot.plot) in [R.TGraph,R.TGraphErrors,R.TGraphAsymmErrors]:
 				plot.Draw('A'+plot.option)
 			else:
 				plot.Draw(plot.option)

@@ -27,7 +27,7 @@ import array
 def analyze(self, t, PARAMS):
 	Primitives.SelectBranches(t, DecList=['LCT', 'COMP', 'WIRE'], branches=['Event_RunNumber','Event_BXCrossing','Event_LumiSection'])
 	for idx, entry in enumerate(t):
-		if idx == 50000: break
+		#if idx == 50000: break
 		print 'Events:', idx+1, '\r',
 		loopFunction(self, t, PARAMS)
 
@@ -46,9 +46,11 @@ def loopFunction(self, t, PARAMS):
 
 	if PARAMS.DOGAP:
 		# Only after gap BXs
-		size, BX, train = self.getBunchInfo(t.Event_RunNumber, t.Event_BXCrossing, minSize=PARAMS.GAP)
+		size, BX, train, nextGap = self.getBunchInfo(t.Event_RunNumber, t.Event_BXCrossing, minSize=PARAMS.GAP)
 		if not size: return
-		if BX > 48: BX = 49
+		if train!=48: return # only trains 48 BX long
+		if nextGap<8: return # require gap after train to be at least 8
+		#if BX > 48: BX = 49
 
 	# Background digis
 	if list(t.lct_id) == [] or list(t.comp_id) == []: return
