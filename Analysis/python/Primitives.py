@@ -48,6 +48,12 @@ class ETree(object):
 			else:
 				self.comp_pos       = [[0. for i in self.comp_cham] for j in range(2)]
 				self.comp_globalPos = [[0. for i in self.comp_cham] for j in range(3)]
+			if hasattr(t, 'comp_station'):
+				self.comp_station   = list(t.comp_station)
+				self.comp_ring      = list(t.comp_ring)
+			else:
+				self.comp_station   = [0 for i in self.comp_cham]
+				self.comp_ring      = [0 for i in self.comp_cham]
 
 		if 'STRIP' in DecList:
 			self.strip_cham   = list(t.strip_id)
@@ -147,6 +153,8 @@ class ETree(object):
 class Comp(object):
 	def __init__(self, E, i):
 		self.cham      = E.comp_cham[i]
+		self.station   = E.comp_station[i]
+		self.ring      = E.comp_ring[i]
 		self.layer     = E.comp_layer[i]
 		self.strip     = E.comp_strip[i]
 		self.comp      = E.comp_comp[i]
@@ -158,8 +166,11 @@ class Comp(object):
 		c = CH.Chamber(self.cham)
 		self.isStaggered = (not (c.station == 1 and c.ring == 1)) * (self.layer % 2 == 0)
 
+		# Old version (counts comparators hs from 2 to 2s+1)
 		self.halfStrip = 2*self.strip + self.comp
 		self.staggeredHalfStrip = self.halfStrip - self.isStaggered * 1.0
+		# Shift ME1/1a HS by 129
+		self.halfStrip0 = 2*(self.strip-1.)+self.comp + 128 if (self.station==1 and self.ring==4) else 2*(self.strip-1.) + self.comp
 
 class Strip(object):
 	def __init__(self, E, i):

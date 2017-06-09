@@ -30,14 +30,20 @@ parser.add_argument('-xs','--XS',action='store_true',dest='XS',
 parser.add_argument('-therm','--thermal',action='store_true',dest='THERMAL',
 		default=False,help='Use neutron thermalization')
 # SimHit time of flight hack (default is true)
-parser.add_argument('-tof','--TOF',action='store_false',dest='TOF',
-		default=True,help='Use SH time of flight hack')
+parser.add_argument('-tof','--TOF',action='store_true',dest='TOF',
+		default=False,help='Use SH time of flight hack')
 # Weight by area
 parser.add_argument('-a','--area',action='store_true',dest='AREA',
 		default=False,help='Weight digis by area')
 # Weight by time
 parser.add_argument('-t','--time',action='store_true',dest='TIME',
 		default=False,help='Convert to rate per second')
+# Which Geometry to use
+parser.add_argument('-geo','--GEO',dest='GEO',
+		default='',help='Use 2016 Geometry')
+# add an extra name for special tests
+parser.add_argument('-n','--name',dest='NAME',
+		default='',help='Add an extra optional name for speicial tests')
 
 args = parser.parse_args()
 
@@ -47,94 +53,69 @@ THERMAL = args.THERMAL
 TOF = args.TOF
 AREA = args.AREA
 TIME = args.TIME
+GEO = args.GEO
+NAME = args.NAME
+ 
+if GEO=='':
+	print 'Need to specify geometry'
 
 # Choose MC to use
 if HP and XS:
 	print 'Can\'t have XS and HP!'
 	exit()
 
-if HP:
-	if THERMAL:
-		if TOF:
-			# HP Thermal ON + TOF Hack
-			F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_102100_NomTOF.root'
-			#MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_25000_Hack3.root'
-			outfile = 'hists_HP_Thermal_ON_TOF'+('_AREA' if AREA else '')+('_TIME' if TIME else '')+'.root'
-		else:
-			# HP Thermal ON
-			F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON_105k_digi_hack.root'
-			outfile = 'hists_HP_Thermal_ON'+('_AREA' if AREA else '')+('_TIME' if TIME else '')+'.root'
-	else:
-		if TOF:
-			# HP Thermal OFF, + TOF Hack
-			F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_OFF/tree_HP_ThermalOFF_tof.root'
-			outfile = 'hists_HP_Thermal_OFF_TOF'+('_AREA' if AREA else '')+('_TIME' if TIME else '')+'.root'
-		else:
-			# HP Thermal OFF
-			F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_OFF/ana_neutronMC_HPThermalOFF_digi_all.root'
-			outfile = 'hists_HP_Thermal_OFF'+('_AREA' if AREA else '')+('_TIME' if TIME else '')+'.root'
-
-elif XS:
-	if THERMAL:
-		if TOF:
-			# XS Thermal ON, + TOF Hack
-			F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_ON/ana_neutronMC_XS_ThermalON_tof.root'
-			outfile = 'hists_XS_Thermal_ON_TOF'+('_AREA' if AREA else '')+('_TIME' if TIME else '')+'.root'
-		else:
-			# XS Thermal ON
-			F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_ON/ana_neutronMC_XS_ThermalON.root'
-			outfile = 'hists_XS_Thermal_ON'+('_AREA' if AREA else '')+('_TIME' if TIME else '')+'.root'
-	else:
-		if TOF:
-			# XS Thermal OFF, + TOF Hack
-			F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_OFF/ana_neutronMC_XS_Thermal_OFF_tof.root'
-			outfile = 'hists_XS_Thermal_OFF_TOF'+('_AREA' if AREA else '')+('_TIME' if TIME else '')+'.root'
-		else:
-			# XS Thermal OFF
-			F_MCDATA = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_OFF/ana_neutronMC_XS_Thermal_OFF.root'
-			outfile = 'hists_XS_Thermal_OFF'+('_AREA' if AREA else '')+('_TIME' if TIME else '')+'.root'
-else:
-	print 'Need to specify XS or HP'
-	exit()
-
-
-
+# HP Thermal ON + TOF Hack
+#/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_102100_NomTOF.root
+#MS./afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_25000_Hack3.root
+# HP Thermal ON
+#/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_ON/ana_neutronMC_HPThermalON_105k_digi_hack.root
+# HP Thermal OFF, + TOF Hack
+#/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_OFF/tree_HP_ThermalOFF_tof.root
+# HP Thermal OFF
+#/afs/cern.ch/work/c/cschnaib/public/NeutronSim/HP_Thermal_OFF/ana_neutronMC_HPThermalOFF_digi_all.root
+# XS Thermal ON, + TOF Hack
+#/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_ON/ana_neutronMC_XS_ThermalON_tof.root
+# XS Thermal ON
+#/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_ON/ana_neutronMC_XS_ThermalON.root
+# XS Thermal OFF + TOF Hack + 2016CavernGeo
+#/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_OFF/MinBias_XSThermalOFF_2016CavernGeo_TREE.root
+# XS Thermal OFF + TOF Hack + 2016Geo
+#/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_OFF/MinBias_XSThermalOFF_2016Geo_TREE.root
+# XS Thermal OFF + TOF Hack + 2015Geo
+#/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_OFF/ana_neutronMC_XS_Thermal_OFF_tof.root
+# XS Thermal OFF, NO TOF Hack, 2015Geo
+#/afs/cern.ch/work/c/cschnaib/public/NeutronSim/XS_Thermal_OFF/ana_neutronMC_XS_Thermal_OFF.root
 # Special MC files, not normally to be used
-
 #MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/hacktrees2/hacktree.root'
 #MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/nomtrees2/nomtree.root'
-
 # old XS, Thermal OFF w/o digi hack
 #MS.F_MCDATA = '/afs/cern.ch/user/c/cschnaib/Analysis/trees_mc/ana_neutronMC.root'
-
 # HP Thermal ON, + TOF Hack, No Short Hack
 #MS.F_MCDATA = '/afs/cern.ch/work/a/adasgupt/public/Neutron/ana_Neutron_MC_25000_NomTOF.root'
 
+# Generate input/output MC file
+CHRISPUBLIC = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/'
+F_MCDATA = CHRISPUBLIC+'MinBias_'+('XS' if XS else 'HP')+('_ThermalON' if THERMAL else '_ThermalOFF')+('_TOF' if TOF else '')+'_'+GEO+'.root'
+outfile = 'root/hists_'+('XS' if XS else 'HP')\
+		+('_ThermalON' if THERMAL else '_ThermalOFF')\
+		+('_TOF' if TOF else '')\
+		+'_'+GEO\
+		+('_AREA' if AREA else '')\
+		+('_TIME' if TIME else '')\
+		+('_'+NAME if NAME!='' else '')\
+		+'.root'
 
 RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
 #RINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11', '+12', '+13', '+21', '+22', '+31', '+32', '+41', '+42']
 
 #### SETUP SCRIPT #####
-# Output file names
-CONFIG = {
-	#'MC'  : 'BGComp_MC.root'
-	#'MC'  : 'BGComp_MC_XS_OFF.root'
-	#'MC'  : 'BGComp_MC_XS_ON.root'
-	#'MC'  : 'BGComp_MC_HP_OFF.root'
-	#'MC'  : 'BGComp_MC_HP_ON.root'
-	#'MC'  : 'BGComp_MC_HP_ON_Hack3.root'
-	#'MC'  : 'BGComp_MC_HP_ON_NomTOF.root'
-	#'MC' : 'root/hists_HP_Thermal_ON.root',
-	#'MC' : 'root/hists_HP_Thermal_OFF.root',
-	#'MC' : 'root/hists_XS_Thermal_ON.root',
-	#'MC' : 'root/hists_XS_Thermal_OFF.root',
-	'MC' : 'root/'+outfile
-}
-# Set module globals: TYPE=[GIF/P5/MC], OFN=Output File Name, FDATA=[OFN/None]
-#TYPE, OFN, FDATA = MS.ParseArguments(CONFIG)
 FN = R.TFile.Open(F_MCDATA)
 t = FN.Get('GIFTree/GIFDigiTree')
-F_OUT = R.TFile('root/'+outfile,'RECREATE')
+F_OUT = R.TFile(outfile,'RECREATE')
+print '''
+INPUT : {F_MCDATA}
+OUTPUT : {outfile}
+'''.format(**locals())
 F_OUT.cd()
 HISTS = {}
 PHI= {}
@@ -171,19 +152,21 @@ for idx, entry in enumerate(t):
 
 	for comp in comps:
 		cham = CH.Chamber(comp.cham)
+		# comp.halfStrip0 counts hs from 0 to 2*(s-1)+c
 		# thermal neutron comparator hits are in time bins 10 or later
 		if comp.timeBin < 10: continue
-		area = areaHists['comp'][cham.display('{S}{R}')].GetBinContent(comp.halfStrip) if AREA else 1.
+		area = areaHists['comp'][cham.display('{S}{R}')].GetBinContent(int(comp.halfStrip0)) if AREA else 1.
 		time = 25. * 10**(-9) if TIME else 1.
 		weight = 1./(area*time)
-		HISTS[cham.display('{E}{S}{R}')]['comp'].Fill(comp.halfStrip)
-		HISTS[cham.display('{S}{R}')]['comp'].Fill(comp.halfStrip)
-		PHI[cham.display('{E}{S}{R}')]['comp'].Fill(int(cham.display('{C}')))
-		PHI[cham.display('{S}{R}')]['comp'].Fill(int(cham.display('{C}')))
+		HISTS[cham.display('{E}{S}{R}')]['comp'].Fill(comp.halfStrip0,weight)
+		HISTS[cham.display('{S}{R}')]['comp'].Fill(comp.halfStrip0,weight)
+		PHI[cham.display('{E}{S}{R}')]['comp'].Fill(int(cham.display('{C}')),weight)
+		PHI[cham.display('{S}{R}')]['comp'].Fill(int(cham.display('{C}')),weight)
 	for wire in wires:
 		cham = CH.Chamber(wire.cham)
-		# thermal neutron wire group hits are in time bins 12 or later
-		if wire.timeBin < 12: continue
+		# thermal neutron wire group hits are in time bins 12+ for 2015 and 11+ for 2016 geometries
+		TCUT = 12 if GEO=='2015Geo' else 11
+		if wire.timeBin < TCUT: continue
 		area = areaHists['wire'][cham.display('{S}{R}')].GetBinContent(wire.number) if AREA else 1.
 		time = 25. * 10**(-9) if TIME else 1.
 		weight = 1./(area*time)
