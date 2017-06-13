@@ -16,16 +16,22 @@ areaHists = {digi:{ring:{} for ring in RINGLIST} for digi in DIGILIST}
 for digi in DIGILIST:
 	for ring in RINGLIST:
 		cham = CH.Chamber(CH.serialID(1,int(ring[0]),int(ring[1]),1))
-		lim = cham.nwires if digi=='wire' else (cham.nstrips-1)*2+1
-		low = 1 if digi=='wire' else 0
-		areaHists[digi][ring] = R.TH1D(digi+'_'+ring,'',lim+1,1,lim+2)
+		# Wire histogram goes from 1,nWG
+		# Comp histogram goes from 2,2*s+1
+		lim = cham.nwires if digi=='wire' else (cham.nstrips)*2+1
+		#lim = cham.nwires if digi=='wire' else (cham.nstrips-1)*2+1
+		#low = 0
+		low = 1 if digi=='wire' else 2
+		#high = lim+1 if digi=='wire' else lim+2
+		areaHists[digi][ring] = R.TH1D(digi+'_'+ring,'',lim+1,0,lim+1)
+		print digi, ring, low,lim,areaHists[digi][ring].GetNbinsX()
 		for idx,idigi in enumerate(range(low,lim+1)):
 			if digi=='wire':
 				if ring!='11': # non me11
 					a = 6*(((cham.t[ring]-cham.b[ring])/cham.h[ring] * cham.h[ring]/lim * 0.5*(idigi*2+1)) + cham.b[ring])*cham.h[ring]/lim
-					areaHists[digi][ring].SetBinContent(idigi,a)
+					areaHists[digi][ring].Fill(idigi,a)
 				else: # me11
-					areaHists[digi][ring].SetBinContent(idigi,6*me11[idigi]*0.01) # convert me11 dict from mm^2 to cm^2
+					areaHists[digi][ring].Fill(idigi,6*me11[idigi]*0.01) # convert me11 dict from mm^2 to cm^2
 			else: # comp
 				# hs = 2*s + c in primitives
 				# this means hs = [2,2*ns+1], since s = [1,ns]
@@ -33,14 +39,14 @@ for digi in DIGILIST:
 				# matches the limits of the primitives
 				if ring!='11': # non me11
 					a = 6*0.5*(cham.t[ring]+cham.b[ring])*cham.h[ring]/lim # area/half-strip
-					areaHists[digi][ring].SetBinContent(idigi,a)
+					areaHists[digi][ring].Fill(idigi,a)
 				else: # me11
 					if idigi<=127: # me11b
 						a = 6*0.5*(47.4+27.4)*107.5/64. # area per strip
-						areaHists[digi][ring].SetBinContent(idigi,0.5*a)
+						areaHists[digi][ring].Fill(idigi,0.5*a)
 					else: # me11a
 						a = 6*0.5*(27.4+19.14)*44.5/48. # area per strip
-						areaHists[digi][ring].SetBinContent(idigi,0.5*a)
+						areaHists[digi][ring].Fill(idigi,0.5*a)
 
 if __name__=='__main__':
 	import Gif.Analysis.Plotter as Plotter

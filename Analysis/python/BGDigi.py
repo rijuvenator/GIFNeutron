@@ -72,10 +72,10 @@ def getBGCompCandList(lcts, comps):
 			}
 			OppAreas = \
 			{
-				'bl' : {'hs0' : nHS/2, 'hs1' : nHS    },
-				'tl' : {'hs0' : nHS/2, 'hs1' : nHS    },
-				'tr' : {'hs0' : 0.   , 'hs1' : nHS/2-2},
-				'br' : {'hs0' : 0.   , 'hs1' : nHS/2-2},
+				'bl' : {'hs0' : nHS/2, 'hs1' : nHS  },
+				'tl' : {'hs0' : nHS/2, 'hs1' : nHS  },
+				'tr' : {'hs0' : 0.   , 'hs1' : nHS/2},
+				'br' : {'hs0' : 0.   , 'hs1' : nHS/2},
 			}
 		# Loop on all areas (we've already forced there to be only one LCT in this chamber)
 		for key in LCTAreas.keys():
@@ -91,12 +91,12 @@ def getBGCompCandList(lcts, comps):
 					# For comparators in opposite half of LCT
 					OPPAREA = False
 					if cham.station==1 and cham.ring==1:
-						if ((comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1'])\
+						if ((comp.staggeredHalfStrip > OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1'])\
 								or \
-							(comp.staggeredHalfStrip >= OppAreas[key]['hs2'] and comp.staggeredHalfStrip <= OppAreas[key]['hs3'])):
+							(comp.staggeredHalfStrip > OppAreas[key]['hs2'] and comp.staggeredHalfStrip <= OppAreas[key]['hs3'])):
 							OPPAREA = True
 					else:
-						if comp.staggeredHalfStrip >= OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
+						if comp.staggeredHalfStrip > OppAreas[key]['hs0'] and comp.staggeredHalfStrip <= OppAreas[key]['hs1']:
 							OPPAREA = True
 					if OPPAREA:
 						bgComps.append(comp)
@@ -179,7 +179,7 @@ def getBGWireCandList(lcts, wires):
 					bgLCTs.append((lct,'l'))
 				for wire in wires:
 					if wire.cham != lct.cham: continue
-					if wire.number >= OppAreas[key]['wg0'] and wire.number <= OppAreas[key]['wg1']:
+					if wire.number > OppAreas[key]['wg0'] and wire.number <= OppAreas[key]['wg1']:
 						bgWires.append(wire)
 	
 	return bgLCTs,bgWires
