@@ -105,6 +105,14 @@ class GIFMegaStruct():
 		factor = 3.e33 if cham == 1 else 5.e33
 		return factor * np.array([self.current(cham, self.MEASDATA[att][ff]) for att in self.attVector(castrated)])
 
+	# get a current measurement given chamber, meas, layer, section
+	def atomicCurrent(self, cham, meas, layer, hv):
+		return self.CURRDATA[cham][meas][layer-1 + 6*(hv - 1)]
+
+	# get a vector of currents
+	def atomicCurrentVector(self, cham, layer, hv):
+		return np.array([self.atomicCurrent(cham, self.MEASDATA[att][0], layer, hv) for att in self.attVector()])
+
 ##### GIF ANALYZER CLASS #####
 class GIFAnalyzer(GIFMegaStruct):
 	def __init__(self, F_DATAFILE=None, ATTLIST=None, FFLIST=[0], PARAMS=None):
