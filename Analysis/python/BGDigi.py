@@ -150,10 +150,10 @@ def getBGWireCandList(lcts, wires):
 			# (Same for all other chambers but defined explicitly for ME1/1)
 			OppAreas = \
 			{
-				'bl' : {'wg0' :  25 , 'wg1' : 48 },
-				'tl' : {'wg0' :   1 , 'wg1' : 24 },
-				'tr' : {'wg0' :   1 , 'wg1' : 24 },
-				'br' : {'wg0' :  25 , 'wg1' : 48 },
+				'bl' : {'wg0' :  24 , 'wg1' : 48 },
+				'tl' : {'wg0' :   0 , 'wg1' : 24 },
+				'tr' : {'wg0' :   0 , 'wg1' : 24 },
+				'br' : {'wg0' :  24 , 'wg1' : 48 },
 			}
 		else:
 			LCTAreas = \

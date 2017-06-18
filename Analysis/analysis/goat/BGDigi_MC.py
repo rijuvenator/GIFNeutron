@@ -95,11 +95,11 @@ if HP and XS:
 
 # Generate input/output MC file
 CHRISPUBLIC = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/'
-F_MCDATA = CHRISPUBLIC+'MinBias_'+('XS' if XS else 'HP')+('_ThermalON' if THERMAL else '_ThermalOFF')+('_TOF' if TOF else '')+'_'+GEO+'.root'
+F_MCDATA = CHRISPUBLIC+'MinBias'+('_XS' if XS else '_HP')+('_ThermalON' if THERMAL else '_ThermalOFF')+('_TOF' if TOF else '')+('_'+GEO if GEO!='' else '')+('_'+NAME if NAME!='' else '')+'.root'
 outfile = 'root/hists_'+('XS' if XS else 'HP')\
 		+('_ThermalON' if THERMAL else '_ThermalOFF')\
 		+('_TOF' if TOF else '')\
-		+'_'+GEO\
+		+('_'+GEO if GEO!='' else '')\
 		+('_AREA' if AREA else '')\
 		+('_TIME' if TIME else '')\
 		+('_'+NAME if NAME!='' else '')\
@@ -155,8 +155,11 @@ for idx, entry in enumerate(t):
 		# comp.halfStrip0 counts hs from 0 to 2*(s-1)+c
 		# thermal neutron comparator hits are in time bins 10 or later
 		if comp.timeBin < 10: continue
-		area = areaHists['comp'][cham.display('{S}{R}')].GetBinContent(int(comp.halfStrip0)) if AREA else 1.
+		# need to shift comps by 2 to align with data
+		# additional 1 shift for root's bin numbering which starts at 1 :)
+		area = areaHists['comp'][cham.display('{S}{R}')].GetBinContent(int(comp.halfStrip0)+3) if AREA else 1.
 		time = 25. * 10**(-9) if TIME else 1.
+		#print 'comp',comp.halfStrip0,cham.display('{S}{R}'),area
 		weight = 1./(area*time)
 		HISTS[cham.display('{E}{S}{R}')]['comp'].Fill(comp.halfStrip0,weight)
 		HISTS[cham.display('{S}{R}')]['comp'].Fill(comp.halfStrip0,weight)
@@ -167,8 +170,9 @@ for idx, entry in enumerate(t):
 		# thermal neutron wire group hits are in time bins 12+ for 2015 and 11+ for 2016 geometries
 		TCUT = 12 if GEO=='2015Geo' else 11
 		if wire.timeBin < TCUT: continue
-		area = areaHists['wire'][cham.display('{S}{R}')].GetBinContent(wire.number) if AREA else 1.
+		area = areaHists['wire'][cham.display('{S}{R}')].GetBinContent(wire.number+1) if AREA else 1.
 		time = 25. * 10**(-9) if TIME else 1.
+		#print 'wire',wire.number,cham.display('{S}{R}'),area
 		weight = 1./(area*time)
 		HISTS[cham.display('{E}{S}{R}')]['wire'].Fill(wire.number,weight)
 		HISTS[cham.display('{S}{R}')]['wire'].Fill(wire.number,weight)
