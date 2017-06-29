@@ -65,7 +65,7 @@ def lumiLogger(lumiLog,lumiHist,chamAreaValue,digi,when,ec,ring,PU):
 	if not PU:
 		lumiLog.info('*'*len(printer))
 		ecring = ec+ring
-		slopePrinter = 'ring {ecring:>3} | slope = {slope:>11.4f} | slope err = {slopeErr:>11.5f} | chi^2 = {chiSq:>11.4f} | nDOF = {nDOF:>3}'
+		slopePrinter = 'ring {ecring:>3} | slope = {slope:>11.4f} | slope err = {slopeErr:>11.5f} | chi^2 = {chiSq:>11.4f} | nDOF = {nDOF:>3}'.format(**locals())
 		lumiLog.info(slopePrinter)
 
 # Luminosity Logger (half chamber)
