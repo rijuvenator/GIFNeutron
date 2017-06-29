@@ -18,13 +18,16 @@ for digi in DIGILIST:
 		cham = CH.Chamber(CH.serialID(1,int(ring[0]),int(ring[1]),1))
 		# Wire histogram goes from 1,nWG
 		# Comp histogram goes from 2,2*s+1
-		lim = cham.nwires if digi=='wire' else (cham.nstrips)*2+1
+		nhs = cham.nstrips*2+1
+		nwg = cham.nwires
+		lim = nhs if digi=='comp' else nwg
+		plotlim = cham.nwires+2 if digi=='wire' else (cham.nstrips)*2+2
 		#lim = cham.nwires if digi=='wire' else (cham.nstrips-1)*2+1
 		#low = 0
-		low = 1 if digi=='wire' else 2
+		low = 1 if digi=='wire' else 1
 		#high = lim+1 if digi=='wire' else lim+2
-		areaHists[digi][ring] = R.TH1D(digi+'_'+ring,'',lim+1,0,lim+1)
-		print digi, ring, low,lim,areaHists[digi][ring].GetNbinsX()
+		areaHists[digi][ring] = R.TH1D(digi+'_'+ring,'',plotlim,0,plotlim)
+		#print digi, ring, low,lim,areaHists[digi][ring].GetNbinsX()
 		for idx,idigi in enumerate(range(low,lim+1)):
 			if digi=='wire':
 				if ring!='11': # non me11
@@ -60,5 +63,5 @@ if __name__=='__main__':
 			canvas.drawText(text='Integral = '+str(integral),pos=(0.6,0.7))
 			canvas.makeTransparent()
 			canvas.finishCanvas('BOB')
-			canvas.save('pdfs/'+ring+'_'+digi+'_area.pdf')
+			canvas.save('plots/areas/'+ring+'_'+digi+'_area.pdf')
 

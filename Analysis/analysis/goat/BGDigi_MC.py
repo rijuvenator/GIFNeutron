@@ -3,8 +3,6 @@ Analysis of comparator hits from MC
 Output is
 	- Comparator hit occupancy
 	- Comparator hit timing
-No attempt is made to clean comparator hits to include only neutron-
-induced hits. All comparator hit are considered.
 '''
 import sys, os, argparse
 import numpy as np
@@ -41,9 +39,12 @@ parser.add_argument('-t','--time',action='store_true',dest='TIME',
 # Which Geometry to use
 parser.add_argument('-geo','--GEO',dest='GEO',
 		default='',help='Use 2016 Geometry')
-# add an extra name for special tests
-parser.add_argument('-n','--name',dest='NAME',
-		default='',help='Add an extra optional name for speicial tests')
+# add an extra input root file name for special tests
+parser.add_argument('-in','--inname',dest='INNAME',
+		default='',help='Add an extra optional input root filename for speicial tests')
+# add an extra output root file name for special tests
+parser.add_argument('-out','--outname',dest='OUTNAME',
+		default='',help='Add an extra optional output root filename for speicial tests')
 
 args = parser.parse_args()
 
@@ -54,7 +55,8 @@ TOF = args.TOF
 AREA = args.AREA
 TIME = args.TIME
 GEO = args.GEO
-NAME = args.NAME
+INNAME = args.INNAME
+OUTNAME = args.OUTNAME
  
 if GEO=='':
 	print 'Need to specify geometry'
@@ -95,18 +97,15 @@ if HP and XS:
 
 # Generate input/output MC file
 CHRISPUBLIC = '/afs/cern.ch/work/c/cschnaib/public/NeutronSim/'
-F_MCDATA = CHRISPUBLIC+'MinBias'+('_XS' if XS else '_HP')+('_ThermalON' if THERMAL else '_ThermalOFF')+('_TOF' if TOF else '')+('_'+GEO if GEO!='' else '')+('_'+NAME if NAME!='' else '')+'.root'
+F_MCDATA = CHRISPUBLIC+'MinBias'+('_XS' if XS else '_HP')+('_ThermalON' if THERMAL else '_ThermalOFF')+('_TOF' if TOF else '')+('_'+GEO if GEO!='' else '')+('_'+INNAME if INNAME!='' else '')+'.root'
 outfile = 'root/hists_'+('XS' if XS else 'HP')\
 		+('_ThermalON' if THERMAL else '_ThermalOFF')\
 		+('_TOF' if TOF else '')\
 		+('_'+GEO if GEO!='' else '')\
 		+('_AREA' if AREA else '')\
 		+('_TIME' if TIME else '')\
-		+('_'+NAME if NAME!='' else '')\
+		+('_'+OUTNAME if OUTNAME!='' else '')\
 		+'.root'
-
-RINGLIST = ['11', '12', '13', '21', '22', '31', '32', '41', '42']
-#RINGLIST = ['-42', '-41', '-32', '-31', '-22', '-21', '-13', '-12', '-11', '+11', '+12', '+13', '+21', '+22', '+31', '+32', '+41', '+42']
 
 #### SETUP SCRIPT #####
 FN = R.TFile.Open(F_MCDATA)
@@ -117,6 +116,13 @@ INPUT : {F_MCDATA}
 OUTPUT : {outfile}
 '''.format(**locals())
 F_OUT.cd()
+
+RINGLIST = ['11','21','31','41','12','13','22','32','42']
+ERINGLIST = ['+11','-11','+21','-21','+31','-31','+41','-41',
+			 '+12','-12','+13','-13','+22','-22','+32','-32','+42','-42']
+ringMap = {ring:i for i,ring in enumerate(RINGLIST)}
+eringMap = {ring:i for i,ring in enumerate(ERINGLIST)}
+
 HISTS = {}
 PHI= {}
 for ring in RINGLIST:
@@ -141,9 +147,17 @@ for ring in RINGLIST:
 		PHI[E+ring]['comp'].SetDirectory(0)
 		PHI[E+ring]['wire'].SetDirectory(0)
 
+INTHISTS = {digi:{} for digi in ['comp','wire']}
+for digi in ['comp','wire']:
+	INTHISTS[digi]['sep'] = R.TH1D(digi+'_int_sep','',18,0,18)
+	INTHISTS[digi]['comb'] = R.TH1D(digi+'_int_comb','',9,0,9)
+	INTHISTS[digi]['sep'].SetDirectory(0)
+	INTHISTS[digi]['comb'].SetDirectory(0)
+
 ##### IMPLEMENT ANALYZERS #####
 
 Primitives.SelectBranches(t, DecList=['COMP','WIRE'])
+eventWeight = 1./t.GetEntries()
 for idx, entry in enumerate(t):
 	print 'Events:', idx+1, '\r',
 	E = Primitives.ETree(t, DecList=['COMP','WIRE'])
@@ -155,29 +169,39 @@ for idx, entry in enumerate(t):
 		# comp.halfStrip0 counts hs from 0 to 2*(s-1)+c
 		# thermal neutron comparator hits are in time bins 10 or later
 		if comp.timeBin < 10: continue
-		# need to shift comps by 2 to align with data
-		# additional 1 shift for root's bin numbering which starts at 1 :)
-		area = areaHists['comp'][cham.display('{S}{R}')].GetBinContent(int(comp.halfStrip0)+3) if AREA else 1.
-		time = 25. * 10**(-9) if TIME else 1.
-		#print 'comp',comp.halfStrip0,cham.display('{S}{R}'),area
-		weight = 1./(area*time)
-		HISTS[cham.display('{E}{S}{R}')]['comp'].Fill(comp.halfStrip0,weight)
-		HISTS[cham.display('{S}{R}')]['comp'].Fill(comp.halfStrip0,weight)
-		PHI[cham.display('{E}{S}{R}')]['comp'].Fill(int(cham.display('{C}')),weight)
-		PHI[cham.display('{S}{R}')]['comp'].Fill(int(cham.display('{C}')),weight)
+		# Set event weights (per area per time done elsewhere)
+		if cham.display('{S}{R}') in ['21','31','41']:
+			ncham = 18.
+		else:
+			ncham = 36.
+		ecWeight = eventWeight/ncham # weight for a singe endcap
+		weight = eventWeight/ncham/2. # weight for combined endcaps
+		# Fill histograms
+		HISTS[cham.display('{E}{S}{R}')]['comp'].Fill(comp.halfStrip0+2,ecWeight)
+		HISTS[cham.display('{S}{R}')]['comp'].Fill(comp.halfStrip0+2,weight)
+		PHI[cham.display('{E}{S}{R}')]['comp'].Fill(int(cham.display('{C}')),eventWeight)
+		PHI[cham.display('{S}{R}')]['comp'].Fill(int(cham.display('{C}')),eventWeight/2.)
+		INTHISTS['comp']['sep'].Fill(eringMap[cham.display('{E}{S}{R}')],ecWeight)
+		INTHISTS['comp']['comb'].Fill(ringMap[cham.display('{S}{R}')],weight)
 	for wire in wires:
 		cham = CH.Chamber(wire.cham)
 		# thermal neutron wire group hits are in time bins 12+ for 2015 and 11+ for 2016 geometries
 		TCUT = 12 if GEO=='2015Geo' else 11
 		if wire.timeBin < TCUT: continue
-		area = areaHists['wire'][cham.display('{S}{R}')].GetBinContent(wire.number+1) if AREA else 1.
-		time = 25. * 10**(-9) if TIME else 1.
-		#print 'wire',wire.number,cham.display('{S}{R}'),area
-		weight = 1./(area*time)
-		HISTS[cham.display('{E}{S}{R}')]['wire'].Fill(wire.number,weight)
+		# Set event weights (per area per time done elsewhere)
+		if cham.display('{S}{R}') in ['21','31','41']:
+			ncham = 18.
+		else:
+			ncham = 36.
+		ecWeight = eventWeight/ncham # weight for a singe endcap
+		weight = eventWeight/ncham/2. # weight for combined endcaps
+		# Fill histograms
+		HISTS[cham.display('{E}{S}{R}')]['wire'].Fill(wire.number,ecWeight)
 		HISTS[cham.display('{S}{R}')]['wire'].Fill(wire.number,weight)
-		PHI[cham.display('{E}{S}{R}')]['wire'].Fill(int(cham.display('{C}')),weight)
-		PHI[cham.display('{S}{R}')]['wire'].Fill(int(cham.display('{C}')),weight)
+		PHI[cham.display('{E}{S}{R}')]['wire'].Fill(int(cham.display('{C}')),eventWeight)
+		PHI[cham.display('{S}{R}')]['wire'].Fill(int(cham.display('{C}')),eventWeight/2.)
+		INTHISTS['wire']['sep'].Fill(eringMap[cham.display('{E}{S}{R}')],ecWeight)
+		INTHISTS['wire']['comb'].Fill(ringMap[cham.display('{S}{R}')],weight)
 
 
 
@@ -188,6 +212,9 @@ for ring in RINGLIST:
 		HISTS[E+ring]['comp'].Write()
 		PHI[E+ring]['wire'].Write()
 		PHI[E+ring]['comp'].Write()
+for digi in ['comp','wire']:
+	for pType in ['sep','comb']:
+		INTHISTS[digi][pType].Write()
 
 ##### MAKE PLOTS #####
 def makePlot(hist, ring, tag):
