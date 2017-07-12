@@ -90,35 +90,29 @@ DOLOG = args.DOLOG
 # Set up debug loggers
 if DOLOG:
 	# Occupancy plot logger
-	occLog = logging.getLogger('occLog'+('PU' if PILEUP else ''))
-	occLog.setLevel(logging.INFO)
-	occLogFH = logging.FileHandler('logs/occLog'+('PU' if PILEUP else '')+'.log',mode='w')
-	occLogFH.setFormatter(logging.Formatter('%(message)s'))
-	occLog.addHandler(occLogFH)
-	# Luminosity plot logger
-	lumiLog = logging.getLogger('lumiLog'+('PU' if PILEUP else ''))
-	lumiLog.setLevel(logging.INFO)
-	lumiLogFH = logging.FileHandler('logs/lumiLog'+('PU' if PILEUP else '')+'.log',mode='w')
-	lumiLogFH.setFormatter(logging.Formatter('%(message)s'))
-	lumiLog.addHandler(lumiLogFH)
-	# Luminosity plot logger (half chamber)
-	lumiHalfLog = logging.getLogger('lumiHalfLog'+('PU' if PILEUP else ''))
-	lumiHalfLog.setLevel(logging.INFO)
-	lumiHalfLogFH = logging.FileHandler('logs/lumiHalfLog'+('PU' if PILEUP else '')+'.log',mode='w')
-	lumiHalfLogFH.setFormatter(logging.Formatter('%(message)s'))
-	lumiHalfLog.addHandler(lumiHalfLogFH)
-	# Phi logger
-	phiLog = logging.getLogger('phiLog'+('PU' if PILEUP else ''))
-	phiLog.setLevel(logging.INFO)
-	phiLogFH = logging.FileHandler('logs/phiLog'+('PU' if PILEUP else '')+'.log',mode='w')
-	phiLogFH.setFormatter(logging.Formatter('%(message)s'))
-	phiLog.addHandler(phiLogFH)
-	# Integral logger
-	intLog = logging.getLogger('intLog'+('PU' if PILEUP else ''))
-	intLog.setLevel(logging.INFO)
-	intLogFH = logging.FileHandler('logs/intLog'+('PU' if PILEUP else '')+'.log',mode='w')
-	intLogFH.setFormatter(logging.Formatter('%(message)s'))
-	intLog.addHandler(intLogFH)
+	occLogName = 'occLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')
+	lumberjack.setup_logger(occLogName,'logs/'+occLogName+'.log')
+	occLog = logging.getLogger(occLogName)
+
+	# Rate vs Luminosity plot logger
+	lumiLogName = 'lumiLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')
+	lumberjack.setup_logger(lumiLogName,'logs/'+lumiLogName+'.log')
+	lumiLog = logging.getLogger(lumiLogName)
+	
+	# Half Rate vs Luminosity plot logger
+	lumiHalfLogName = 'lumiHalfLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')
+	lumberjack.setup_logger(lumiHalfLogName,'logs/'+lumiHalfLogName+'.log')
+	lumiHalfLog = logging.getLogger(lumiHalfLogName)
+
+	# Phi plot logger
+	phiLogName = 'occLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')
+	lumberjack.setup_logger(phiLogName,'logs/'+occLogName+'.log')
+	phiLog = logging.getLogger(occLogName)
+
+	# Integral plot logger
+	intLogName = 'intLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')
+	lumberjack.setup_logger(intLogName,'logs/'+intLogName+'.log')
+	intLog = logging.getLogger(intLogName)
 
 #####################################################
 
@@ -459,7 +453,7 @@ if RECREATE:
 		FILE = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/goatees/GOAT_P5_14June2017.root')
 	tree = FILE.Get('t')
 	### Set Histograms
-	FOUT = R.TFile('root/occupancy'+('_'+NAME if NAME != '' else '')+'.root','RECREATE')
+	FOUT = R.TFile('root/hists_data'+('_'+NAME if NAME != '' else '')+'.root','RECREATE')
 	FOUT.cd()
 	HISTS = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ring in RINGLIST for ec in ECLIST}
 	PHI = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ring in RINGLIST for ec in ECLIST}
@@ -584,7 +578,7 @@ else:
 	PHI = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ring in RINGLIST for ec in ECLIST}
 	LUMI = {ec+ring:{digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in BXDICT.keys()} for ring in RINGLIST for ec in ECLIST}
 	INT = {digi:{bx:{half:{} for half in HALVES[digi]} for bx in BXDICT[digi].keys()} for digi in PLOT.keys()}
-	FOUT = R.TFile.Open('root/occupancy'+('_'+NAME if NAME != '' else '')+'.root','READ')
+	FOUT = R.TFile.Open('root/hists_data'+('_'+NAME if NAME != '' else '')+'.root','READ')
 	for digi in BXDICT.keys():
 		for half in HALVES[digi]:
 			for bx in BXDICT[digi].keys():
@@ -1109,7 +1103,9 @@ for ring in RINGLIST:
 				if DOLOG:
 					lumberjack.occLogger(occLog,RATES['occ'][ec+ring][digi]['a'][when]['rate'].Clone(),areaHists[digi][ring],digi,when,ec,ring,PILEUP)
 					lumberjack.lumiLogger(lumiLog,RATES['lumi'][ec+ring][digi]['a'][when]['rate'].Clone(),chamArea[digi][ring],digi,when,ec,ring,PILEUP)
+					#lumberjack.lumiLogger(lumiLog,RATES['lumi'][ec+ring][digi]['a'][when]['rate'].Clone(),1.,digi,when,ec,ring,PILEUP)
 					lumberjack.lumiHalfLogger(lumiHalfLog,RATES['lumi'][ec+ring][digi][HALVES[digi][0]][when]['rate'].Clone(),
+					#		1.,digi,when,ec,ring,PILEUP,half=HALVES[digi][0])
 							chamHalfArea[digi][HALVES[digi][0]][ring],digi,when,ec,ring,PILEUP,half=HALVES[digi][0])
 					lumberjack.lumiHalfLogger(lumiHalfLog,RATES['lumi'][ec+ring][digi][HALVES[digi][1]][when]['rate'].Clone(),
 							chamHalfArea[digi][HALVES[digi][1]][ring],digi,when,ec,ring,PILEUP,half=HALVES[digi][1])

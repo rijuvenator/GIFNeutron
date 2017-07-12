@@ -3,6 +3,16 @@
 import numpy as np
 import math as math
 import ROOT as R
+import logging
+
+# Setup logging
+def setup_logger(logger_name,log_file,level=logging.INFO):
+    l = logging.getLogger(logger_name)
+    formatter = logging.Formatter('%(message)s')
+    fileHandler = logging.FileHandler(log_file, mode='w')
+    fileHandler.setFormatter(formatter)
+    l.setLevel(level)
+    l.addHandler(fileHandler)
 
 # Occupancy logger
 def occLogger(occLog,occHist,areaHist,digi,when,ec,ring,PU):
@@ -47,11 +57,14 @@ def lumiLogger(lumiLog,lumiHist,chamAreaValue,digi,when,ec,ring,PU):
 	BXtoSconv = 1./(25.*10**(-9))
 	if not PU:
 		fitHist = lumiHist.Clone()
-		fitHist.Scale(BXtoSconv)
-		line = R.TF1('fitline_'+lumiHist.GetName(),'[0]*x',0,10**34)
-		lumiHist.Fit('fitline_'+lumiHist.GetName())
-		fit = lumiHist.GetFunction('fitline_'+lumiHist.GetName())
-		slope,slopeErr,chiSq,nDOF = fit.GetParameter(0),fit.GetParError(0),fit.GetChisquare(),fit.GetNDF()
+		if fitHist.GetEntries()>2:
+			fitHist.Scale(BXtoSconv)
+			line = R.TF1('fitline_'+lumiHist.GetName(),'[0]*x',0,10**34)
+			lumiHist.Fit('fitline_'+lumiHist.GetName())
+			fit = lumiHist.GetFunction('fitline_'+lumiHist.GetName())
+			slope,slopeErr,chiSq,nDOF = fit.GetParameter(0),fit.GetParError(0),fit.GetChisquare(),fit.GetNDF()
+		else:
+			slope,slopeErr,chiSq,nDOF = 0,0,0,0
 	lumiLog.info('\n'+digi+' '+ec+ring+' '+when+' '+(' PU norm' if PU else ''))
 	lumiLog.info('Bin | lumi [10^34 cm-2s-1] | area [cm2] | bx to s conv |     content | content err | content/cm2/s | content/cm2/s err')
 	for ibin in range(0,lumiHist.GetNbinsX()+1):
@@ -65,12 +78,22 @@ def lumiLogger(lumiLog,lumiHist,chamAreaValue,digi,when,ec,ring,PU):
 	if not PU:
 		lumiLog.info('*'*len(printer))
 		ecring = ec+ring
-		slopePrinter = 'ring {ecring:>3} | slope = {slope:>11.4f} | slope err = {slopeErr:>11.5f} | chi^2 = {chiSq:>11.4f} | nDOF = {nDOF:>3}'.format(**locals())
+		slopePrinter = 'ring {ecring:>3} | slope = {slope:>11.8e} | slope err = {slopeErr:>11.8e} | chi^2 = {chiSq:>11.5f} | nDOF = {nDOF:>3}'.format(**locals())
 		lumiLog.info(slopePrinter)
 
 # Luminosity Logger (half chamber)
 def lumiHalfLogger(lumiHalfLog,lumiHist,chamHalfAreaValue,digi,when,ec,ring,PU,half=''):
 	BXtoSconv = 1./(25.*10**(-9))
+	if not PU:
+		fitHist = lumiHist.Clone()
+		if fitHist.GetEntries()>2:
+			fitHist.Scale(BXtoSconv)
+			line = R.TF1('fitline_'+lumiHist.GetName(),'[0]*x',0,10**34)
+			lumiHist.Fit('fitline_'+lumiHist.GetName())
+			fit = lumiHist.GetFunction('fitline_'+lumiHist.GetName())
+			slope,slopeErr,chiSq,nDOF = fit.GetParameter(0),fit.GetParError(0),fit.GetChisquare(),fit.GetNDF()
+		else:
+			slope,slopeErr,chiSq,nDOF = 0,0,0,0
 	lumiHalfLog.info('\n'+digi+' '+ec+ring+' '+half+(' ' if half!='' else '')+when+' '+(' PU norm' if PU else ''))
 	lumiHalfLog.info('Bin | lumi [10^34 cm-2s-1] | area [cm2] | bx to s conv |     content | content err | content/cm2/s | content/cm2/s err')
 	for ibin in range(0,lumiHist.GetNbinsX()+1):
@@ -81,6 +104,11 @@ def lumiHalfLogger(lumiHalfLog,lumiHist,chamHalfAreaValue,digi,when,ec,ring,PU,h
 		contentScaledErr = contentErr*BXtoSconv/chamHalfAreaValue
 		printer = '{ibin:>3} | {lumi:>20.2f} | {chamHalfAreaValue:>10.3f} | {BXtoSconv:12.1f} | {content:>11.9f} | {contentErr:>11.9f} | {contentScaled:>13.4f} | {contentScaledErr:>14.5f}'.format(**locals())
 		lumiHalfLog.info(printer)
+	if not PU:
+		lumiHalfLog.info('*'*len(printer))
+		ecring = ec+ring
+		slopePrinter = 'ring {ecring:>3} | slope = {slope:>11.8e} | slope err = {slopeErr:>11.8e} | chi^2 = {chiSq:>11.5f} | nDOF = {nDOF:>3}'.format(**locals())
+		lumiHalfLog.info(slopePrinter)
 
 # Integral logger
 def intLogger(intLog,intHist,chamAreaValues,digi,when,ectype,PU):
