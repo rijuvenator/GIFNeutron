@@ -181,31 +181,72 @@ for line in WireDictRaw:
 
 f = R.TFile('WD_AQ.root', 'RECREATE')
 
-#h = R.TH1F('h', '', 100, 0, 200)
-h = R.TH1F('h', '', 100, 0, 5000)
+##h = R.TH1F('h', '', 100, 0, 200)
+#h = R.TH1F('h', '', 100, 0, 5000)
+#
+#for simhit in data:
+#	#if abs(simhit.PID) == 13: continue
+#	#for q in simhit.charges:
+#	#	h.Fill(q)
+#	if len(simhit.charges) == 0: continue
+#	h.Fill(sum(simhit.charges))
+#h.Write()
+#
+##import itertools
+##hCPH = R.TH1F('h', '', 100, 0, 5000)
+### this line should not be necessary; they should already be sorted by event
+###sortedSimHits = sorted(data, key=lambda s: s.Event)
+##for event, simHitsGen in itertools.groupby(data, key=lambda s: s.Event):
+##	simHits = list(simHitsGen)
+##	simHits.sort(key=lambda s: s.Cham.id)
+##	for cham, simHitsCham in itertools.groupby(simHits, key=lambda s: s.Cham.id):
+##		nWG = 0
+##		if event in WireDict:
+##			for c, n in WireDict[event]:
+##				if c == cham:
+##					nWG += n
+##		if nWG == 0: continue
+##
+##		AQ = sum([sum(simhit.charges) for simhit in simHitsCham])
+##		hCPH.Fill(float(AQ)/float(nWG))
+##hCPH.Write()
+
+hCSH1 = R.TH1F('hCSH1', '', 100, 0, 5000)
+hCSH2 = R.TH1F('hCSH2', '', 100, 0, 5000)
 
 for simhit in data:
+	#if abs(simhit.PID) == 13: continue
 	#for q in simhit.charges:
 	#	h.Fill(q)
 	if len(simhit.charges) == 0: continue
-	h.Fill(sum(simhit.charges))
-h.Write()
+	if simhit.Cham.station == 1 and simhit.Cham.ring == 1:
+		hCSH1.Fill(sum(simhit.charges))
+	else:
+		hCSH2.Fill(sum(simhit.charges))
+hCSH1.Write()
+hCSH2.Write()
 
-#import itertools
-#hCPH = R.TH1F('h', '', 100, 0, 5000)
-## this line should not be necessary; they should already be sorted by event
-##sortedSimHits = sorted(data, key=lambda s: s.Event)
-#for event, simHitsGen in itertools.groupby(data, key=lambda s: s.Event):
-#	simHits = list(simHitsGen)
-#	simHits.sort(key=lambda s: s.Cham.id)
-#	for cham, simHitsCham in itertools.groupby(simHits, key=lambda s: s.Cham.id):
-#		nWG = 0
-#		if event in WireDict:
-#			for c, n in WireDict[event]:
-#				if c == cham:
-#					nWG += n
-#		if nWG == 0: continue
-#
-#		AQ = sum([sum(simhit.charges) for simhit in simHitsCham])
-#		hCPH.Fill(float(AQ)/float(nWG))
-#hCPH.Write()
+import itertools
+hCPH1 = R.TH1F('hCPH1', '', 100, 0, 5000)
+hCPH2 = R.TH1F('hCPH2', '', 100, 0, 5000)
+# this line should not be necessary; they should already be sorted by event
+#sortedSimHits = sorted(data, key=lambda s: s.Event)
+for event, simHitsGen in itertools.groupby(data, key=lambda s: s.Event):
+	simHits = list(simHitsGen)
+	simHits.sort(key=lambda s: s.Cham.id)
+	for cham, simHitsCham in itertools.groupby(simHits, key=lambda s: s.Cham.id):
+		nWG = 0
+		if event in WireDict:
+			for c, n in WireDict[event]:
+				if c == cham:
+					nWG += n
+		if nWG == 0: continue
+
+		ch = CH.Chamber(cham)
+		AQ = sum([sum(simhit.charges) for simhit in simHitsCham])
+		if ch.station == 1 and ch.ring == 1:
+			hCPH1.Fill(float(AQ)/float(nWG))
+		else:
+			hCPH2.Fill(float(AQ)/float(nWG))
+hCPH1.Write()
+hCPH2.Write()

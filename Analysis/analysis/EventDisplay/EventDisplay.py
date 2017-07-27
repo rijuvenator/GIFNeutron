@@ -122,7 +122,7 @@ for FILE,TYPE in CONFIG.keys():
 						hNotReadS.SetBinContent(bin_, 7)
 
 			# Wires histogram: 2D, wire group vs. layer, weighted by time bin
-			hWires = R.TH2F('wires', 'ANODE HIT TIMING;Wire Group Number;Layer'+('' if not DRAWZTITLE else ';Timing'), WIRE_MAX, 1, WIRE_MAX+1, 6, 1, 7)
+			hWires = R.TH2F('wires', 'ANODE WIRE GROUP HITS;Wire Group Number;Layer'+('' if not DRAWZTITLE else ';Time Bin (25 ns)'), WIRE_MAX, 1, WIRE_MAX+1, 6, 1, 6.9999)
 			hWires.GetZaxis().SetRangeUser(0,16)
 			hWires.GetXaxis().SetNdivisions(ND['wg'][WIRE_MAX])
 			for wire in wires:
@@ -133,7 +133,7 @@ for FILE,TYPE in CONFIG.keys():
 			hWires.Draw('colz')
 
 			# Comparators histogram: 2D, staggered half strip vs. layer, weighted by time bin
-			hComps = R.TH2F('comps', 'COMPARATOR HIT TIMING;Half Strip Number;Layer'+('' if not DRAWZTITLE else ';Timing'), HS_MAX, 1, HS_MAX+1, 6, 1, 7)
+			hComps = R.TH2F('comps', 'COMPARATOR HALF-STRIP HITS;Half Strip Number;Layer'+('' if not DRAWZTITLE else ';Time Bin (25 ns)'), HS_MAX, 1, HS_MAX+1, 6, 1, 6.9999)
 			hComps.GetZaxis().SetRangeUser(0,16)
 			hComps.GetXaxis().SetNdivisions(ND['hs'][HS_MAX])
 			for comp in comps:
@@ -162,7 +162,7 @@ for FILE,TYPE in CONFIG.keys():
 				if B != []: canvas.drawLumiText(LUMI, PAD=1)
 
 			# ADC Count histogram: 2D, staggered strip vs. layer, weighted by ADC count (max ADC[2:] minus pedestal: average ADC[0:2])
-			hADC = R.TH2F('adc', 'CATHODE STRIP ADC COUNT;Strip Number;Layer'+('' if not DRAWZTITLE else ';ADC Count'), HS_MAX, 1, HS_MAX/2+1, 6, 1, 7)
+			hADC = R.TH2F('adc', 'CATHODE STRIP ADC COUNT;Strip Number;Layer'+('' if not DRAWZTITLE else ';ADC Count'), HS_MAX, 1, HS_MAX/2+1, 6, 1, 6.9999)
 			hADC.GetZaxis().SetRangeUser(0,500)
 			hADC.GetXaxis().SetNdivisions(ND['st'][HS_MAX/2])
 			for strip in strips:
@@ -252,6 +252,7 @@ for FILE,TYPE in CONFIG.keys():
 				# lumi text
 				MEAS = FILE[-9:-5]
 				canvas.drawLumiText('m#{MEAS}, {CS}, Event #{EVENT}'.format(MEAS=MEAS, CS=CHAMBER.display('ME{S}/{R}'), EVENT=EVENT))
+				#canvas.drawLumiText('ME2/1 at GIF++, A = 4.6, I #approx 35 #muA')
 
 				# save as
 				canvas.canvas.SaveAs('{}/ED_GIF_{}_{}_{}.pdf'.format(OUTDIR, MEAS, CHAMBER.display('ME{S}{R}'), EVENT))

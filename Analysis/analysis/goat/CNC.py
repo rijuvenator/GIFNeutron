@@ -175,12 +175,12 @@ def Looks(ring, digi, whichHalf=None):
 	R.SetOwnership(canvas, False)
 	canvas.deleteCanvas()
 
-f = R.TFile.Open('rainbow.root')
-for ring in RINGLIST:
-	for digi in ('comp', 'wire'):
-		Looks(ring, digi)
-		for half in ('l', 'r') if digi=='comp' else ('l', 'u'):
-			Looks(ring, digi, half)
+#f = R.TFile.Open('rainbow.root')
+#for ring in RINGLIST:
+#	for digi in ('comp', 'wire'):
+#		Looks(ring, digi)
+#		for half in ('l', 'r') if digi=='comp' else ('l', 'u'):
+#			Looks(ring, digi, half)
 
 #############
 ## RAINBOW ##
@@ -252,7 +252,8 @@ def Rainbow(ring, digi, whichHalf=None, norm=True):
 
 	# plotting code begins here
 	plot = Plotter.Plot(h, option='colz')
-	canvas = Plotter.Canvas(lumi=title)
+	#canvas = Plotter.Canvas(lumi=title)
+	canvas = Plotter.Canvas(lumi='Run 2016H, 8.73 fb^{-1} (13 TeV)', extra='Preliminary')
 
 	canvas.addMainPlot(plot)
 	canvas.makeTransparent()
@@ -274,6 +275,9 @@ def Rainbow(ring, digi, whichHalf=None, norm=True):
 #		Rainbow(ring, digi)
 #		for half in ('l', 'r') if digi=='comp' else ('l', 'u'):
 #			Rainbow(ring, digi, half)
+#for ring in ['11']:
+#	for digi in ['wire']:
+#		Rainbow(ring, digi)
 
 #################
 ## PROJECTIONS ##

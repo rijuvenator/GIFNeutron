@@ -5,13 +5,13 @@ import Gif.Analysis.Plotter as Plotter
 R.gROOT.SetBatch(True)
 
 # histogram configurations
-#fn = 'LastEvsTOF.pdf'
-fn = 'LastEvsTOF_All.pdf'
+fn = 'LastEvsTOF.pdf'
+#fn = 'LastEvsTOF_All.pdf'
 configs = {
 	'Cap' : ('Capture'                   , R.kRed    , True ),
 	'Ine' : ('Inelastic Scatter'         , R.kAzure+7, True ),
-	'Nuc' : ('SimHit By Ion'             , R.kGreen  , True ),
-	'Pro' : ('Neutron #rightarrow Proton', R.kMagenta, True ),
+	'Nuc' : ('SimHit By Ion'             , R.kGreen  , False),
+	'Pro' : ('Neutron #rightarrow Proton', R.kMagenta, False),
 }
 keylist = ('Cap', 'Ine', 'Nuc', 'Pro')
 
@@ -72,7 +72,8 @@ for line in f:
 
 # make the actual plot
 #canvas  = Plotter.Canvas(lumi='SimHit TOF vs. Last Recorded Neutron Energy', logy=True)
-canvas  = Plotter.Canvas(lumi='Last Recorded Neutron Energy vs. SimHit TOF', logy=True)
+#canvas  = Plotter.Canvas(lumi='Last Recorded Neutron Energy vs. SimHit TOF', logy=True, extra='Preliminary')
+canvas  = Plotter.Canvas(lumi='', logy=True, extra='Simulation Preliminary')
 
 plots = {}
 for key in keylist:
@@ -85,7 +86,7 @@ for key in keylist:
 canvas.mainPad.SetLogx(True)
 
 #canvas.firstPlot.setTitles(X='Energy [eV]', Y='Time of Flight [s]')
-canvas.firstPlot.setTitles(Y='Energy [eV]', X='Time of Flight [s]')
+canvas.firstPlot.setTitles(Y='Energy [eV]', X='Time [s]')
 canvas.firstPlot.scaleTitleOffsets(1.25, 'X')
 canvas.makeTransparent()
 canvas.makeLegend()

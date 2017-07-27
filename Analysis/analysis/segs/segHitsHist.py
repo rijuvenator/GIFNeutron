@@ -165,7 +165,8 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 		plots.append(Plotter.Plot(graphs[i], legName=str(i+3)+' hits', legType='p', option='F'))
 
 	# Step 2
-	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Internal', cWidth=800, cHeight=700)
+	#canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 External Trigger', logy=False, extra='Preliminary', cWidth=800, cHeight=700)
+	canvas = Plotter.Canvas(lumi='ME'+str(cham)+'/1 at GIF++', logy=False, extra='Preliminary', cWidth=800, cHeight=700)
 
 	# Step 3
 	canvas.makeLegend(lWidth=0.2, lHeight=0.25, pos='tl', lOffset=0.04, fontsize=0.03)
@@ -195,21 +196,21 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 		graphs[i].SetFillColor  (colors[i])
 	
 	# This is for the current axis
-	xmax = canvas.firstPlot.plot.GetXaxis().GetXmax()
-	print xmax
-	axis = canvas.makeExtraAxis(0., xmax/(3.e33 if cham==1 else 5.e33), 0., 230.e33 if cham==1 else 185.e33)
-	axis.SetTitle('Current [#muA]')
+	#xmax = canvas.firstPlot.plot.GetXaxis().GetXmax()
+	#print xmax
+	#axis = canvas.makeExtraAxis(0., xmax/(3.e33 if cham==1 else 5.e33), 0., 230.e33 if cham==1 else 185.e33)
+	#axis.SetTitle('Current [#muA]')
 
 	# write on the plot
-	#canvas.drawText(text='#color[0]{3 hits}', pos=(.75, .17), font='b')
-	#canvas.drawText(text='#color[0]{4 hits}', pos=(.75, .3 ), font='b')
-	#canvas.drawText(text='#color[0]{5 hits}', pos=(.75, .55), font='b')
-	#canvas.drawText(text='#color[0]{6 hits}', pos=(.75, .8 ), font='b')
+	canvas.drawText(text='#color[0]{3 hits}', pos=(.75, .17), font='b')
+	canvas.drawText(text='#color[0]{4 hits}', pos=(.75, .3 ), font='b')
+	canvas.drawText(text='#color[0]{5 hits}', pos=(.75, .55), font='b')
+	canvas.drawText(text='#color[0]{6 hits}', pos=(.75, .8 ), font='b')
 	# This is for the current axis
-	canvas.drawText(text='#color[0]{3 hits}', pos=(.75, .17+.12), font='b')
-	canvas.drawText(text='#color[0]{4 hits}', pos=(.75, .3 +.1 ), font='b')
-	canvas.drawText(text='#color[0]{5 hits}', pos=(.75, .55+.1 ), font='b')
-	canvas.drawText(text='#color[0]{6 hits}', pos=(.75, .8 +.0 ), font='b')
+	#canvas.drawText(text='#color[0]{3 hits}', pos=(.75, .17+.12), font='b')
+	#canvas.drawText(text='#color[0]{4 hits}', pos=(.75, .3 +.1 ), font='b')
+	#canvas.drawText(text='#color[0]{5 hits}', pos=(.75, .55+.1 ), font='b')
+	#canvas.drawText(text='#color[0]{6 hits}', pos=(.75, .8 +.0 ), font='b')
 
 	# Step 6
 
@@ -224,9 +225,12 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 for cham in CHAMLIST:
 	makePlot(\
 		cham if cham == 1 else 2,
-		[data.lumiVector(cham, 0)     for nhits in [3, 4, 5, 6]],
+		#[data.lumiVector(cham, 0)     for nhits in [3, 4, 5, 6]],
+		[data.currentVector(cham, 0)     for nhits in [3, 4, 5, 6]],
 		[data.fracVector(cham, nhits) for nhits in [3, 4, 5, 6]],
-		'Luminosity [cm^{-2}s^{-1}]',
-		'Fraction of LCT-Matched Segments',
+		#'Luminosity [cm^{-2}s^{-1}]',
+		'Current [#muA]',
+		#'Fraction of LCT-Matched Segments',
+		'Fraction of Muon Segments',
 		'all'
 	)
