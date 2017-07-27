@@ -11,6 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 R.gROOT.SetBatch(True)
+R.gStyle.SetOptFit(0)
 # area histograms calculated on the fly
 import areas as areas
 areaHists = areas.areaHists
@@ -47,6 +48,9 @@ parser.add_argument('-geo','--GEO',dest='GEO',
 # Extra name for MC files for special use cases
 parser.add_argument('-extra','--extra',dest='EXTRA',
 		default='',help='Extra name for MC files for special use cases')
+# Whether or not do fit line to hit rate vs. lumi
+parser.add_argument('-f','--fit',dest='DOFIT',action='store_true',
+		default=False,help='Whether or not to fit line of hit rate vs. lumi')
 args = parser.parse_args()
 RECREATE = args.RECREATE
 NAME = args.NAME
@@ -58,6 +62,7 @@ TIME = args.TIME
 MC = args.MC
 GEO = args.GEO
 EXTRA = args.EXTRA
+DOFIT = args.DOFIT
 if GEO=='' and MC!='':
 	print 'Choose a geometry'
 	exit()
@@ -241,41 +246,44 @@ PLOT = {
 LIMITS = {
 		'int':{
 			'early':{
-				'wire':0.0052,
-				'comp':0.004,
+				#'wire':0.0052,
+				#'comp':0.004,
 			},
 			'late':{
-				'wire':0.0052,
-				'comp':0.004,
+				#'wire':0.0052,
+				#'comp':0.004,
 			},
 			'total':{
-				'wire':0.0052,
-				'comp':0.004,
+				#'wire':0.0052,
+				#'comp':0.004,
 			},
 		},
 		'occ':{
 			'early':{
 				'comp':{
-					'11':50e-6,
-					'12':12e-6,
-					'13':15e-6,
-					'21':45e-6,
-					'22':10e-6,
-					'31':30e-6,
-					'32':15e-6,
-					'41':30e-6,
-					'42':25e-6,
+					#'11':50e-6, # counts/digi/bx/pp
+					#'12':12e-6,
+					#'13':15e-6,
+					#'21':45e-6,
+					#'22':10e-6,
+					#'31':30e-6,
+					#'32':15e-6,
+					#'41':30e-6,
+					#'42':25e-6,
 					},
 				'wire':{
-					'11':0.2e-3,
-					'12':12e-6,
-					'13':16e-6,
-					'21':0.08e-3,
-					'22':26e-6,
-					'31':0.08e-3,
-					'32':40e-6,
-					'41':0.06e-3,
-					'42':0.05e-3,
+					#'11':0.2e-3, # counts/digi/bx/pp
+					'11':54., # counts/cm2/s/pp
+					#'12':12e-6,
+					#'13':16e-6,
+					#'21':0.08e-3, # counts/digi/bx/pp
+					'21':12., # counts/cm2/s/pp
+					#'22':26e-6,
+					#'31':0.08e-3,
+					#'32':40e-6,
+					#'41':0.06e-3,
+					#'42':0.05e-3, # counts/digi/bx/pp
+					'42':0.8, # counts/cm2/s/pp
 					},
 				},
 			'late':{
@@ -283,16 +291,20 @@ LIMITS = {
 				'comp':{},
 				},
 			'total':{
-				'wire':{},
+				'wire':{
+					'11':54., #counts/cm2/s/pp
+					'21':12., #counts/cm2/s/pp
+					'42':0.8, #counts/cm2/s/pp
+					},
 				'comp':{},
 				},
 			},
 		'phi':{
 			'early':{
 				'wire':{
-					'22':0.0012,
-					'32':0.001,
-					'42':0.0025,
+					#'22':0.0012,
+					#'32':0.001,
+					#'42':0.0025,
 					},
 				'comp':{
 					},
@@ -327,9 +339,9 @@ HALVES = {
 if RECREATE:
 	# Get Tree
 	if DOROADS:
-		FILE = R.TFile.Open('/afs/cern.ch/work/a/adasgupt/public/goatees/GOAT_P5.root')
+		FILE = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/goatees/GOAT_P5_B35_T48_A8_DOROAD.root')
 	else:
-		FILE = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/goatees/GOAT_P5_noTrackRemoval_good.root')
+		FILE = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/goatees/GOAT_P5_B35_T48_A8.root')
 	tree = FILE.Get('t')
 	### Set Histograms
 	FOUT = R.TFile('root/occupancy'+('_'+NAME if NAME != '' else '')+'.root','RECREATE')
@@ -400,7 +412,10 @@ if RECREATE:
 					# weight each event by pileup to get per pp-collision
 					pileup = 1./entry.PILEUP if PILEUP else 1.
 					# area of each wg/hs for 6 layers in cm^2
-					binnum = entry.D_POS[idigi] if digi=='wire' else entry.D_POS[idigi]+1 # add one for comp hs which count from 0
+					binnum = entry.D_POS[idigi]+1 if digi=='wire' else entry.D_POS[idigi]+1
+					#binmax = areaHists[digi][ring].GetMaximumBin()
+					#if True:#digi=='comp':
+					#	print digi,ring,binnum,entry.D_POS[idigi],areaHists[digi][ring].GetXaxis().GetBinCenter(binnum),areaHists[digi][ring].GetBinContent(binnum),areaHists[digi][ring].GetXaxis().GetBinCenter(binmax)
 					area = 1./areaHists[digi][ring].GetBinContent(binnum) if AREA else 1.
 					# convert per 25 ns to per s
 					time = 1./(25.*10**(-9)) if TIME else 1.
@@ -494,7 +509,8 @@ MCNORM = {
 if MC=='':
 	MCLIST = ['']
 elif MC=='all':
-	MCLIST = ['XS_ThermalON','XS_ThermalOFF','HP_Thermal_ON','HP_ThermalOFF']
+	#MCLIST = ['XS_ThermalON','XS_ThermalOFF','HP_Thermal_ON','HP_ThermalOFF']
+	MCLIST = ['XS_ThermalON','HP_Thermal_ON']
 else:
 	MCLIST = [MC]
 
@@ -571,13 +587,7 @@ def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 			canvas.firstPlot.SetMaximum(maximum * 1.2)
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'Comparator Half Strip' if digi=='comp' else 'Wire Group Number'
-		y = 'Counts'
-		if AREA:
-			y += '/cm^{2}'
-		if TIME:
-			y += '/s'
-		else:
-			y += '/BX'
+		y = 'Counts'+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
 		canvas.firstPlot.setTitles(X=x, Y=y)
 		canvas.drawText('Data integral : {:1.4f}'.format(dataPlot.Integral()),pos=(0.6,0.6))
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
@@ -617,7 +627,7 @@ def makePhiPlot(dataHist,digi,when,ec,ring,mc):
 			canvas.firstPlot.SetMaximum(maximum * 1.2)
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'CSC Chamber'
-		y = 'Counts/cm^{2}/s' if AREA else 'Counts/BX'
+		y = 'Counts'+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
 		canvas.firstPlot.setTitles(X=x, Y=y)
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.drawText('Data integral : {:1.4f}'.format(dataPlot.Integral()),pos=(0.6,0.6))
@@ -669,7 +679,7 @@ def makeIntegralPlot(dataHist,digi,when,mc):
 		x = 'CSC Ring'
 		for ibin,ring in enumerate(ERINGLIST):
 			canvas.firstPlot.GetXaxis().SetBinLabel(ibin+1, ring.replace('-','#minus'))
-		y = 'Counts/cm^{2}/s' if AREA else 'Counts/BX'
+		y = 'Counts'+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
 		canvas.firstPlot.setTitles(Y=y)
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.makeTransparent()
@@ -678,16 +688,23 @@ def makeIntegralPlot(dataHist,digi,when,mc):
 		canvas.save('pdfs/'+name+'.pdf')
 		canvas.deleteCanvas()
 
-def makeLuminosityPlot(dataHist,digi,when,ec,ring):
+def makeLuminosityPlot(dataHist,digi,when,ec,ring,DOFIT=False):
 	# Make occupancy plot for each digi and plot type
 	dataPlot = Plotter.Plot(dataHist.Clone(),option='p')
-	TITLE = 'ME'+ec+ring+' '+('Comparator ' if digi=='comp' else 'Wire Group ')+'Occupancy'
+	TITLE = 'ME'+ec+ring+' '+('Comparator ' if digi=='comp' else 'Wire Group ')+'Rate vs. Lumi'
 	for LOGY in [False]:#,True]:
 		canvas = Plotter.Canvas(lumi=TITLE,logy=LOGY)
 		canvas.addMainPlot(dataPlot,addToPlotList=False)
+		if DOFIT:
+			line = R.TF1('fitline_'+dataPlot.GetName(),'[0]*x',0,10**34)
+			line.SetLineColor(R.kRed)
+			dataPlot.Fit('fitline_'+dataPlot.GetName())
+			fit = dataPlot.GetFunction('fitline_'+dataPlot.GetName())
+			result = '#splitline{slope = %.3e #pm %.3e}{#chi^{2}/dof = %5.3f / %2i}'%(fit.GetParameter(0),fit.GetParError(0),fit.GetChisquare(),fit.GetNDF())
+			canvas.drawText(text=result,pos=(0.2,0.8),align='tl')
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'Luminosity [cm^{-2}s^{-1}]'
-		y = 'Counts/cm^{2}/s' if AREA else 'Counts/BX'
+		y = 'Counts'+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
 		canvas.firstPlot.setTitles(X=x, Y=y)
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.makeTransparent()
@@ -703,7 +720,7 @@ def makeSepPlot(hist1,hist2,digi,when,ec,ring):
 	# the same axis
 	plot1 = Plotter.Plot(hist1,legType='p',legName='Upper half' if digi=='wire' else 'Right half',option='p')
 	plot2 = Plotter.Plot(hist2,legType='p',legName='Lower half' if digi=='wire' else 'Left half',option='p')
-	TITLE = 'ME'+ring+(' Wire Group Rate ' if digi=='wire' else ' Comparator Rate ')+'vs. Luminosity'
+	TITLE = 'ME'+ring+(' Wire Group' if digi=='wire' else ' Comparator')+' Rate vs. Lumi'
 	for LOGY in [False]:#,True]:
 		canvas = Plotter.Canvas(lumi=TITLE,logy=LOGY)
 		canvas.addMainPlot(plot1)
@@ -712,6 +729,15 @@ def makeSepPlot(hist1,hist2,digi,when,ec,ring):
 		plot1.SetMarkerColor(R.kRed)
 		plot2.SetLineColor(R.kBlue)
 		plot2.SetMarkerColor(R.kBlue)
+		if DOFIT:
+			for p,plot in enumerate([plot1,plot2]):
+				if plot.GetEntries()==0: continue
+				line = R.TF1('fitline_'+plot.GetName(),'[0]*x',0,10**34)
+				line.SetLineColor(plot.GetMarkerColor())
+				plot.Fit('fitline_'+plot.GetName())
+				fit = plot.GetFunction('fitline_'+plot.GetName())
+				result = '#color[%s]{#splitline{slope = %.3e #pm %.3e}{#chi^{2}/dof = %5.3f / %2i}}'%(plot.GetMarkerColor(),fit.GetParameter(0),fit.GetParError(0),fit.GetChisquare(),fit.GetNDF())
+				canvas.drawText(text=result,pos=(0.4,0.8 if p==0 else 0.7),align='tl')
 		maximum = max(plot1.GetMaximum(),plot2.GetMaximum())
 		canvas.firstPlot.SetMaximum(maximum * 1.075)
 		canvas.firstPlot.SetMinimum(1E-3 if LOGY else 0.)
@@ -794,7 +820,7 @@ for ring in RINGLIST:
 				## Make Luminosity Plots ##
 				###########################
 				if MC=='':
-					makeLuminosityPlot(totallumi,digi,when,ec,ring)
+					makeLuminosityPlot(totallumi,digi,when,ec,ring,DOFIT)
 					makeSepPlot(totallumiRU,totallumiLL,digi,when,ec,ring)
 				##############################
 				## Make Occupancy/Phi Plots ##

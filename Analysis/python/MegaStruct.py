@@ -260,7 +260,11 @@ class P5MegaStruct():
 				train = end - start + 1
 				diff = bx - start + 1
 				break
-		nextGap = self.BUNCHDATA[fill][i+1][0] - self.BUNCHDATA[fill][i][1] - 1
+		#print i,len(self.BUNCHDATA[fill]),fill,run,bx,size,train,diff
+		if i==len(self.BUNCHDATA[fill])-1:
+			nextGap = abortGapSize
+		else:
+			nextGap = self.BUNCHDATA[fill][i+1][0] - self.BUNCHDATA[fill][i][1] - 1
 		if size < minSize or size > maxSize:
 			return False, False, False, False
 		return size, diff, train, nextGap

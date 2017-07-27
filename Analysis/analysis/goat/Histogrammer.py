@@ -204,7 +204,7 @@ HCONFIGS = {
 #	'_B1_NL'      : (1, ['LU']),       # LCT money
 #	'_B1_NL'      : (1, ['HS']),       # LCT HS occupancy
 #	'_B1_NL'      : (1, ['WG']),       # LCT WG occupancy
-#	'_ND'         : (2, ['TB', 'BX']), # rainbow - TB is 16 for both
+	'_ND'         : (2, ['TB', 'BX']), # rainbow - TB is 16 for both
 #	'_NL'         : (1, ['BX']),       # LCT rainbow
 #	'_T{FLAT}_ND' : (1, ['LU']),       # flat time bin
 #	'_NL'         : (1, ['LU']),       # nLCTs
@@ -245,7 +245,8 @@ logger.warning('All histograms declared...')
 ####################################
 
 if __name__ == '__main__':
-	f = R.TFile.Open('SinatraTest.root')
+	#f = R.TFile.Open('SinatraTest.root')
+	f = R.TFile.Open('/afs/cern.ch/work/c/cschnaib/public/goatees/GOAT_P5_14June2017.root')
 	t = f.Get('t')
 
 	logger.warning('File and tree gotten...')
@@ -257,8 +258,8 @@ if __name__ == '__main__':
 	# loop over the tree and fill
 	for i, entry in enumerate(t):
 
-		if i%1000==0: logger.warning(str(i)+' events completed')
-		if i == 10000: break
+		#if i%1000==0: logger.warning(str(i)+' events completed')
+		#if i == 10000: break
 
 		loopFunction(t, HISTS)
 
