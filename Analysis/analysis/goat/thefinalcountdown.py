@@ -417,7 +417,8 @@ BXtoSconv = 25.*10**(-9)
 
 # need to fix so that it only integrates wg and hs it needs to integrate
 # currently it over estimates the chamber area by a small amount (ok for now I guess?)
-chamArea = {digi:{ring:areaHists[digi][ring].Integral() for ring in RINGLIST} for digi in PLOT.keys()}
+#chamArea = {digi:{ring:areaHists[digi][ring].Integral() for ring in RINGLIST} for digi in PLOT.keys()}
+chamArea = {digi:{ring:CH.Chamber(CH.serialID(1, int(ring[0]), int(ring[1]), 1)).area for ring in RINGLIST} for digi in PLOT.keys()}
 chamHalfArea = {digi:{half:{ring:{} for ring in RINGLIST} for half in HALVES[digi][0:2]} for digi in PLOT.keys()}
 for digi in PLOT.keys():
 	for half in HALVES[digi][0:2]:
