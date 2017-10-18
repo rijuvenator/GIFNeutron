@@ -124,7 +124,7 @@ mv {CSCDIGILOG}.txt {OUTDIR}
 		bash.call('bash {SUBMITPATH}'.format(**locals()), shell=True)
 	elif SUBMIT and BATCH:
 		print i
-		bash.call('bsub -q 8nh -J ana_{NUM} < {SUBMITPATH}'.format(NUM=i,**locals()), shell=True)
+		bash.call('bsub -q 1nh -J ana_{NUM} < {SUBMITPATH}'.format(NUM=i,**locals()), shell=True)
 	
 	if CLEANUP:
 		bash.call('rm {SUBMITPATH} {CONFIGPATH}'.format(**locals()), shell=True)
