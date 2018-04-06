@@ -5,13 +5,13 @@ import Gif.Analysis.Plotter as Plotter
 R.gROOT.SetBatch(True)
 
 # histogram configurations
-fn = 'LastEvsTOF.pdf'
-#fn = 'LastEvsTOF_All.pdf'
+#fn = 'LastEvsTOF.pdf'
+fn = 'LastEvsTOF_All.pdf'
 configs = {
 	'Cap' : ('Capture'                   , R.kRed    , True ),
 	'Ine' : ('Inelastic Scatter'         , R.kAzure+7, True ),
-	'Nuc' : ('SimHit By Ion'             , R.kGreen  , False),
-	'Pro' : ('Neutron #rightarrow Proton', R.kMagenta, False),
+	'Nuc' : ('SimHit By Ion'             , R.kGreen  , True ),
+	'Pro' : ('Neutron #rightarrow Proton', R.kMagenta, True ),
 }
 keylist = ('Cap', 'Ine', 'Nuc', 'Pro')
 

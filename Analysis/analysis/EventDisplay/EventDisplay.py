@@ -54,10 +54,14 @@ for line in F_CONFIG:
 DOSEGMENTS = False
 DOPATTERN  = True
 DRAWZTITLE = True
-DOSCINT    = True
+DOSCINT    = False
 
 ##### BEGIN CODE #####
 THRESHOLD = 13.3
+
+CONFIG = {
+		('~/prod_GIF/run/output.root', 'CAM') : {1 : [2]}
+	}
 
 for FILE,TYPE in CONFIG.keys():
 	# Get file and tree
@@ -268,6 +272,11 @@ for FILE,TYPE in CONFIG.keys():
 				R.SetOwnership(canvas.canvas, False)
 				print '\033[1;31m'          + 'MC ENTRY {} CHAMBER {}'.format(ENTRY, CHAMBER.id)                        + '\033[m'
 				print '\033[1mFILE \033[32m'+ 'ED_MC_{}_{}.pdf'       .format(CHAMBER.display('ME{E}{S}{R}{C}'), EVENT) + '\033[30m CREATED\033[0m'
+
+			elif TYPE == 'CAM':
+				canvas.drawLumiText('{CS}, Event #{EVENT}'.format(CS=CHAMBER.display('ME{E}{S}/{R}/{C}'), EVENT=EVENT))
+				canvas.canvas.SaveAs('test.pdf')
+				R.SetOwnership(canvas.canvas, False)
 
 			del hWires, hComps, hADC, hNotReadS
 			canvas.deleteCanvas()

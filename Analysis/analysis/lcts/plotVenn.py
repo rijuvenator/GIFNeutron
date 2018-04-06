@@ -30,7 +30,9 @@ F_DATAFILE = '../datafiles/data_efftable'
 
 # Cosmetic data dictionary, comment out for fewer ones
 pretty = {
-	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
+	0 : { 'name' : 'Standard CMS Thresholds',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
+	1 : { 'name' : 'With Tightened Pre-trigger Thresholds',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+#	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
 #	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
 #	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
 #	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
@@ -164,8 +166,8 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 
 	# Step 4
 	for i in range(ntypes):
-		#canvas.addMainPlot(plots[i])
-		canvas.addMainPlot(plots[i], addToLegend=False)
+		canvas.addMainPlot(plots[i])
+		#canvas.addMainPlot(plots[i], addToLegend=False)
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")

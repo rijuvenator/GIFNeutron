@@ -20,7 +20,9 @@ def SelectBranches(t, DecList=(), branches=()):
 		'LCT'    : 'lct_'  ,
 		'SEGMENT': 'seg_'  ,
 		'CLCT'   : 'clct_' ,
-		'SIMHIT' : 'sim_'
+		'SIMHIT' : 'sim_'  ,
+		'WLINK'  : 'wlink_',
+		'SLINK'  : 'slink_',
 	}
 	for KEY in DecList:
 		Branches.extend([br for br in BranchList if re.match(BranchHead[KEY], br)])
@@ -73,6 +75,10 @@ class ETree(object):
 			else:
 				self.wire_pos       = [[0. for i in self.wire_cham] for j in range(2)]
 				self.wire_globalPos = [[0. for i in self.wire_cham] for j in range(3)]
+			if hasattr(t, 'wire_timeOn'):
+				self.wire_timeBins = [list(x) for x in list(t.wire_timeOn)]
+			else:
+				self.wire_timeBins = [[] for x in range(len(self.wire_timeBin))]
 
 		if 'RECHIT' in DecList:
 			self.rh_cham      = list(t.rh_id)
@@ -149,6 +155,19 @@ class ETree(object):
 					self.sim_entry_pabs   = [0. for i in self.sim_cham]
 					self.sim_entry_p      = [[0. for i in self.sim_cham] for j in range(3)]
 
+		if 'WLINK' in DecList:
+			self.wlink_cham    = list(t.wlink_id)
+			self.wlink_layer   = list(t.wlink_layer)
+			self.wlink_channel = list(t.wlink_chan)
+			self.wlink_trackID = list(t.wlink_trackID)
+			self.wlink_charge  = list(t.wlink_charge)
+		if 'SLINK' in DecList:
+			self.slink_cham    = list(t.slink_id)
+			self.slink_layer   = list(t.slink_layer)
+			self.slink_channel = list(t.slink_chan)
+			self.slink_trackID = list(t.slink_trackID)
+			self.slink_charge  = list(t.slink_charge)
+
 # The Primitives Classes: take in an ETree and an index, produces an object.
 class Comp(object):
 	def __init__(self, E, i):
@@ -192,6 +211,7 @@ class Wire(object):
 		self.timeBin   = E.wire_timeBin[i]
 		self.pos       = {'x' : E.wire_pos[0][i], 'y' : E.wire_pos[1][i]}
 		self.globalPos = {'x' : E.wire_globalPos[0][i], 'y' : E.wire_globalPos[1][i], 'z' : E.wire_globalPos[2][i]}
+		self.timeBins  = E.wire_timeBins[i]
 
 class RecHit(object):
 	def __init__(self, E, i):
@@ -266,3 +286,18 @@ class CLCT(object):
 		self.pattern   = E.clct_pattern[i]
 
 		self.keyHalfStrip = self.keyStrip if self.cham == 1 else self.CFEB*32 + self.halfStrip
+
+class WireLink(object):
+	def __init__(self, E, i):
+		self.cham    = E.wlink_cham[i]
+		self.layer   = E.wlink_layer[i]
+		self.channel = E.wlink_channel[i]
+		self.trackID = E.wlink_trackID[i]
+		self.charge  = E.wlink_charge[i]
+class StripLink(object):
+	def __init__(self, E, i):
+		self.cham    = E.slink_cham[i]
+		self.layer   = E.slink_layer[i]
+		self.channel = E.slink_channel[i]
+		self.trackID = E.slink_trackID[i]
+		self.charge  = E.slink_charge[i]

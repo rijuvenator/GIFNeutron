@@ -1,6 +1,7 @@
 import ROOT as R
 import numpy as n
 R.PyConfig.IgnoreCommandLineOptions = True
+R.gROOT.SetBatch(True)
 
 # Imporant note: any functions that manipulate things based on text size assume that
 # the containing pad is wider than it is tall. In this case, the character height is
@@ -283,6 +284,10 @@ class Canvas(R.TCanvas):
 				plot.GetXaxis().SetLabelSize(0)
 		else:
 			plot.Draw(plot.option+' same')
+
+	# sets the canvas maximum to 5% above the maximum of all the plots in plotList
+	def setMaximum(self):
+		self.firstPlot.SetMaximum(1.05 * max([p.GetMaximum() for p in self.plotList]))
 
 	# creates the legend
 	# lWidth is width as fraction of pad; height defaults to 0.2, offset defaults to 0.03
