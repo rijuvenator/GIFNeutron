@@ -127,6 +127,7 @@ void FillGIFWireInfo::fill(const CSCWireDigiCollection& wires){
         wire_lay .push_back(GIFHelper::convertTo<size8>(layer,"wire_lay"));
         wire_grp .push_back(GIFHelper::convertTo<size8>((*digiItr).getWireGroup(),"wire_grp"));
         wire_time.push_back(GIFHelper::convertTo<size8>((*digiItr).getTimeBin(),"wire_time"));
+		wire_timeOn.push_back((*digiItr).getTimeBinsOn());
 		wire_bx  .push_back(GIFHelper::convertTo<int>((*digiItr).getWireGroupBX(),"wire_bx"));
       }
   }
