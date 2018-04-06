@@ -36,6 +36,10 @@ class MakeSimpleNeutronSimTree : public edm::EDAnalyzer {
 		// Sim
 		edm::EDGetTokenT<edm::PSimHitContainer> sim_token;
 
+		// Links
+		edm::EDGetTokenT<edm::DetSetVector<StripDigiSimLink>> strip_link_token;
+		edm::EDGetTokenT<edm::DetSetVector<StripDigiSimLink>> wire_link_token;
+
         TreeContainer tree;
         FillGIFEventInfo eventInfo;
         FillGIFRecHitInfo recHitInfo;
@@ -48,6 +52,9 @@ class MakeSimpleNeutronSimTree : public edm::EDAnalyzer {
         FillGIFALCTInfo alctInfo;
 		// Sim
 		FillSimHitInfo simHitInfo;
+
+		// Links
+		FillLinkInfo linkInfo;
 
 };
 
@@ -63,6 +70,7 @@ MakeSimpleNeutronSimTree::MakeSimpleNeutronSimTree(const edm::ParameterSet& iCon
   , clctInfo(tree)
   , alctInfo(tree)
   , simHitInfo(tree)
+  , linkInfo(tree)
 {
 	// CSC
     rh_token = consumes<CSCRecHit2DCollection>( iConfig.getParameter<edm::InputTag>("recHitTag") );
@@ -75,6 +83,9 @@ MakeSimpleNeutronSimTree::MakeSimpleNeutronSimTree(const edm::ParameterSet& iCon
     ad_token = consumes<CSCALCTDigiCollection>( iConfig.getParameter<edm::InputTag>("alctDigiTag") );
 	// Sim
 	sim_token = consumes<edm::PSimHitContainer>( iConfig.getParameter<edm::InputTag>("simHitTag") );
+	// Links
+	strip_link_token = consumes<edm::DetSetVector<StripDigiSimLink>>(iConfig.getParameter<edm::InputTag>("stripLinksTag"));
+	wire_link_token = consumes<edm::DetSetVector<StripDigiSimLink>>(iConfig.getParameter<edm::InputTag>("wireLinksTag"));
     //edm::Service<TFileService> fs;
 }
 
@@ -131,6 +142,12 @@ MakeSimpleNeutronSimTree::analyze(const edm::Event& iEvent, const edm::EventSetu
 	edm::Handle<edm::PSimHitContainer> simHits;
 	iEvent.getByToken(sim_token, simHits );
 	simHitInfo.fill(theCSC, *simHits);
+
+	edm::Handle<edm::DetSetVector<StripDigiSimLink>> wireLinks;
+	edm::Handle<edm::DetSetVector<StripDigiSimLink>> stripLinks;
+	iEvent.getByToken(wire_link_token, wireLinks);
+	iEvent.getByToken(strip_link_token, stripLinks);
+	linkInfo.fill(*wireLinks, *stripLinks);
 	
 
 	tree.fill();

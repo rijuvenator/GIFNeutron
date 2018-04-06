@@ -46,6 +46,9 @@
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
 
+#include "DataFormats/Common/interface/DetSetVector.h"
+#include "SimDataFormats/TrackerDigiSimLink/interface/StripDigiSimLink.h"
+
 #include "TFile.h"
 #include "TTree.h"
 #include "TString.h"

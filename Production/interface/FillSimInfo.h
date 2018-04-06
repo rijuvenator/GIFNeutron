@@ -94,5 +94,50 @@ class FillSimHitInfo : public FillInfo
 		}
 };
 
+class FillLinkInfo : public FillInfo
+{
+	public:
+		FillLinkInfo(TreeContainer &tree) : FillInfo(tree)
+		{
+			book("wlink_id"     , wlink_id     );
+			book("wlink_layer"  , wlink_layer  );
+			book("wlink_chan"   , wlink_chan   );
+			book("wlink_trackID", wlink_trackID);
+			book("wlink_charge" , wlink_charge );
+			book("slink_id"     , slink_id     );
+			book("slink_layer"  , slink_layer  );
+			book("slink_chan"   , slink_chan   );
+			book("slink_trackID", slink_trackID);
+			book("slink_charge" , slink_charge );
+		}
+		virtual ~FillLinkInfo() {};
+		void fill(const edm::DetSetVector<StripDigiSimLink>& wireLinks, const edm::DetSetVector<StripDigiSimLink>& stripLinks);
+
+	private:
+		std::vector<size16>       wlink_id     ;
+		std::vector<int>          wlink_layer  ;
+		std::vector<unsigned int> wlink_chan   ;
+		std::vector<unsigned int> wlink_trackID;
+		std::vector<float>        wlink_charge ;
+		std::vector<size16>       slink_id     ;
+		std::vector<int>          slink_layer  ;
+		std::vector<unsigned int> slink_chan   ;
+		std::vector<unsigned int> slink_trackID;
+		std::vector<float>        slink_charge ;
+
+		virtual void reset()
+		{
+			wlink_id     .clear();
+			wlink_layer  .clear();
+			wlink_chan   .clear();
+			wlink_trackID.clear();
+			wlink_charge .clear();
+			slink_id     .clear();
+			slink_layer  .clear();
+			slink_chan   .clear();
+			slink_trackID.clear();
+			slink_charge .clear();
+		}
+};
 
 #endif

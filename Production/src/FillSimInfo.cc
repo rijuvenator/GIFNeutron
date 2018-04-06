@@ -45,3 +45,42 @@ void FillSimHitInfo::fill(const CSCGeometry * theCSC, const edm::PSimHitContaine
 	}
 }
 
+void FillLinkInfo::fill(const edm::DetSetVector<StripDigiSimLink>& wireLinks, const edm::DetSetVector<StripDigiSimLink>& stripLinks)
+{
+	reset();
+
+	for (edm::DetSetVector<StripDigiSimLink>::const_iterator linkList = wireLinks.begin(); linkList != wireLinks.end(); linkList++)
+	{
+		//std::cout   << "WIRE LINKS: "
+		//			<< linkList->data.size() << " "
+		//			<< GIFHelper::chamberSerial(linkList->detId()) << " "
+		//			<< CSCDetId(linkList->detId()).layer() << " "
+		//			<< std::endl;
+		for (std::vector<StripDigiSimLink>::const_iterator link = linkList->data.begin(); link != linkList->data.end(); link++)
+		{
+			//std::cout << "    " << link->channel() << " " << link->SimTrackId() << " " << link->fraction() << std::endl;
+			wlink_id     .push_back(GIFHelper::chamberSerial(linkList->detId()));
+			wlink_layer  .push_back(CSCDetId(linkList->detId()).layer());
+			wlink_chan   .push_back(link->channel());
+			wlink_trackID.push_back(link->SimTrackId());
+			wlink_charge .push_back(link->fraction());
+		}
+	}
+	for (edm::DetSetVector<StripDigiSimLink>::const_iterator linkList = stripLinks.begin(); linkList != stripLinks.end(); linkList++)
+	{
+		//std::cout   << "STRP LINKS: "
+		//			<< linkList->data.size() << " "
+		//			<< GIFHelper::chamberSerial(linkList->detId()) << " "
+		//			<< CSCDetId(linkList->detId()).layer() << " "
+		//			<< std::endl;
+		for (std::vector<StripDigiSimLink>::const_iterator link = linkList->data.begin(); link != linkList->data.end(); link++)
+		{
+			//std::cout << "    " << link->channel() << " " << link->SimTrackId() << " " << link->fraction() << std::endl;
+			slink_id     .push_back(GIFHelper::chamberSerial(linkList->detId()));
+			slink_layer  .push_back(CSCDetId(linkList->detId()).layer());
+			slink_chan   .push_back(link->channel());
+			slink_trackID.push_back(link->SimTrackId());
+			slink_charge .push_back(link->fraction());
+		}
+	}
+};
