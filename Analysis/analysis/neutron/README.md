@@ -8,3 +8,15 @@
 
 Previously...
   * SH_CapE_TOF is like simHitMythology, but it prints out different information, specifically the tof and the last neutron energy
+
+_Note_
+These are working pairs of EDM/PartTrees
+
+GIFTree : PartTrees
+
+/afs/cern.ch/work/a/adasgupt/public/GIF/3Mar/
+/eos/cms/store/user/adasgupt/PartTrees/
+(no EDM! old)
+
+/afs/cern.ch/work/a/adasgupt/public/Neutron/simtrees/
+/eos/cms/store/user/cschnaib/Neutron/MinBiasNeutronHP/MinBiasNeutronHP_ThermalON_LOG/

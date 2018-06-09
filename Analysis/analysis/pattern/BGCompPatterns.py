@@ -275,7 +275,7 @@ def makePlot(h):
 	for ncomps in binslices.keys():
 		plots[ncomps] = Plotter.Plot(hists[ncomps], option='hist', legName=str(ncomps)+' hits', legType='f')
 
-	canvas = Plotter.Canvas(lumi='Background Comparators Pattern ID', cWidth=1700, logy=True)
+	canvas = Plotter.Canvas(lumi='(13 TeV)', extra='Simulation Preliminary', cWidth=1700, logy=True, fontscale=1.2)
 	R.gStyle.SetLineWidth(1)
 
 	for ncomps in binslices.keys():
@@ -380,7 +380,8 @@ def makePlot(h):
 			dummy.extend(drawPattern(bin_, label))
 
 	# finish up
-	canvas.finishCanvas('BOB')
+	canvas.firstPlot.scaleTitleOffsets(0.8, 'Y')
+	canvas.finishCanvas(extrascale=1.8)
 	canvas.save('pdfs/BGPatterns_{TYPE}.pdf'.format(TYPE=TYPE))
 	R.SetOwnership(canvas, False)
 

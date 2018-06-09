@@ -8,17 +8,18 @@ import Gif.Analysis.OldPlotter as Plotter
 CHAMLIST = (1, 110)
 # Configuration dictionary
 EFFLIST = (\
-	{'num' : 'LCT'        , 'denom' : 'L1A'        , 'ytitle':'LCT Efficiency'             , 'castrated' : False, 'norm' : False},
-	{'num' : 'LCTScint'   , 'denom' : 'L1A'        , 'ytitle':'LCT-Scint Efficiency'       , 'castrated' : False, 'norm' : False},
-	{'num' : 'LCTSegMatch', 'denom' : 'L1A'        , 'ytitle':'LCT-Seg Match Efficiency'   , 'castrated' : False, 'norm' : False},
-	{'num' : 'Seg'        , 'denom' : 'L1A'        , 'ytitle':'Segment Efficiency'         , 'castrated' : False, 'norm' : False},
-	{'num' : 'SegScint'   , 'denom' : 'L1A'        , 'ytitle':'Seg-Scint Efficiency'       , 'castrated' : False, 'norm' : False},
-	{'num' : 'AllMatch'   , 'denom' : 'L1A'        , 'ytitle':'Muon Efficiency'            , 'castrated' : False, 'norm' : False},
-	{'num' : 'AllMatch'   , 'denom' : 'LCTScint'   , 'ytitle':'Muon Match Efficiency'      , 'castrated' : False, 'norm' : False},
-	{'num' : 'AllMatch'   , 'denom' : 'LCTSegMatch', 'ytitle':'Muon Match-Scint Efficiency', 'castrated' : False, 'norm' : False},
-	{'num' : 'AllMatch'   , 'denom' : 'SegScint'   , 'ytitle':'Muon Seg Match Efficiency'  , 'castrated' : False, 'norm' : False},
-	{'num' : 'SegScint'   , 'denom' : 'Seg'        , 'ytitle':'Seg-Scint/Seg Efficiency'   , 'castrated' : False, 'norm' : False},
-	{'num' : 'LCTScint'   , 'denom' : 'LCT'        , 'ytitle':'LCT-Scint/LCT Efficiency'   , 'castrated' : False, 'norm' : False}
+#	{'num' : 'LCT'        , 'denom' : 'L1A'        , 'ytitle':'LCT Efficiency'              , 'castrated' : False, 'norm' : False},
+#	{'num' : 'LCTScint'   , 'denom' : 'L1A'        , 'ytitle':'LCT-Scint Efficiency'        , 'castrated' : False, 'norm' : False},
+	{'num' : 'LCTScint'   , 'denom' : 'L1A'        , 'ytitle':'Trigger Primitive Efficiency Relative to 0 Current', 'castrated' : False, 'norm' : False},
+#	{'num' : 'LCTSegMatch', 'denom' : 'L1A'        , 'ytitle':'LCT-Seg Match Efficiency'    , 'castrated' : False, 'norm' : False},
+#	{'num' : 'Seg'        , 'denom' : 'L1A'        , 'ytitle':'Segment Efficiency'          , 'castrated' : False, 'norm' : False},
+#	{'num' : 'SegScint'   , 'denom' : 'L1A'        , 'ytitle':'Seg-Scint Efficiency'        , 'castrated' : False, 'norm' : False},
+#	{'num' : 'AllMatch'   , 'denom' : 'L1A'        , 'ytitle':'Muon Efficiency'             , 'castrated' : False, 'norm' : False},
+#	{'num' : 'AllMatch'   , 'denom' : 'LCTScint'   , 'ytitle':'Muon Match Efficiency'       , 'castrated' : False, 'norm' : False},
+#	{'num' : 'AllMatch'   , 'denom' : 'LCTSegMatch', 'ytitle':'Muon Match-Scint Efficiency' , 'castrated' : False, 'norm' : False},
+#	{'num' : 'AllMatch'   , 'denom' : 'SegScint'   , 'ytitle':'Muon Seg Match Efficiency'   , 'castrated' : False, 'norm' : False},
+#	{'num' : 'SegScint'   , 'denom' : 'Seg'        , 'ytitle':'Seg-Scint/Seg Efficiency'    , 'castrated' : False, 'norm' : False},
+#	{'num' : 'LCTScint'   , 'denom' : 'LCT'        , 'ytitle':'LCT-Scint/LCT Efficiency'    , 'castrated' : False, 'norm' : False}
 )
 
 ##### SEMI-PARAMETERS #####
@@ -29,10 +30,12 @@ F_DATAFILE = '../datafiles/data_efftable'
 
 # Cosmetic data dictionary, comment out for fewer ones
 pretty = {
-	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
+	0 : { 'name' : 'Standard CMS Thresholds',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
+	1 : { 'name' : 'With Tightened Pre-trigger Thresholds',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
+#	0 : { 'name' : 'Original',        'color' : R.kRed-3,   'marker' : R.kFullCircle      },
 #	1 : { 'name' : 'TightPreCLCT',    'color' : R.kBlue-1,  'marker' : R.kFullSquare      },
 #	2 : { 'name' : 'TightCLCT',       'color' : R.kOrange,  'marker' : R.kFullTriangleUp  },
-	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
+#	3 : { 'name' : 'TightALCT',       'color' : R.kGreen+2, 'marker' : R.kFullCross       },
 #	4 : { 'name' : 'TightPrePID',     'color' : R.kMagenta, 'marker' : R.kFullTriangleDown},
 #	5 : { 'name' : 'TightPrePostPID', 'color' : R.kAzure+8, 'marker' : R.kFullDiamond     },
 #	6 : { 'name' : 'TightPA',         'color' : R.kGray,    'marker' : R.kFullStar        },
@@ -145,14 +148,15 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 	graphs = []
 	ntypes = len(pretty.keys())
 	for i in range(ntypes):
-		graphs.append(R.TGraph(len(x[i]), x[i], y[i]))
+		graphs.append(R.TGraph(len(x[i]), x[i], y[i]/y[i][-1]))
 
 	plots = []
 	for i, p in enumerate(pretty.keys()):
 		plots.append(Plotter.Plot(graphs[i], pretty[p]['name'], 'p', 'P'))
 
 	# Step 2
-	canvas = Plotter.Canvas('ME'+str(cham)+'/1 External Trigger', False, 0., 'Internal', 800, 700)
+	canvas = Plotter.Canvas('ME'+str(cham)+'/1 at GIF++', False, 0., 'Preliminary', 800, 700)
+	#canvas = Plotter.Canvas('ME'+str(cham)+'/1 External Trigger', False, 0., 'Preliminary', 800, 700)
 	#canvas = Plotter.Canvas('ME'+str(cham)+'/1 External Trigger', False, 0., 'Internal', 800, 800)
 
 	# Step 3
@@ -163,6 +167,7 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 	# Step 4
 	for i in range(ntypes):
 		canvas.addMainPlot(plots[i])
+		#canvas.addMainPlot(plots[i], addToLegend=False)
 
 	# Step 5
 	R.TGaxis.SetExponentOffset(-0.08, 0.02, "y")
@@ -180,9 +185,9 @@ def makePlot(cham, x, y, xtitle, ytitle, title):
 		graphs[i].SetMarkerSize(2.2)
 
 	# Step 6
-	xmax = canvas.firstPlot.plot.GetXaxis().GetXmax()
-	axis = canvas.makeExtraAxis(0., xmax/(3.e33 if cham == 1 else 5.e33))
-	axis.SetTitle('Current [#muA]')
+#	xmax = canvas.firstPlot.plot.GetXaxis().GetXmax()
+#	axis = canvas.makeExtraAxis(0., xmax/(3.e33 if cham == 1 else 5.e33))
+#	axis.SetTitle('Current [#muA]')
 
 	# Step 7
 
@@ -196,9 +201,11 @@ for cham in CHAMLIST:
 	for quant in EFFLIST:
 		makePlot(\
 			cham if cham == 1 else 2,
-			[data.lumiVector(cham, ff, quant['castrated']                         ) for ff in pretty.keys()],
+			[data.currentVector(cham, ff, quant['castrated']                         ) for ff in pretty.keys()],
+#			[data.lumiVector(cham, ff, quant['castrated']                         ) for ff in pretty.keys()],
 			[data.effVector (cham, ff, quant['num'], quant['denom'], quant['norm']) for ff in pretty.keys()],
-			'Luminosity [cm^{-2}s^{-1}]',
+#			'Luminosity [cm^{-2}s^{-1}]',
+			'Current [#muA]',
 			quant['ytitle'],
 			quant['num'] \
 				+ ('' if quant['denom'] is None else '_'+quant['denom']) \

@@ -224,13 +224,26 @@ def cleanup(self, PARAMS):
 ## PLOTTING FUNCTIONS ##
 ########################
 
-def makePlot(hist):
-	plot = Plotter.Plot(hist, legName='', legType='felp', option='hist')
+def makePlot():
+	gr   = data.GRAPHS[1]['ALL']
+	#fit  = R.TF1('fit', '[0]*x', 0., 1.e9)
+	#fit.SetParameter(0, 3.8e-6)
+	#fit.SetLineColor(R.kRed)
+	#fit.SetLineWidth(2)
+	#gr.Fit('fit')
+
+	plot = Plotter.Plot(gr, legName='Data', legType='p', option='p')
+
 	canvas = Plotter.Canvas(lumi='')
 	canvas.addMainPlot(plot)
-	canvas.makeLegend()
+	#canvas.setFitBoxStyle(gr)
+
+	canvas.firstPlot.GetXaxis().SetLimits(0, 135.e6)
+
 	canvas.finishCanvas()
-	canvas.save('plot', ['.pdf', '.png'])
+	canvas.save('plot.pdf')
+	R.SetOwnership(canvas, False)
+	canvas.deleteCanvas()
 
 ########################
 ##  MAIN MODULE CODE  ##
@@ -258,3 +271,4 @@ if __name__ == '__main__':
 	for METHOD in METHODS:
 		setattr(Analyzer, METHOD, locals()[METHOD])
 	data = Analyzer(**ARGS)
+	makePlot()

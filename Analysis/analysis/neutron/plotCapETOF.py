@@ -72,7 +72,8 @@ for line in f:
 
 # make the actual plot
 #canvas  = Plotter.Canvas(lumi='SimHit TOF vs. Last Recorded Neutron Energy', logy=True)
-canvas  = Plotter.Canvas(lumi='Last Recorded Neutron Energy vs. SimHit TOF', logy=True)
+#canvas  = Plotter.Canvas(lumi='Last Recorded Neutron Energy vs. SimHit TOF', logy=True, extra='Preliminary')
+canvas  = Plotter.Canvas(lumi='', logy=True, extra='Simulation Preliminary')
 
 plots = {}
 for key in keylist:
@@ -85,7 +86,7 @@ for key in keylist:
 canvas.mainPad.SetLogx(True)
 
 #canvas.firstPlot.setTitles(X='Energy [eV]', Y='Time of Flight [s]')
-canvas.firstPlot.setTitles(Y='Energy [eV]', X='Time of Flight [s]')
+canvas.firstPlot.setTitles(Y='Energy [eV]', X='Time [s]')
 canvas.firstPlot.scaleTitleOffsets(1.25, 'X')
 canvas.makeTransparent()
 canvas.makeLegend()

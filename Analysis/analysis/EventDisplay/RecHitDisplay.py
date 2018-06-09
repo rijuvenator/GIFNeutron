@@ -111,9 +111,11 @@ for FILE,TYPE in CONFIG.keys():
 			gRHS.Draw('AP')
 			gRHS.SetMarkerColor(R.kBlack)
 			gRHS.GetXaxis().SetNdivisions(ND['st'][HS_MAX/2])
-			gRHS.SetTitle(('' if not TITLESON else 'RECHIT STRIPS')+';Strip Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'))
+			# This used to say RecHits and the SetTitleX did not exist
+			gRHS.SetTitle(('' if not TITLESON else 'RECONSTRUCTED HITS: STRIPS')+';Strip Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'))
+			R.gStyle.SetTitleX(0)
 			gRHS.SetMinimum(1.)
-			gRHS.SetMaximum(7.)
+			gRHS.SetMaximum(6.999)
 			gRHS.GetXaxis().SetLimits(1., HS_MAX/2+1.)
 			gRHS.Draw('AP')
 			canvas.canvas.Update()
@@ -123,9 +125,11 @@ for FILE,TYPE in CONFIG.keys():
 			gRHW.Draw('AP')
 			gRHW.SetMarkerColor(R.kBlack)
 			gRHW.GetXaxis().SetNdivisions(ND['wg'][WIRE_MAX])
-			gRHW.SetTitle(('' if not TITLESON else 'RECHIT WIRE GROUPS')+';Wire Group Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'))
+			# This used to say RecHits and the SetTitleX did not exist
+			gRHW.SetTitle(('' if not TITLESON else 'RECONSTRUCTED HITS: WIRE GROUPS')+';Wire Group Number;Layer'+('' if not DRAWZTITLE else ';Multiplicity'))
+			R.gStyle.SetTitleX(0)
 			gRHW.SetMinimum(1.)
-			gRHW.SetMaximum(7.)
+			gRHW.SetMaximum(6.999)
 			gRHW.GetXaxis().SetLimits(1., WIRE_MAX+1.)
 			gRHW.Draw('AP')
 			canvas.canvas.Update()
@@ -138,7 +142,7 @@ for FILE,TYPE in CONFIG.keys():
 					if TYPE == 'GIF':
 						for lct in lcts:
 							if lct.cham != CHAM: continue
-							if Aux.matchSegLCT(seg, lct, thresh=(3., 3.)):
+							if Aux.matchSegLCT(seg, lct, thresh=(2., 2.)):
 								SegDrawList.append(seg)
 					else:
 						SegDrawList.append(seg)
@@ -216,6 +220,7 @@ for FILE,TYPE in CONFIG.keys():
 				# lumi text
 				MEAS = FILE[-9:-5]
 				canvas.drawLumiText('m#{MEAS}, {CS}, Event #{EVENT}'.format(MEAS=MEAS, CS=CHAMBER.display('ME{S}/{R}'), EVENT=EVENT))
+				#canvas.drawLumiText('ME2/1 at GIF++, A = 4.6, I #approx 35 #muA')
 
 				# save as
 				canvas.canvas.SaveAs('{}/RH_GIF_{}_{}_{}.pdf'.format(OUTDIR, MEAS, CHAMBER.display('ME{S}{R}'), EVENT))

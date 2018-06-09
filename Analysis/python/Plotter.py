@@ -1,6 +1,7 @@
 import ROOT as R
 import numpy as n
 R.PyConfig.IgnoreCommandLineOptions = True
+R.gROOT.SetBatch(True)
 
 # Imporant note: any functions that manipulate things based on text size assume that
 # the containing pad is wider than it is tall. In this case, the character height is
@@ -284,6 +285,10 @@ class Canvas(R.TCanvas):
 		else:
 			plot.Draw(plot.option+' same')
 
+	# sets the canvas maximum to 5% above the maximum of all the plots in plotList
+	def setMaximum(self):
+		self.firstPlot.SetMaximum(1.05 * max([p.GetMaximum() for p in self.plotList]))
+
 	# creates the legend
 	# lWidth is width as fraction of pad; height defaults to 0.2, offset defaults to 0.03
 	# pos can be tr, tl, br, bl for each of the four corners
@@ -344,6 +349,9 @@ class Canvas(R.TCanvas):
 		sbox.SetTextFont(self.font)
 		sbox.SetTextSize(fontscale * self.fontsize)
 
+		xOffset = 0.03
+		yOffset = 0.03
+
 		X1 = {'r' : 1-rMargin-xOffset-lWidth , 'l' : lMargin+xOffset        }
 		X2 = {'r' : 1-rMargin-xOffset        , 'l' : lMargin+xOffset+lWidth }
 		Y1 = {'t' : 1-tMargin-yOffset-lHeight, 'b' : bMargin+yOffset        }
@@ -353,10 +361,10 @@ class Canvas(R.TCanvas):
 			print 'Invalid legend position string; defaulting to top-left'
 			pos = 'tl'
 
-		sbox.setX1NDC(X1[pos[1]])
-		sbox.setX2NDC(X2[pos[1]])
-		sbox.setY1NDC(Y1[pos[0]])
-		sbox.setY2NDC(Y2[pos[0]])
+		sbox.SetX1NDC(X1[pos[1]])
+		sbox.SetX2NDC(X2[pos[1]])
+		sbox.SetY1NDC(Y1[pos[0]])
+		sbox.SetY2NDC(Y2[pos[0]])
 
 	# makes ratio plot given a top hist and a bottom hist
 	# plusminus is the window around 1, i.e. 0.5 means plot from 0.5 to 1.5
@@ -472,7 +480,7 @@ class Canvas(R.TCanvas):
 		latex.DrawLatexNDC(pos[0], pos[1], text)
 	
 	# draws the lumi text, 'CMS', extra text, and legend 
-	def finishCanvas(self, mode=''):
+	def finishCanvas(self, mode='', extrascale=1., drawCMS=True):
 		tMargin = float(self.mainPad.GetTopMargin())
 		lMargin = float(self.mainPad.GetLeftMargin())
 		rMargin = float(self.mainPad.GetRightMargin())
@@ -483,13 +491,17 @@ class Canvas(R.TCanvas):
 		self.mainPad.cd()
 
 		if mode == '':
-			# 'CMS' is approximately 2.75 times wide as tall, so draw extra at 2.75 * charheight to the right of CMS as a fraction of width
-			extraOffset = self.fontsize * self.cHeight * (1-self.ratioFactor) * 2.75 / self.cWidth
-			self.drawText(text=self.lumi , pos=(1-rMargin            , 1-tMargin+tOffset), align='br', fontcode=self.fontcode, fontscale=1.  )
-			self.drawText(text='CMS'     , pos=(  lMargin            , 1-tMargin+tOffset), align='bl', fontcode='b'          , fontscale=1.25)
-			self.drawText(text=self.extra, pos=(  lMargin+extraOffset, 1-tMargin+tOffset), align='bl', fontcode='i'          , fontscale=1.  )
+			if drawCMS:
+				# 'CMS' is approximately 2.75 times wide as tall, so draw extra at 2.75 * charheight to the right of CMS as a fraction of width
+				extraOffset = self.fontsize * self.cHeight * (1-self.ratioFactor) * 2.75 / self.cWidth * extrascale
+				self.drawText(text='CMS'     , pos=(  lMargin            , 1-tMargin+tOffset), align='bl', fontcode='b'          , fontscale=1.25*extrascale)
+				self.drawText(text=self.extra, pos=(  lMargin+extraOffset, 1-tMargin+tOffset), align='bl', fontcode='i'          , fontscale=1.  *extrascale)
+				self.drawText(text=self.lumi , pos=(1-rMargin            , 1-tMargin+tOffset), align='br', fontcode=self.fontcode, fontscale=1.  *extrascale)
+			else:
+				self.drawText(text=self.extra, pos=(  lMargin            , 1-tMargin+tOffset), align='bl', fontcode=self.fontcode, fontscale=1.  *extrascale)
+				self.drawText(text=self.lumi , pos=(1-rMargin            , 1-tMargin+tOffset), align='br', fontcode=self.fontcode, fontscale=1.  *extrascale)
 		elif mode == 'BOB':
-			self.drawText(text=self.lumi , pos=((1-rMargin+lMargin)/2, 1-tMargin+tOffset), align='bc', fontcode=self.fontcode, fontscale=1.5 )
+			self.drawText(text=self.lumi , pos=((1-rMargin+lMargin)/2, 1-tMargin+tOffset), align='bc', fontcode=self.fontcode, fontscale=1.5 *extrascale)
 
 		if self.legend is not None:
 			self.legend.Draw()
