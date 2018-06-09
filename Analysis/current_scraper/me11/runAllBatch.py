@@ -10,13 +10,19 @@ from helper11 import fills
 
 user = commands.getoutput('echo $USER')
 cmssw_base = commands.getoutput('echo $CMSSW_BASE')
+OFFSET = True
+fitmin, fitmax = 0.5, 1.5
+where = 'data/test/offset_high_lumi'
 
 for i,fill in enumerate(fills.keys()):
+	if fill==5394: continue
 	timestampMin = fills[fill][0]
 	timestampMax = fills[fill][1]
-	cmd = 'python runAll.py -f {fill} -min \'{timestampMin}\' -max \'{timestampMax}\''.format(fill=fill,timestampMin=timestampMin,timestampMax=timestampMax)
+	cmd = 'python runAll.py -f {fill} -min \'{timestampMin}\' -max \'{timestampMax}\' -fmin \'{fitmin}\' -fmax \'{fitmax}\' -where \'{where}\''.format(fill=fill,timestampMin=timestampMin,timestampMax=timestampMax,fitmin=fitmin,fitmax=fitmax,where=where)
+
+	cmd += ' -o' if OFFSET else ''
 	print cmd
-	os.system('mkdir -p results/fill'+str(fill))
+	os.system('mkdir -p '+where+'/fill'+str(fill))
 	outF = open('sh/submitRunAll_'+str(fill)+'.sh','w')
 	outF.write('#!/bin/bash')
 	outF.write('\n')

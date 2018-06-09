@@ -37,9 +37,15 @@ parser.add_argument('-a','--area',dest='AREA',action='store_true',
 # time
 parser.add_argument('-t','--time',dest='TIME',action='store_true',
 		default=False,help='whether or not to scale to counts/s')
-# pile-up
-parser.add_argument('-pu','--pileup',dest='PILEUP',action='store_true',
-		default=False,help='whether or not to scale to counts/pp-collision')
+# pile-up or luminosity scaling
+parser.add_argument('-norm','--norm',dest='NORM',default='',
+		help='Scale flux to per pileup pp collision, per time at an instantaneous lumi, or per look')
+# pile-up scaling value
+parser.add_argument('-pu','--pileup',dest='PILEUP',default='1.',
+		help='Number of pileup collisions to scale flux. Defaults to 1.')
+# luminosity scaling value
+parser.add_argument('-l','--lumi',dest='LUMI',default='10e34',
+		help='Value of instantaneous lumi to scale flux defaults to 10e34 cm-2 s-1.')
 # whether or not to include MC on plots
 parser.add_argument('-mc','--mc',dest='MC',
 		default='',help='whether or not to make plots that include MC')
@@ -72,7 +78,9 @@ RECREATE = args.RECREATE
 NAME = args.NAME
 HISTNAME = args.HISTNAME
 DOROADS = args.DOROADS
+NORM = args.NORM
 PILEUP = args.PILEUP
+LUMI = args.LUMI
 AREA = args.AREA
 TIME = args.TIME
 MC = args.MC
@@ -85,32 +93,70 @@ DOEC = args.DOEC
 DIR = args.DIR
 DOLOG = args.DOLOG
 
+# Fill fraction
+FF = 0.61953 #0.619528619529
+SCALE = 1.
+if NORM=='look':
+	SCALE = 1.
+	SCALEMC = 1.*FF
+	yaxis = 'dN /'+(' dA' if AREA else '')+(' d(bx)')
+	yaxislumi = 'dN /'+(' dA' if AREA else '')+(' d(bx)')
+elif NORM=='pileup' or NORM=='pu':
+	SCALE = float(PILEUP)
+	SCALEMC = float(PILEUP)*FF
+	yaxis = 'dN /'+(' dA' if AREA else '')+(' d(pp)')+(' [cm^{-2}]' if AREA else '')
+	yaxislumi = 'dN /'+(' dA' if AREA else '')+(' dt')+' ['+('cm^{-2} ' if AREA else '')+'s^{-1}]'
+elif NORM=='reflumi' or NORM=='rl':
+	# d(pp)/dt = PU / (25ns/ff) = sigma_mb * L
+	SCALE = 8e8 * float(LUMI) / 1.e34
+	SCALEMC = 8e8 * float(LUMI) / 1.e34 * FF
+	yaxis = 'dN /'+(' dA' if AREA else '')+(' dt')+' ['+('cm^{-2} ' if AREA else '')+'s^{-1}]'
+	yaxislumi = 'dN /'+(' dA' if AREA else '')+(' dt')+' ['+('cm^{-2} ' if AREA else '')+'s^{-1}]'
+else:
+	raise ValueError(NORM+' is not a valid scaling')
+
+
+print 'Fill fraction '+str(FF)
+print 'Occupancy plots : '+yaxis+' vs. digi number'
+print 'Phi plots : '+yaxis+' vs. chamber number'
+print 'Integral plots : '+yaxis+' vs. chamber number'
+print 'Lumi plots : '+yaxislumi+' vs. inst lumi'
+print 'Scaling is by '+NORM
+if NORM=='pileup' or NORM=='pu':
+	print 'pileup = '+SCALE
+	print 'FF * pileup = '+SCALEMC
+if NORM=='reflumi' or 'rl':
+	print 'Reference lumi '+LUMI
+	print 'd(pp)/dt = '+str(SCALE)
+	print 'FF * d(pp)/dt = '+str(SCALE)
+
+
 #####################################################
 
 # Set up debug loggers
 if DOLOG:
 	# Occupancy plot logger
-	occLogName = 'occLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')
+	occLogName = 'occLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')+('_'+HISTNAME)
 	lumberjack.setup_logger(occLogName,'logs/'+occLogName+'.log')
 	occLog = logging.getLogger(occLogName)
 
 	# Rate vs Luminosity plot logger
-	lumiLogName = 'lumiLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')
+	lumiLogName = 'lumiLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')+('_'+HISTNAME)
 	lumberjack.setup_logger(lumiLogName,'logs/'+lumiLogName+'.log')
 	lumiLog = logging.getLogger(lumiLogName)
 	
 	# Half Rate vs Luminosity plot logger
-	lumiHalfLogName = 'lumiHalfLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')
+	lumiHalfLogName = 'lumiHalfLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')+('_'+HISTNAME)
 	lumberjack.setup_logger(lumiHalfLogName,'logs/'+lumiHalfLogName+'.log')
 	lumiHalfLog = logging.getLogger(lumiHalfLogName)
 
 	# Phi plot logger
-	phiLogName = 'occLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')
+	phiLogName = 'occLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')+('_'+HISTNAME)
 	lumberjack.setup_logger(phiLogName,'logs/'+occLogName+'.log')
 	phiLog = logging.getLogger(occLogName)
 
 	# Integral plot logger
-	intLogName = 'intLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')
+	intLogName = 'intLog'+('_PU' if PILEUP else '')+('_ROADS' if DOROADS else '')+('_'+HISTNAME)
 	lumberjack.setup_logger(intLogName,'logs/'+intLogName+'.log')
 	intLog = logging.getLogger(intLogName)
 
@@ -159,9 +205,9 @@ BXDICT = {
 			39:{'lower':1,'upper':5},
 			40:{'lower':1,'upper':5},
 			# Late Thermal + Fast
-			46:{'lower':13,'upper':15},
+			46:{'lower':15,'upper':15},
 			47:{'lower':14,'upper':15},
-			48:{'lower':15,'upper':15},
+			48:{'lower':13,'upper':15},
 			},
 		'comp':{
 			# Early Thermal
@@ -342,7 +388,7 @@ LIMITS = {
 					#'41':0.06e-3,
 					#'42':0.05e-3,
 					# Counts / area / s / pp
-					#'11':12.,
+					#'11':13.,
 					#'12':7,
 					#'13':16e-6,
 					#'21':7.,
@@ -388,7 +434,6 @@ LIMITS = {
 
 
 		}
-
 
 #####################################################
 
@@ -530,34 +575,42 @@ if RECREATE:
 		bx = str(entry.BX)
 		half = str(entry.HALF)
 		digi = str(entry.DIGI)
-		weight = 1.
 		if entry.BX in BXDICT[digi].keys():
 			for idigi,time in enumerate(entry.D_TIME):
 				if time >= BXDICT[digi][entry.BX]['lower'] and \
 				   time <= BXDICT[digi][entry.BX]['upper']:
-					# Set histogram weights
-					weight = 1./entry.PILEUP if PILEUP else 1.
 					# Fill Numerator Plots (endcaps combined)
-					HISTS[ring][digi][entry.BX][half]['num'].Fill(entry.D_POS[idigi],weight)
-					PHI[ring][digi][entry.BX][half]['num'].Fill(entry.CHAM,weight)
-					LUMI[ring][digi][entry.BX][half]['num'].Fill(entry.LUMI,weight)
-					INT[digi][entry.BX][half]['num_comb'].Fill(ringMap[str(entry.RING)],weight)
+					HISTS[ring][digi][entry.BX][half]['num'].Fill(entry.D_POS[idigi],1.)
+					PHI[ring][digi][entry.BX][half]['num'].Fill(entry.CHAM,1.)
+					LUMI[ring][digi][entry.BX][half]['num'].Fill(entry.LUMI,1.)
+					INT[digi][entry.BX][half]['num_comb'].Fill(ringMap[str(entry.RING)],1.)
 					# Fill Numerator Plots (endcaps separated)
-					HISTS[ecr][digi][entry.BX][half]['num'].Fill(entry.D_POS[idigi],weight)
-					LUMI[ecr][digi][entry.BX][half]['num'].Fill(entry.LUMI,weight)
-					PHI[ecr][digi][entry.BX][half]['num'].Fill(entry.CHAM,weight)
-					INT[digi][entry.BX][half]['num_sep'].Fill(eringMap[ecr],weight)
+					HISTS[ecr][digi][entry.BX][half]['num'].Fill(entry.D_POS[idigi],1.)
+					LUMI[ecr][digi][entry.BX][half]['num'].Fill(entry.LUMI,1.)
+					PHI[ecr][digi][entry.BX][half]['num'].Fill(entry.CHAM,1.)
+					INT[digi][entry.BX][half]['num_sep'].Fill(eringMap[ecr],1.)
 
 			# Fill Denominator Plots (endcaps combined)
-			HISTS[ring][digi][entry.BX][half]['den'].Fill(0,1.)
-			PHI[ring][digi][entry.BX][half]['den'].Fill(entry.CHAM,1.)
-			LUMI[ring][digi][entry.BX][half]['den'].Fill(entry.LUMI,1.)
-			INT[digi][entry.BX][half]['den_comb'].Fill(ringMap[str(entry.RING)],1.)
+			# use this weight if denominators get pileup weight
+#			WEIGHT = 1.
+#			if NORM=='pileup' or NORM=='pu':
+#				WEIGHT = entry.PILEUP
+#			elif NORM=='lumi' or NORM=='l':
+#				WEIGHT = entry.LUMI
+#			elif NORM=='':
+#				WEIGHT==1.
+#			else:
+#				raise ValueError(NORM+' is not a valid scaling')
+			weight = entry.PILEUP
+			HISTS[ring][digi][entry.BX][half]['den'].Fill(0,weight)
+			PHI[ring][digi][entry.BX][half]['den'].Fill(entry.CHAM,weight)
+			LUMI[ring][digi][entry.BX][half]['den'].Fill(entry.LUMI,weight)
+			INT[digi][entry.BX][half]['den_comb'].Fill(ringMap[str(entry.RING)],weight)
 			# Fill denominatory plots (endcaps separated)
-			HISTS[ecr][digi][entry.BX][half]['den'].Fill(0,1.)
-			PHI[ecr][digi][entry.BX][half]['den'].Fill(entry.CHAM,1.)
-			LUMI[ecr][digi][entry.BX][half]['den'].Fill(entry.LUMI,1.)
-			INT[digi][entry.BX][half]['den_sep'].Fill(eringMap[ecr],1.)
+			HISTS[ecr][digi][entry.BX][half]['den'].Fill(0,weight)
+			PHI[ecr][digi][entry.BX][half]['den'].Fill(entry.CHAM,weight)
+			LUMI[ecr][digi][entry.BX][half]['den'].Fill(entry.LUMI,weight)
+			INT[digi][entry.BX][half]['den_sep'].Fill(eringMap[ecr],weight)
 
 	# Write histograms to output file
 	FOUT.cd()
@@ -584,13 +637,13 @@ else:
 			for bx in BXDICT[digi].keys():
 				# Get Integral histograms
 				INT[digi][bx][half] = {
-						'num_comb'  :FOUT.Get('num_comb_int_'+digi+'_'+half+'_'+str(bx)),
-						'den_comb'  :FOUT.Get('den_comb_int_'+digi+'_'+half+'_'+str(bx)),
-						'rate_comb' :FOUT.Get('rate_comb_int_'+digi+'_'+half+'_'+str(bx)),
-						'num_sep'   :FOUT.Get('num_sep_int_'+digi+'_'+half+'_'+str(bx)),
-						'den_sep'   :FOUT.Get('den_sep_int_'+digi+'_'+half+'_'+str(bx)),
-						'rate_sep'  :FOUT.Get('rate_sep_int_'+digi+'_'+half+'_'+str(bx)),
-						}
+					'num_comb'  :FOUT.Get('num_comb_int_'+digi+'_'+half+'_'+str(bx)),
+					'den_comb'  :FOUT.Get('den_comb_int_'+digi+'_'+half+'_'+str(bx)),
+					'rate_comb' :FOUT.Get('rate_comb_int_'+digi+'_'+half+'_'+str(bx)),
+					'num_sep'   :FOUT.Get('num_sep_int_'+digi+'_'+half+'_'+str(bx)),
+					'den_sep'   :FOUT.Get('den_sep_int_'+digi+'_'+half+'_'+str(bx)),
+					'rate_sep'  :FOUT.Get('rate_sep_int_'+digi+'_'+half+'_'+str(bx)),
+					}
 				INT[digi][bx][half]['num_comb'].SetDirectory(0)
 				INT[digi][bx][half]['den_comb'].SetDirectory(0)
 				INT[digi][bx][half]['rate_comb'].SetDirectory(0)
@@ -601,28 +654,28 @@ else:
 					for ec in ECLIST:
 						# Get occupancy histograms
 						HISTS[ec+ring][digi][bx][half] = {
-								'num' :FOUT.Get('num_occ_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
-								'den' :FOUT.Get('den_occ_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
-								'rate':FOUT.Get('rate_occ_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
-								}
+							'num' :FOUT.Get('num_occ_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
+							'den' :FOUT.Get('den_occ_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
+							'rate':FOUT.Get('rate_occ_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
+							}
 						HISTS[ec+ring][digi][bx][half]['num'].SetDirectory(0)
 						HISTS[ec+ring][digi][bx][half]['den'].SetDirectory(0)
 						HISTS[ec+ring][digi][bx][half]['rate'].SetDirectory(0)
 						# Get chamber occupancy histograms (global phi)
 						PHI[ec+ring][digi][bx][half] = {
-								'num' :FOUT.Get('num_phi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
-								'den' :FOUT.Get('den_phi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
-								'rate':FOUT.Get('rate_phi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
-								}
+							'num' :FOUT.Get('num_phi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
+							'den' :FOUT.Get('den_phi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
+							'rate':FOUT.Get('rate_phi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
+							}
 						PHI[ec+ring][digi][bx][half]['num'].SetDirectory(0)
 						PHI[ec+ring][digi][bx][half]['den'].SetDirectory(0)
 						PHI[ec+ring][digi][bx][half]['rate'].SetDirectory(0)
 						# Get luminosity histograms
 						LUMI[ec+ring][digi][bx][half] = {
-								'num' :FOUT.Get('num_lumi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
-								'den' :FOUT.Get('den_lumi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
-								'rate':FOUT.Get('rate_lumi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
-								}
+							'num' :FOUT.Get('num_lumi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
+							'den' :FOUT.Get('den_lumi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
+							'rate':FOUT.Get('rate_lumi_'+ec+ring+'_'+digi+'_'+half+'_'+str(bx)).Clone(),
+							}
 						LUMI[ec+ring][digi][bx][half]['num'].SetDirectory(0)
 						LUMI[ec+ring][digi][bx][half]['den'].SetDirectory(0)
 						LUMI[ec+ring][digi][bx][half]['rate'].SetDirectory(0)
@@ -641,13 +694,11 @@ else:
 	MCLIST = [MC]
 
 if MC:
-	if 'PP' not in NAME: 
-		print 'Data/MC comparisons only work if you normalize data by pileup'
-		exit()
+	print NAME
 	MCHISTS = {mc:{ec+ring:{digi:{} for digi in PLOT.keys()} for ec in ECLIST for ring in RINGLIST} for mc in MCLIST}
 	MCINT = {mc:{digi:{} for digi in PLOT.keys()} for mc in MCLIST}
 	for mc in MCLIST:
-		mcName = mc+'_TOF'+('_'+GEO if GEO!='' else '')+'_'+NAME
+		mcName = mc+'_TOF'+('_'+GEO if GEO!='' else '')+'_BASE_PP'
 		FMC = R.TFile.Open('root/hists_'+mcName+'.root')
 		print 'root/hists_'+mcName+'.root'
 		for digi in PLOT.keys():
@@ -661,9 +712,9 @@ if MC:
 			for ring in RINGLIST:
 				for ec in ECLIST:
 					MCHISTS[mc][ec+ring][digi] = {
-							'occ' : FMC.Get(ec+ring+'_'+digi+'_occ').Clone(),
-							'phi' : FMC.Get('phi_'+ec+ring+'_'+digi+'_occ').Clone(),
-							}
+						'occ' : FMC.Get(ec+ring+'_'+digi+'_occ').Clone(),
+						'phi' : FMC.Get('phi_'+ec+ring+'_'+digi+'_occ').Clone(),
+						}
 					MCHISTS[mc][ec+ring][digi]['occ'].SetDirectory(0)
 					MCHISTS[mc][ec+ring][digi]['phi'].SetDirectory(0)
 
@@ -693,17 +744,20 @@ def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 	if mc!='':
 		mcname = mc.replace('_',' ')
 		mchist = MCHISTS[mc][ec+ring][digi]['occ'].Clone()
+		# Scale MC to an inst. lumi. or pileup, dont forget fill fraction
+		mchist.Scale(SCALE)
 		mcPlot = Plotter.Plot(mchist,legType='f',option='hist',legName='Geant4 '+mcname[0:2] if TDR else mcname)
 	# normalize to counts per sec
-	if TIME: 
-		dataHist.Scale(1./BXtoSconv)
-		if mc!='': mchist.Scale(1./BXtoSconv)
+#	if TIME: 
+#		dataHist.Scale(1./BXtoSconv)
+#		if mc!='': mchist.Scale(1./BXtoSconv)
+	dataHist.Scale(SCALE)
 	# normalize to area (dataHist is already a clone)
 	if AREA:
 		occNormArea(dataHist)
 		if mc!='': occNormArea(mchist)
 	# Now make plot
-	dataPlot = Plotter.Plot(dataHist,option='p',legType='pe',legName='Data')
+	dataPlot = Plotter.Plot(dataHist,option='p',legType='pe',legName='Data ME'+str(ring)[0]+'/'+str(ring[1]))
 	title = 'ME'+ec+ring+' '+('Comparator' if digi=='comp' else 'Wire Group')+' Occupancy'
 	for LOGY in [False]:#,True]:
 		if mc!='':
@@ -720,7 +774,7 @@ def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 			canvas.makeLegend(pos='tr')
 			canvas.legend.moveLegend(X=-0.2,Y=-0.1)
 			canvas.legend.resizeHeight()
-			if not TDR: canvas.drawText('MC integral : {:1.4f}'.format(mcPlot.Integral()),pos=(0.6,0.7))
+			#if not TDR: canvas.drawText('MC integral : {:1.4f}'.format(mcPlot.Integral()),pos=(0.6,0.7))
 		mcMax = mcPlot.GetMaximum() if mc!='' else 0.
 		maximum = max(dataPlot.GetMaximum(),mcMax)
 		if ring in LIMITS['occ'][when][digi].keys():
@@ -729,11 +783,13 @@ def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 			canvas.firstPlot.SetMaximum(maximum * 1.2)
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'Comparator Half Strip' if digi=='comp' else 'Wire Group Number'
-		y = 'Counts'+('/pp' if PILEUP and not TDR else '')+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
-		canvas.firstPlot.setTitles(X=x, Y=y)
-		if not TDR: canvas.drawText('Data integral : {:1.4f}'.format(dataPlot.Integral()),pos=(0.6,0.6))
+		#y = 'Counts'+('/pp' if PILEUP and not TDR else '')+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
+		#y = 'Counts'+('/cm^{2}' if AREA else '')+('/pp' if PILEUP else '')+('/s' if TIME else '')
+		canvas.firstPlot.setTitles(X=x, Y=yaxis)
+		#if not TDR: canvas.drawText('Data integral : {:1.4f}'.format(dataPlot.Integral()),pos=(0.6,0.6))
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.makeTransparent()
+		canvas.moveExponent()
 		if BOB:
 			canvas.finishCanvas('BOB')
 		else:
@@ -750,11 +806,14 @@ def makePhiPlot(dataHist,digi,when,ec,ring,mc):
 	if mc!='':
 		mcname = mc.replace('_',' ')
 		mchist = MCHISTS[mc][ec+ring][digi]['phi'].Clone()
+		# Scale MC to an inst. lumi. or pileup, dont forget fill fraction
+		mchist.Scale(SCALE)
 		mcPlot = Plotter.Plot(mchist,legType='f',option='hist',legName='Geant4 '+mcname[0:2] if TDR else mcname)
 	# Scale by time
-	if TIME: 
-		dataHist.Scale(1./BXtoSconv)
-		if mc!='': mchist.Scale(1./BXtoSconv)
+	dataHist.Scale(SCALE)
+#	if TIME: 
+#		dataHist.Scale(1./BXtoSconv)
+#		if mc!='': mchist.Scale(1./BXtoSconv)
 	# scale by chamber area
 	if AREA: 
 		dataHist.Scale(1./chamArea[digi][ring])
@@ -772,7 +831,7 @@ def makePhiPlot(dataHist,digi,when,ec,ring,mc):
 			canvas.makeLegend(pos='tr')
 			canvas.legend.moveLegend(X=-0.2,Y=-0.1)
 			canvas.legend.resizeHeight()
-			if not TDR: canvas.drawText('MC integral : {:1.4f}'.format(mcPlot.Integral()),pos=(0.6,0.7))
+			#if not TDR: canvas.drawText('MC integral : {:1.4f}'.format(mcPlot.Integral()),pos=(0.6,0.7))
 		mcMax = mcPlot.GetMaximum() if mc!='' else 0.
 		maximum = max(dataPlot.GetMaximum(),mcMax)
 		if ring in LIMITS['phi'][when][digi].keys():
@@ -781,10 +840,12 @@ def makePhiPlot(dataHist,digi,when,ec,ring,mc):
 			canvas.firstPlot.SetMaximum(maximum * 1.2)
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'CSC Chamber'
-		y = 'Counts'+('/pp' if PILEUP and not TDR else '')+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
-		canvas.firstPlot.setTitles(X=x, Y=y)
+		#y = 'Counts'+('/pp' if PILEUP and not TDR else '')+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
+		#y = 'Counts'+('/cm^{2}' if AREA else '')+('/pp' if PILEUP else '')+('/s' if TIME else '')
+		y = 'dN / dA dt [cm^{-2} s^{-1}]'
+		canvas.firstPlot.setTitles(X=x, Y=yaxis)
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
-		if not TDR: canvas.drawText('Data integral : {:1.4f}'.format(dataPlot.Integral()),pos=(0.6,0.6))
+		#if not TDR: canvas.drawText('Data integral : {:1.4f}'.format(dataPlot.Integral()),pos=(0.6,0.6))
 		canvas.makeTransparent()
 		if BOB:
 			canvas.finishCanvas('BOB')
@@ -815,11 +876,14 @@ def makeIntegralPlot(dataHist,digi,when,ectype,mc):
 	if mc!='':
 		mcname = mc.replace('_',' ')
 		mchist = MCINT[mc][digi][ectype].Clone()
+		# Scale MC to an inst. lumi. or pileup, dont forget fill fraction
+		mchist.Scale(SCALE)
 		mcPlot = Plotter.Plot(mchist,option='hist',legName='Geant4 '+mcname[0:2] if TDR else mcname,legType='f')
 	# Scale by time
-	if TIME: 
-		dataHist.Scale(1./BXtoSconv)
-		if mc!='': mchist.Scale(1./BXtoSconv)
+	dataHist.Scale(SCALE)
+	#if TIME: 
+	#	dataHist.Scale(1./BXtoSconv)
+	#	if mc!='': mchist.Scale(1./BXtoSconv)
 	# Scale by area
 	if AREA:
 		intNormArea(dataHist)
@@ -855,8 +919,9 @@ def makeIntegralPlot(dataHist,digi,when,ectype,mc):
 		else:
 			for ibin,ring in enumerate(ERINGLIST):
 				canvas.firstPlot.GetXaxis().SetBinLabel(ibin+1, ring.replace('-','#minus'))
-		y = 'Counts'+('/pp' if PILEUP and not TDR else '')+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
-		canvas.firstPlot.setTitles(X=x,Y=y)
+		#y = 'Counts'+('/pp' if PILEUP and not TDR else '')+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
+		#y = 'Counts'+('/cm^{2}' if AREA else '')+('/pp' if PILEUP else '')+('/s' if TIME else '')
+		canvas.firstPlot.setTitles(X=x,Y=yaxis)
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.makeTransparent()
 		if BOB:
@@ -869,7 +934,7 @@ def makeIntegralPlot(dataHist,digi,when,ectype,mc):
 
 def makeLuminosityPlot(dataHist,digi,when,ec,ring,DOFIT=False):
 	# Scale by time
-	if TIME: dataHist.Scale(1./BXtoSconv)
+	if NORM!='look': dataHist.Scale(1./BXtoSconv)
 	# Scale by area
 	if AREA: dataHist.Scale(1./chamArea[digi][ring])
 	# Make occupancy plot for each digi and plot type
@@ -879,19 +944,24 @@ def makeLuminosityPlot(dataHist,digi,when,ec,ring,DOFIT=False):
 		canvas = Plotter.Canvas(extra='Preliminary',lumi=TDRNAME if TDR else TITLE,logy=LOGY)
 		canvas.addMainPlot(dataPlot,addToPlotList=False)
 		if DOFIT:
-			line = R.TF1('fitline_'+dataPlot.GetName(),'[0]*x',0,10**34)
+			#line = R.TF1('fitline_'+dataPlot.GetName(),'[0]*x',0.5*10**34,1.2*10**34)
+			line = R.TF1('fitline_'+dataPlot.GetName(),'[0]*x',0,15**34)
 			line.SetLineColor(R.kRed)
-			dataPlot.Fit('fitline_'+dataPlot.GetName())
+			#dataPlot.Fit('fitline_'+dataPlot.GetName())
+			dataPlot.Fit('fitline_'+dataPlot.GetName(),'','',5*10**33,12*10**33)
 			fit = dataPlot.GetFunction('fitline_'+dataPlot.GetName())
-			if not TDR:
+			#if not TDR:
+			if True:
 				result = '#splitline{slope = %.3e #pm %.3e}{#chi^{2}/dof = %5.3f / %2i}'%(fit.GetParameter(0),fit.GetParError(0),fit.GetChisquare(),fit.GetNDF())
 				canvas.drawText(text=result,pos=(0.2,0.8),align='tl')
 		canvas.firstPlot.SetMinimum(1e-2 if LOGY else 0.)
 		x = 'Luminosity [cm^{-2}s^{-1}]'
-		y = 'Counts'+('/pp' if PILEUP and not TDR else '')+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
-		canvas.firstPlot.setTitles(X=x, Y=y)
+		#y = 'Counts'+('/pp' if PILEUP and not TDR else '')+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
+		#y = 'Counts'+('/cm^{2}' if AREA else '')+('/pp' if PILEUP else '')+('/s' if TIME else '')
+		canvas.firstPlot.setTitles(X=x, Y=yaxislumi)
 		canvas.firstPlot.scaleTitleOffsets(1.2,'Y')
 		canvas.makeTransparent()
+		canvas.moveExponent()
 		if BOB:
 			canvas.finishCanvas('BOB')
 		else:
@@ -911,7 +981,7 @@ def makeSepLumiPlot(hist1,hist2,digi,when,ec,ring,DOFIT):
 	if AREA:
 		hist1.Scale(1./chamHalfArea[digi][HALVES[digi][0]][ring])
 		hist2.Scale(1./chamHalfArea[digi][HALVES[digi][1]][ring])
-	if TIME:
+	if NORM!='look':
 		hist1.Scale(1./BXtoSconv)
 		hist2.Scale(1./BXtoSconv)
 	plot1 = Plotter.Plot(hist1,legType='pe',legName='Lower half' if digi=='wire' else 'Left half',option='p')
@@ -939,8 +1009,9 @@ def makeSepLumiPlot(hist1,hist2,digi,when,ec,ring,DOFIT):
 		canvas.firstPlot.SetMaximum(maximum * 1.075)
 		canvas.firstPlot.SetMinimum(1E-3 if LOGY else 0.)
 		x = 'Luminosity [cm^{-2}s^{-1}]'
-		y = 'Counts'+('/pp' if PILEUP and not TDR else '')+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
-		canvas.firstPlot.setTitles(X=x, Y=y)
+		#y = 'Counts'+('/pp' if PILEUP and not TDR else '')+('/cm^{2}' if AREA else '')+('/s' if TIME else '/BX')
+		#y = 'Counts'+('/cm^{2}' if AREA else '')+('/pp' if PILEUP else '')+('/s' if TIME else '')
+		canvas.firstPlot.setTitles(X=x, Y=yaxislumi)
 		canvas.makeLegend(pos='tl')
 		canvas.makeTransparent()
 		if BOB:
@@ -1023,7 +1094,10 @@ for ring in RINGLIST:
 						# Get number of looks in this BX after gap
 						# Total looks in this BX after gap =  number of time bins looked in for this bx after gap * number of lcts in this bx after gap
 						nTB = BXDICT[digi][bx]['upper'] - BXDICT[digi][bx]['lower'] + 1
-						nLooks = nTB * HISTS[ec+ring][digi][bx][HALVES[digi][i]]['den'].GetEntries()
+						# use this line if digis are weighted by 1./pileup
+						#nLooks = nTB * HISTS[ec+ring][digi][bx][HALVES[digi][i]]['den'].GetEntries()
+						# use this line if looks are weighted by pileup
+						nLooks = nTB * HISTS[ec+ring][digi][bx][HALVES[digi][i]]['den'].GetBinContent(1)
 						# Divide this bx after gap num and den for rate in this bx only (not used at moment)
 						HISTS[ec+ring][digi][bx][HALVES[digi][i]]['rate'] = HISTS[ec+ring][digi][bx][HALVES[digi][i]]['num'].Clone()
 						HISTS[ec+ring][digi][bx][HALVES[digi][i]]['rate'].Scale(1./nLooks)
@@ -1133,6 +1207,6 @@ for digi in PLOT.keys():
 			# Add halves together
 			INTRATES[digi]['a'][when]['rate_'+ectype] = INTRATES[digi][HALVES[digi][0]][when]['rate_'+ectype].Clone()
 			INTRATES[digi]['a'][when]['rate_'+ectype].Add(INTRATES[digi][HALVES[digi][1]][when]['rate_'+ectype])
-			if DOLOG: lumberjack.intLogger(intLog,INTRATES[digi]['a'][when]['rate_'+ectype].Clone(),chamArea[digi],digi,when,ectype,PILEUP)
+			if DOLOG: lumberjack.intLogger(intLog,INTRATES[digi]['a'][when]['rate_'+ectype].Clone(),chamArea[digi],digi,when,ectype,PILEUP,RINGLIST)
 			for mc in MCLIST:
 				makeIntegralPlot(INTRATES[digi]['a'][when]['rate_'+ectype].Clone(),digi,when,ectype,mc)

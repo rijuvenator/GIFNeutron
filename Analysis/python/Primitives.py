@@ -94,6 +94,10 @@ class ETree(object):
 				self.rh_globalPos = (list(t.rh_pos_glb_x), list(t.rh_pos_glb_y), list(t.rh_pos_glb_z))
 			else:
 				self.rh_globalPos = [[0. for i in self.rh_cham] for j in range(3)]
+			self.rh_sumADC3x3 = list(t.rh_adc3x3_Qsum)
+			self.rh_energy = list(t.rh_energy)
+			self.rh_maxADC = list(t.rh_adc_max)
+			self.rh_lrQratio = list(t.rh_lr_Qratio)
 
 		if 'LCT' in DecList:
 			self.lct_cham         = list(t.lct_id)
@@ -206,7 +210,10 @@ class RecHit(object):
 		self.stripTime = E.rh_stripTime[i]
 		self.wireTime  = E.rh_wireTime[i]
 		self.globalPos = {'x' : E.rh_globalPos[0][i], 'y' : E.rh_globalPos[1][i], 'z' : E.rh_globalPos[2][i]}
-
+		self.sumADC3x3 = E.rh_sumADC3x3[i]
+		self.energy = E.rh_energy[i]
+		self.maxADC = E.rh_maxADC[i]
+		self.lrQratio = E.rh_lrQratio[i]
 		self.halfStrip = (self.strips[0 if self.nStrips == 1 else 1] + self.posStrip) * 2
 
 class SimHit(object):

@@ -173,7 +173,7 @@ class ME11DBInfo:
 
 
     ##\brief!!!TBD!!! check stable condition interval in case of channel trip....        
-    def queryHVvsLumi(self, dpid, fill, timestampMin="", timestampMax="", plotTitle="", verbouse=False):
+    def queryHVvsLumi(self, dpid, fill, timestampMin="", timestampMax="", plotTitle="", verbouse=False,offset=True,fitmin=0.0,fitmax=1.5,where='doesnotexist'):
         selfName = self.__class__.__name__+"."+inspect.stack()[0][3]
         if verbouse : kout.printFID(selfName,"\t dpid=%10d; fill=%6d; time selection:[%s %s]"%(dpid, fill, timestampMin, timestampMax))
         if (len(timestampMin)==0 or len(timestampMax)==0):kout.printERR(selfName, " without given time ranges still don't work... TBD soon")
@@ -189,7 +189,7 @@ class ME11DBInfo:
             timecutStr = "_["+timestampMin.replace(" ","_")+"-"+timestampMax.replace(" ","_")+"]"
         self.lastQuerryStr = plotTitle+"_f"+str(fill)+timecutStr
         if(plot):
-            self.prepareGraphics(self.lastQuerryStr,fill)
+            self.prepareGraphics(self.lastQuerryStr,fill,offset,fitmin,fitmax,where)
         
         if(self.Idata!=None):  del self.Idata
         if(self.HVdata!=None): del self.HVdata
@@ -369,26 +369,26 @@ class ME11DBInfo:
 # ---------------------------------------------------------------------------
     ##\brief prepares canvas, defines root objects         
     def generateReportGraphics(self, plotTitle):
-        rstr = "%17s %6d"%(plotTitle, (self.time-datetime.now()).microseconds/1000)       
+        rstr = " %17s %6d "%(plotTitle, (self.time-datetime.now()).microseconds/1000)       
         stHV, stHVerr = getMeanOverTimeFromDBarray(self.stableHVvalues)
         stID, stIDerr = getMeanOverTimeFromDBarray(self.lumiE30IvaluesD)
         stIM, stIMerr = getMeanOverTimeFromDBarray(self.lumiE30IvaluesM)
-        rstr+="%8.1f %5.1f %6.2f %5.2f"%(stHV, stHVerr, stID, stIDerr)
+        rstr+=" %8.1f %5.1f %6.2f %5.2f "%(stHV, stHVerr, stID, stIDerr)
         if(stHV>0):
             for i in range (0,2):
                 if(self.ffunc[i]!=None): 
-                    rstr+="%   8.1f %6d"%(self.ffunc[i].GetChisquare(), self.ffunc[i].GetNDF())
+                    rstr+=" %   8.1f %6d "%(self.ffunc[i].GetChisquare(), self.ffunc[i].GetNDF())
                     for ii in range (0,int(self.ffunc[i].GetNpar())):
-                        rstr+="%7.3f %7.3f"%(self.ffunc[i].GetParameter(ii),self.ffunc[i].GetParError(ii))
+                        rstr+=" %7.3f %7.3f "%(self.ffunc[i].GetParameter(ii),self.ffunc[i].GetParError(ii))
             #if self.Iminmax[0]>=0: rstr+="%7.1f %7.1f"%(self.Iminmax[0],self.Iminmax[1])
-            rstr+="%5d %7.1f"%(-1, self.maxDeviationOverFit(False, verbouse=True))
-            rstr+="%6.2f %5.2f"%(stIM, stIMerr)
-            rstr+="%8d %6d"%(getMaxDeltaTimeBetweenPoints(self.Idata, 0, self.stableIrecN[0], self.stableIrecN[1]), self.stableIrecN[1]-self.stableIrecN[0]+1) 
+            rstr+=" %5d %7.1f "%(-1, self.maxDeviationOverFit(False, verbouse=True))
+            rstr+=" %6.2f %5.2f "%(stIM, stIMerr)
+            rstr+=" %8d %6d "%(getMaxDeltaTimeBetweenPoints(self.Idata, 0, self.stableIrecN[0], self.stableIrecN[1]), self.stableIrecN[1]-self.stableIrecN[0]+1) 
         return rstr
                
 # ---------------------------------------------------------------------------
     ##\brief prepares canvas, defines root objects         
-    def createGraphics(self, verbouse=False):
+    def createGraphics(self, verbouse=False, fitmin=0.0,fitmax=1.5):
         selfName = self.__class__.__name__+"."+inspect.stack()[0][3]
 
         #gtitles=["HVvsT", "stableHV","IvsT", "stableIvsT", "LvsT", "stableLvsT", "stableLAvsT","IvsL", "IvsLA"]
@@ -486,11 +486,13 @@ class ME11DBInfo:
                         self.canvas.GetPad(1).GetPad(ip).Update()
                     
                 self.canvas.GetPad(2).cd()                        
+                self.graph[ii].GetXaxis().SetLimits(0.0,1.5)
                 self.graph[ii].Draw(opt);
-                self.graph[ii].Fit(self.ffunc[ii-7])
+                self.graph[ii].Fit(self.ffunc[ii-7],'R')
+                #self.graph[ii].Fit(self.ffunc[ii-7],'R','',fitmin,fitmax)
                 self.canvas.GetPad(2).Modified()
                 self.canvas.GetPad(2).Update()
-                stats =  self.graph[ii].FindObject("stats")
+                stats =  self.graph[ii].FindObject('stats')
                 stats.__class__ = TPaveStats
                 if stats!=None:
                     stats.SetLineColor(self.gcolours[ii])
@@ -525,10 +527,10 @@ class ME11DBInfo:
         self.outFRoot = None
 # ---------------------------------------------------------------------------
     ##\brief prepares canvas, defines root objects         
-    def prepareGraphics(self, plotTitle,fill):
+    def prepareGraphics(self, plotTitle,fill,offset,fitmin=0.0,fitmax=1.5,where='doesnotexist'):
         if (self.outFRoot!=None): del self.outFRoot
-        self.outFRoot = TFile('results/fill'+str(fill)+'/'+plotTitle+".root", "RECREATE")
-        #self.outFRoot = TFile('results_noOffset/fill'+str(fill)+'/'+plotTitle+".root", "RECREATE")
+        self.outFRoot = TFile(where+'/fill'+str(fill)+'/'+plotTitle+".root", "RECREATE")
+		#self.outFRoot = TFile('results_noOffset/fill'+str(fill)+'/'+plotTitle+".root", "RECREATE")
         
         gStyle.SetOptFit(1);             # show fit pars
         gStyle.SetOptTitle(1);           # show graph titles
@@ -563,9 +565,12 @@ class ME11DBInfo:
             self.graph[i].SetName (plotTitle+"_"+self.gtitles[i])
         ftitle = ['ff','ffA']
         for i in range (0,2):
-            self.ffunc[i] = TF1(ftitle[i], "[0]+x*[1]", 0, 1.5);
-            #self.ffunc[i] = TF1(ftitle[i], "x*[0]",1.5);
-            self.ffunc[i].SetLineColor(self.gcolours[i+7])
+            if offset:
+                self.ffunc[i] = TF1(ftitle[i], "[0]+x*[1]", fitmin,fitmax)
+                self.ffunc[i].SetLineColor(self.gcolours[i+7])
+            else:
+                self.ffunc[i] = TF1(ftitle[i], "x*[0]", fitmin,fitmax)
+                self.ffunc[i].SetLineColor(self.gcolours[i+7])
 
     ##\brief type A not implemented yet
     def maxDeviationOverFit(self, typeA=False, verbouse=False):

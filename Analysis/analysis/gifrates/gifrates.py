@@ -7,6 +7,7 @@ import Gif.Analysis.Auxiliary as Aux
 import Gif.Analysis.ChamberHandler as CH
 import Gif.Analysis.MegaStruct as MS
 import Gif.Analysis.BGDigi as BGDigi
+R.gStyle.SetOptFit(0)
 
 ###################################################
 # A skeleton analyzer template to be used with MS #
@@ -36,7 +37,23 @@ def loopFunction(self, t, PARAMS):
 	N = t.GetEntries()
 	for wire in wires:
 		if wire.timeBin < 1 or wire.timeBin > 5: continue
-		self.VALDATA[wire.cham][(self.ATT, wire.layer)] += 1./N * 1./5. * 1./25. * 1.e9
+		if wire.cham==1:
+			seg = 1
+		else:
+			# HVs1
+			if (1 <= wire.number and wire.number <= 44):
+				seg = 1
+			# HVs2
+			elif (45 <= wire.number and wire.number <= 81):
+				seg = 2
+			# HVs3
+			elif (82 <= wire.number and wire.number <= 112):
+				seg = 3
+			# Spacer bars
+			else:
+				continue
+
+		self.VALDATA[wire.cham][seg][(self.ATT, wire.layer)] += 1./N * 1./5. * 1./25. * 1.e9
 
 # load function; loads the file specified in config instead of running analysis
 def load(self, PARAMS):
@@ -47,29 +64,160 @@ def setup(self, PARAMS):
 	FN = PARAMS[0]
 	self.F_OUT = R.TFile(FN,'RECREATE')
 	self.F_OUT.cd()
+	segs = {
+			1:[1],
+			110:[1,2,3],
+			}
+	self.VALDATA = {1:{1:{}},110:{1:{},2:{},3:{}}}
 	for cham in (1, 110):
 		for layer in range(1, 7):
 			for att in self.attVector():
-				self.VALDATA[cham][(att, layer)] = 0
+				for seg in segs[cham]:
+					self.VALDATA[cham][seg][(att, layer)] = 0
 
 # post-analysis function; print extra lines, etc.
 def cleanup(self, PARAMS):
 	print ''
 	self.F_OUT.cd()
-	self.GRAPHS = { 1 : {}, 110 : {} }
+	self.GRAPHS = { 1 : {1:{},'ALL':{}}, 110 : { 1:{},2:{},3:{},'ALL':{} } }
+	fitRanges = {
+			1:{
+				1:{
+					1:(0,30000000,30000000),
+					2:(0,30000000,30000000),
+					3:(0,30000000,30000000),
+					4:(0,30000000,30000000),
+					5:(0,30000000,30000000),
+					6:(0,30000000,30000000),
+					},
+				'ALL':(0,130000000,130000000),
+				},
+			110:{
+				1:{
+					1:(0,4000000,20000000),
+					2:(0,4000000,20000000),
+					3:(0,4000000,20000000),
+					4:(0,4000000,20000000),
+					5:(0,4000000,20000000),
+					6:(0,4000000,20000000),
+					'ALL':(0,20000000,80000000),
+					},
+				2:{
+					1:(0,4000000,20000000),
+					2:(0,4000000,20000000),
+					3:(0,4000000,20000000),
+					4:(0,4000000,20000000),
+					5:(0,4000000,20000000),
+					6:(0,4000000,20000000),
+					'ALL':(0,20000000,80000000)
+					},
+				3:{
+					1:(0,3000000,20000000),
+					2:(0,3000000,20000000),
+					3:(0,3000000,20000000),
+					4:(0,3000000,20000000),
+					5:(0,3000000,20000000),
+					6:(0,3000000,20000000),
+					'ALL':(0,20000000,80000000)
+					},
+				'ALL':(0,50000000,210000000),
+				},
+			}
+	fitfunc = '[0]*x'
+	#fitfunc = '[0]+[1]*x'
+	fitFuncs = {
+			1:{
+				1:{
+					lay:R.TF1('ff_1_'+str(lay),'[0]*x',fitRanges[1][1][lay][0],fitRanges[1][1][lay][1]) for lay in range(1,7)
+					},
+				'ALL':R.TF1('ff_1_ALL','[0]*x',fitRanges[1]['ALL'][0],fitRanges[1]['ALL'][0])
+				}, 
+			110:{
+				1:{
+					lay:R.TF1('ff_110_s1_l'+str(lay),'[0]*x',fitRanges[110][1][lay][0],fitRanges[110][1][lay][1]) for lay in [1,2,3,4,5,6,'ALL']
+					},
+				2:{
+					lay:R.TF1('ff_110_s2_l'+str(lay),'[0]*x',fitRanges[110][2][lay][0],fitRanges[110][2][lay][1]) for lay in [1,2,3,4,5,6,'ALL']
+					},
+				3:{
+					lay:R.TF1('ff_110_s3_l'+str(lay),'[0]*x',fitRanges[110][3][lay][0],fitRanges[110][3][lay][1]) for lay in [1,2,3,4,5,6,'ALL']
+					},
+				'ALL':R.TF1('ff_110_ALL','[0]*x',fitRanges[110]['ALL'][0],fitRanges[110]['ALL'][1]),
+				},
+			}
+
+	segs = {
+			1:[1],
+			110:[1,2,3],
+			}
 	for cham in (1, 110):
 		for layer in range(1, 7):
-			currs = self.atomicCurrentVector(cham, layer, 1)
-			counts = np.array([float(self.VALDATA[cham][(att, layer)]) for att in self.attVector()])
-			self.GRAPHS[cham][layer] = R.TGraph(len(currs), counts, currs)
-			self.GRAPHS[cham][layer].SetNameTitle('g_L'+str(layer)+'_C'+str(cham), 'Layer '+str(layer)+' Chamber '+str(cham)+';Hits/s;Current [#muA]')
-			self.GRAPHS[cham][layer].Write()
+			for seg in segs[cham]:
+				# individual channels
+				currs = sum([self.atomicCurrentVector(cham, layer, seg)])
+				#currs = self.atomicCurrentVector(cham, layer, 1)
+				counts = np.array([float(self.VALDATA[cham][seg][(att, layer)]) for att in self.attVector()])
+				self.GRAPHS[cham][seg][layer] = R.TGraph(len(currs), counts, currs)
+				name = 'g_S'+str(seg)+'_L'+str(layer)+'_C'+str(cham)
+				self.GRAPHS[cham][seg][layer].SetNameTitle(name, 'Segment '+str(seg)+' Layer '+str(layer)+' Chamber '+str(cham)+';Hits/s;Current [#muA]')
+				print name
+				self.GRAPHS[cham][seg][layer].Fit(fitFuncs[cham][seg][layer],'R')#,'','',fitRanges[cham][0],fitRanges[cham][1])
+				fitFuncs[cham][seg][layer].Draw()
+				self.GRAPHS[cham][seg][layer].GetXaxis().SetLimits(fitRanges[cham][seg][layer][0],fitRanges[cham][seg][layer][2])
+				self.GRAPHS[cham][seg][layer].Write(name)
+				plot = Plotter.Plot(self.GRAPHS[cham][seg][layer],option='p')
+				title = 'GIF++ ME'+('1' if cham==1 else '2')+'/1 '+('HVs#'+str(seg) if cham==110 else '')+' Layer '+str(layer)
+				canv = Plotter.Canvas(lumi=title)
+				canv.addMainPlot(plot)
+				canv.makeTransparent()
+				canv.firstPlot.setTitles(X='Hits/s',Y='Current [#muA]')
+				canv.finishCanvas('BOB')
+				canv.save('plots/'+name+'.pdf')
+				print
 
-		currs = sum([self.atomicCurrentVector(cham, layer, 1) for layer in range(1, 7)])
-		counts = sum([np.array([float(self.VALDATA[cham][(att, layer)]) for att in self.attVector()]) for layer in range(1, 7)])
-		self.GRAPHS[cham]['ALL'] = R.TGraph(len(counts), counts, currs)
-		self.GRAPHS[cham]['ALL'].SetNameTitle('g_ALL_C'+str(cham), 'Chamber '+str(cham)+';Hits/s;Current [#muA]')
-		self.GRAPHS[cham]['ALL'].Write()
+		# Each segment together
+		if cham==110:
+			for seg in segs[cham]:
+				currs = sum([self.atomicCurrentVector(cham, layer, seg) for layer in range(1, 7)])
+				counts = sum([np.array([float(self.VALDATA[cham][seg][(att, layer)]) for att in self.attVector()]) for layer in range(1, 7)])
+				self.GRAPHS[cham][seg]['ALL'] = R.TGraph(len(counts), counts, currs)
+				name = 'g_S'+str(seg)+'_C'+str(cham)
+				self.GRAPHS[cham][seg]['ALL'].SetNameTitle(name, 'Chamber '+str(cham)+';Hits/s;Current [#muA]')
+				print name
+				self.GRAPHS[cham][seg]['ALL'].Fit(fitFuncs[cham][seg]['ALL'],'R')#,'','',fitRanges[cham][0],fitRanges[cham][1])
+				fitFuncs[cham][seg]['ALL'].Draw()
+				self.GRAPHS[cham][seg]['ALL'].GetXaxis().SetLimits(fitRanges[cham][seg]['ALL'][0],fitRanges[cham][seg]['ALL'][2])
+				self.GRAPHS[cham][seg]['ALL'].Write(name)
+				plot = Plotter.Plot(self.GRAPHS[cham][seg]['ALL'],option='p')
+				title = 'GIF++ ME'+('1' if cham==1 else '2')+'/1 '+('HVs#'+str(seg) if cham==110 else '')
+				canv = Plotter.Canvas(lumi=title)
+				canv.addMainPlot(plot)
+				canv.makeTransparent()
+				canv.firstPlot.setTitles(X='Hits/s',Y='Current [#muA]')
+				canv.finishCanvas('BOB')
+				canv.save('plots/'+name+'.pdf')
+				print
+
+		# total chamber
+		currs = sum([self.atomicCurrentVector(cham, layer, seg) for layer in range(1, 7) for seg in segs[cham]])
+		counts = sum( [ np.array([float(self.VALDATA[cham][seg][(att, layer)]) for att in self.attVector()]) for layer in range(1, 7) for seg in segs[cham]])
+		self.GRAPHS[cham]['ALL']['ALL'] = R.TGraph(len(counts), counts, currs)
+		name = 'g_ALL_C'+str(cham)
+		self.GRAPHS[cham]['ALL']['ALL'].SetNameTitle(name, 'Chamber '+str(cham)+';Hits/s;Current [#muA]')
+		print name
+		self.GRAPHS[cham]['ALL']['ALL'].Fit(fitFuncs[cham]['ALL'],'R')#,'','',fitRanges[cham][0],fitRanges[cham][1])
+		fitFuncs[cham]['ALL'].Draw()
+		self.GRAPHS[cham]['ALL']['ALL'].GetXaxis().SetLimits(fitRanges[cham]['ALL'][0],fitRanges[cham]['ALL'][2])
+		self.GRAPHS[cham]['ALL']['ALL'].Write(name)
+		plot = Plotter.Plot(self.GRAPHS[cham]['ALL']['ALL'],option='p')
+		title = 'GIF++ ME'+('1' if cham==1 else '2')+'/1'
+		canv = Plotter.Canvas(lumi=title)
+		canv.addMainPlot(plot)
+		canv.makeTransparent()
+		canv.firstPlot.setTitles(X='Hits/s',Y='Current [#muA]')
+		canv.finishCanvas('BOB')
+		canv.save('plots/'+name+'.pdf')
+		print
 
 
 ########################

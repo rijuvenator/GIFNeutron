@@ -31,7 +31,7 @@ for digi in DIGILIST:
 		for idx,idigi in enumerate(range(low,lim+1)):
 			if digi=='wire':
 				if ring!='11': # non me11
-					a = 6*(((cham.t[ring]-cham.b[ring])/cham.h[ring] * cham.h[ring]/lim * 0.5*(idigi*2+1)) + cham.b[ring])*cham.h[ring]/lim
+					a = 6*(((cham.t[ring]-cham.b[ring])/cham.h[ring] * cham.h[ring]/lim * 0.5*(idigi*2-1)) + cham.b[ring])*cham.h[ring]/lim
 					areaHists[digi][ring].Fill(idigi,a)
 				else: # me11
 					areaHists[digi][ring].Fill(idigi,6*me11[idigi]*0.01) # convert me11 dict from mm^2 to cm^2

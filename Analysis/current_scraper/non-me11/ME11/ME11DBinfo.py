@@ -369,21 +369,21 @@ class ME11DBInfo:
 # ---------------------------------------------------------------------------
     ##\brief prepares canvas, defines root objects         
     def generateReportGraphics(self, plotTitle):
-        rstr = "%17s %6d"%(plotTitle, (self.time-datetime.now()).microseconds/1000)       
+        rstr = "%17s %6d "%(plotTitle, (self.time-datetime.now()).microseconds/1000)       
         stHV, stHVerr = getMeanOverTimeFromDBarray(self.stableHVvalues)
         stID, stIDerr = getMeanOverTimeFromDBarray(self.lumiE30IvaluesD)
         stIM, stIMerr = getMeanOverTimeFromDBarray(self.lumiE30IvaluesM)
-        rstr+=" %8.1f %5.1f %6.2f %5.2f"%(stHV, stHVerr, stID, stIDerr)
+        rstr+=" %8.1f %5.1f %6.2f %5.2f "%(stHV, stHVerr, stID, stIDerr)
         if(stHV>0):
             for i in range (0,2):
                 if(self.ffunc[i]!=None): 
-                    rstr+=" %   8.1f %6d"%(self.ffunc[i].GetChisquare(), self.ffunc[i].GetNDF())
+                    rstr+=" %   8.1f %6d "%(self.ffunc[i].GetChisquare(), self.ffunc[i].GetNDF())
                     for ii in range (0,2):
-                        rstr+=" %7.3f %7.3f"%(self.ffunc[i].GetParameter(ii),self.ffunc[i].GetParError(ii))
+                        rstr+=" %7.3f %7.3f "%(self.ffunc[i].GetParameter(ii),self.ffunc[i].GetParError(ii))
             #if self.Iminmax[0]>=0: rstr+="%7.1f %7.1f"%(self.Iminmax[0],self.Iminmax[1])
-            rstr+=" %5d %7.1f"%(-1, self.maxDeviationOverFit(False, verbouse=True))
-            rstr+=" %6.2f %5.2f"%(stIM, stIMerr)
-            rstr+=" %8d %6d"%(getMaxDeltaTimeBetweenPoints(self.Idata, 0, self.stableIrecN[0], self.stableIrecN[1]), self.stableIrecN[1]-self.stableIrecN[0]+1) 
+            rstr+=" %5d %7.1f "%(-1, self.maxDeviationOverFit(False, verbouse=True))
+            rstr+=" %6.2f %5.2f "%(stIM, stIMerr)
+            rstr+=" %8d %6d "%(getMaxDeltaTimeBetweenPoints(self.Idata, 0, self.stableIrecN[0], self.stableIrecN[1]), self.stableIrecN[1]-self.stableIrecN[0]+1) 
         return rstr
                
 # ---------------------------------------------------------------------------
