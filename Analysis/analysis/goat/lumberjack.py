@@ -111,12 +111,12 @@ def lumiHalfLogger(lumiHalfLog,lumiHist,chamHalfAreaValue,digi,when,ec,ring,PU,h
 		lumiHalfLog.info(slopePrinter)
 
 # Integral logger
-def intLogger(intLog,intHist,chamAreaValues,digi,when,ectype,PU):
+def intLogger(intLog,intHist,chamAreaValues,digi,when,ectype,PU,RINGLIST):
 	BXtoSconv = 1./(25.*10**(-9))
 	intLog.info('\n'+digi+' '+when+(' PU norm' if PU else ''))
 	intLog.info('Bin | ring | area [cm2] | bx to s conv |     content | content err | content/cm2/s | content/cm2/s err')
 	if ectype=='':
-		rings = ['-','11','21','31','41','12','13','22','32','42']
+		rings = ['-']+RINGLIST#,'11','21','31','41','12','13','22','32','42']
 	else:
 		rings = ['-','+11','-11','+21','-21','+31','-31','+41','-41',
 				'+12','-12','+13','-13','+22','-22','+32','-32','+42','-42']

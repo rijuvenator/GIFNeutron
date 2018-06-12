@@ -11,12 +11,13 @@ from helper21 import fills
 user = commands.getoutput('echo $USER')
 cmssw_base = commands.getoutput('echo $CMSSW_BASE')
 OFFSET = False
-where = 'results_offset' if OFFSET else 'results'
+fitmin, fitmax = 0.5, 1.5
+where = 'data/no_offset_high_lumi'
 
 for i,fill in enumerate(fills.keys()):
 	timestampMin = fills[fill][0]
 	timestampMax = fills[fill][1]
-	cmd = 'python runAll.py -f {fill} -min \'{timestampMin}\' -max \'{timestampMax}\''.format(fill=fill,timestampMin=timestampMin,timestampMax=timestampMax)
+	cmd = 'python runAll.py -f {fill} -min \'{timestampMin}\' -max \'{timestampMax}\' -fmin \'{fitmin}\' -fmax \'{fitmax}\' -where \'{where}\''.format(fill=fill,timestampMin=timestampMin,timestampMax=timestampMax,fitmin=fitmin,fitmax=fitmax,where=where)
 	cmd += ' -o' if OFFSET else ''
 	print cmd
 	os.system('mkdir -p '+where+'/fill'+str(fill))
@@ -28,4 +29,4 @@ for i,fill in enumerate(fills.keys()):
 	outF.write('cd '+cmssw_base+'/src/Gif/Analysis/current_scraper/non-me11\n')
 	outF.write(cmd+'\n')
 	outF.close()
-	os.system('bsub -q 1nh -J curr11_f'+str(fill)+' < sh/submitRunAll_'+str(fill)+'.sh')
+	os.system('bsub -q 8nh -J curr11_f'+str(fill)+' < sh/submitRunAll_'+str(fill)+'.sh')

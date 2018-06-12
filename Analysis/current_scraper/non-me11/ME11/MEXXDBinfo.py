@@ -205,7 +205,7 @@ class MEXXDBinfo(MEDBInfo):
 
 
                 
-    def queryIvsLumi(self, chamberName, segment, layer, fill, timestampMin="", timestampMax="", plotTitle="", verbouse=False,offset=False):
+    def queryIvsLumi(self, chamberName, segment, layer, fill, timestampMin="", timestampMax="", plotTitle="", verbouse=False,offset=False,fitmin=0.0,fitmax=1.5,where='doesnotexist'):
         selfName = self.__class__.__name__+"."+inspect.stack()[0][3]
         if verbouse : kout.printFID(selfName,"\t chamberName=%10s; segment=%2d; layer=%2d; fill=%6d; time selection:[%s %s]"%
                                     (chamberName, segment, layer, fill, timestampMin, timestampMax))
@@ -218,7 +218,7 @@ class MEXXDBinfo(MEDBInfo):
             timecutStr = "_["+timestampMin.replace(" ","_")+"-"+timestampMax.replace(" ","_")+"]"
         self.lastQuerryStr = plotTitle+"_f"+str(fill)+timecutStr
         if(plot):
-            self.prepareGraphics(self.lastQuerryStr,offset)
+            self.prepareGraphics(self.lastQuerryStr,offset,where)
 
         if(self.Idata!=None):           del self.Idata
         if(self.lumiE30IvaluesD!=None): del self.lumiE30IvaluesD 
@@ -353,7 +353,7 @@ class MEXXDBinfo(MEDBInfo):
             #    print ll            
 
             if plot: 
-                self.createGraphics(verbouse)
+                self.createGraphics(verbouse,fitmin=fitmin,fitmax=fitmax)
                 rstr = self.generateReportGraphics(plotTitle)
             else:
                 kout.printERR(selfName, "no data found")

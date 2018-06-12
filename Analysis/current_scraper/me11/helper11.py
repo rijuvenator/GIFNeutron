@@ -49,46 +49,81 @@ def setup_logger(logger_name,log_file,level=logging.INFO):
 Dictionary of the output text files
 '''
 
-# Make dict of conversions
-conv = {fill:{ec:{cham:{layer:{} for layer in range(1,7)} for cham in range(1,37)} for ec in ['P','N']} for fill in fills.keys()}
-# Loop on data files and fill dictionary
-for idx,fill in enumerate(fills.keys()):
-	start = fills[fill][0].replace(' ','_')
-	end   = fills[fill][1].replace(' ','_')
-	dFile = 'results_noOffset/fill'+str(fill)+'/f'+str(fill)+'_['+start+'-'+end+'].txt'
-	data = open(dFile,'r')
-	#print dFile
-	for jdx,columns in enumerate(data):
-		# Skip the header line
-		if jdx==0: continue
-		# Skip empty lines
-		if columns=='\n': continue
-		col = columns.strip('\n').split()
-		# Skip Chambers which are problematic
-		if col[0] == 'CSC_ME_P11_C01_5': continue
-		if col[0] == 'CSC_ME_P11_C10_4': continue
-		if col[0] == 'CSC_ME_P11_C33_3': continue
-		if col[0] == 'CSC_ME_N11_C04_4': continue
-		if col[0] == 'CSC_ME_N11_C08_3': continue
-		if col[0] == 'CSC_ME_N11_C09_2': continue
-		if col[0] == 'CSC_ME_N11_C12_3': continue
-		if col[0] == 'CSC_ME_N11_C12_6': continue
-		if col[0] == '###': continue
-		if len(col)<8: 
-			#print fill,col[0],len(col)
-			continue
+def make_conv(dooffset=True,lumi=True,test=False):
+	# Make dict of conversions
+	conv = {fill:{ec:{cham:{layer:{} for layer in range(1,7)} for cham in range(1,37)} for ec in ['P','N']} for fill in fills.keys()}
+	# Loop on data files and fill dictionary
+	for idx,fill in enumerate(fills.keys()):
+		start = fills[fill][0].replace(' ','_')
+		end   = fills[fill][1].replace(' ','_')
+		#dFile = 'results/fill'+str(fill)+'/f'+str(fill)+'_['+start+'-'+end+'].txt'
+		OFFSET = '' if dooffset else 'no_'
+		LUMI = 'high_lumi' if lumi else 'all_lumi'
+		dFile = 'data/'+('test/' if test else '')+OFFSET+'offset_'+LUMI+'/fill'+str(fill)+'/f'+str(fill)+'_['+start+'-'+end+'].txt'
+		data = open(dFile,'r')
+		print dFile
+		for jdx,columns in enumerate(data):
+			# Skip the header line
+			if jdx==0: continue
+			# Skip empty lines
+			if columns=='\n': continue
+			col = columns.strip('\n').split()
+			# Skip Chambers which are problematic
+			if col[0] == 'CSC_ME_P11_C01_5': continue
+			if col[0] == 'CSC_ME_P11_C10_4': continue
+			if col[0] == 'CSC_ME_P11_C33_3': continue
+			if col[0] == 'CSC_ME_N11_C04_4': continue
+			if col[0] == 'CSC_ME_N11_C08_3': continue
+			if col[0] == 'CSC_ME_N11_C09_2': continue
+			if col[0] == 'CSC_ME_N11_C12_3': continue
+			if col[0] == 'CSC_ME_N11_C12_6': continue
+			if col[0] == '###': continue
+			if len(col)<8: 
+				#print fill,col[0],len(col)
+				continue
 
-		channel = col[0].split('_')
-		ec = channel[2][0]
-		cham = int(channel[3][1:])
-		layer = int(channel[4])
-		HV = float(col[2]) # can be -1
-		slope = float(col[8])
-		slopeerr = float(col[9])
-		#print ec, cham, layer, col[8], col[9]
-		conv[fill][ec][cham][layer] = {
-				'HV'   :HV,
-				'slope':slope,
-				'err':slopeerr,
-				}
-
+			channel = col[0].split('_')
+			ec = channel[2][0]
+			cham = int(channel[3][1:])
+			layer = int(channel[4])
+			HV = float(col[2]) # can be -1
+			if dooffset:
+				chi2 = float(col[6])
+				ndf = float(col[7])
+				offset = float(col[8])
+				offseterr = float(col[9])
+				slope = float(col[10])
+				slopeerr = float(col[11])
+				maxDev = float(col[19])
+				if maxDev>=1.0: continue
+				if ndf<2.0: continue
+				#print fill, ec, cham, layer
+				conv[fill][ec][cham][layer] = {
+						'HV'   :HV,
+						'slope':slope,
+						'slopeerr':slopeerr,
+						'offset':offset,
+						'offseterr':offseterr,
+						'maxDev':maxDev,
+						'chi2':chi2,
+						'ndf':ndf,
+						}
+			else:
+				print fill, ec, cham, layer
+				print col
+				chi2 = float(col[6])
+				ndf = float(col[7])
+				slope = float(col[8])
+				slopeerr = float(col[9])
+				maxDev = float(col[15])
+				if maxDev>=1.0: continue
+				if ndf<2.0: continue
+				conv[fill][ec][cham][layer] = {
+						'HV'   :HV,
+						'slope':slope,
+						'slopeerr':slopeerr,
+						'maxDev':maxDev,
+						'chi2':chi2,
+						'ndf':ndf,
+						}
+	return conv

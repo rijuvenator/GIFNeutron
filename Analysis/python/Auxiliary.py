@@ -97,3 +97,45 @@ def bestSeg(lct, segs):
 		return found, seg
 	else:
 		return found, None
+
+def getRofWG(ring,wg):
+	nWG = {
+			'11':48.,
+			'12':64.,
+			'13':32.,
+			'21':112.,
+			'31':96.,
+			'41':96.,
+			'22':64.,
+			'32':64.,
+			'42':64.,
+			}
+	# Radius of low/high ends of chamber taken from
+	# https://twiki.cern.ch/twiki/pub/CMS/MuonDPGCSC/140613_radial_extent_of_strip_planes.pdf
+	# Using high/low end of strip planes to 
+	# calculate radial position of wire goups.
+	# (probably correct to w/in a few mm...)
+	radius = {
+			'11':{'low':105.5, 'high':257.5},
+			'12':{'low':281.50,'high':455.99},
+			'13':{'low':511.99,'high':676.15},
+			'21':{'low':146.90,'high':336.56},
+			'31':{'low':166.89,'high':336.59},
+			'41':{'low':186.99,'high':336.41},
+			'22':{'low':364.02,'high':687.08},
+			'32':{'low':364.02,'high':687.08},
+			'42':{'low':364.02,'high':687.08},
+			}
+	# Return R of wg in cm as center of wire group in x and y for that 
+	# wire group (global R coordinates)
+	# Some complication in ME1/1 due to it having tilted wires. 
+	# For now I'm going to pretend it's 'normal' like the other
+	# chambers and ignore the tilt.
+	# Chambers also have wire groups with differing number of
+	# wires. For now, I'm going to continue to pretend everything
+	# is perfect and all wire groups have the same number of wires.
+	wgwidth = (radius[ring]['high'] - radius[ring]['low'])/nWG[ring]
+	rofcham = radius[ring]['low']
+	rincham = 0.5*wgwidth + (wg-1)*wgwidth
+	R = rofcham + rincham
+	return R

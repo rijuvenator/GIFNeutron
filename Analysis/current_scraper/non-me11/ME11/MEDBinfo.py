@@ -141,27 +141,28 @@ class MEDBInfo:
 # ---------------------------------------------------------------------------
     ##\brief prepares canvas, defines root objects         
     def generateReportGraphics(self, plotTitle):
-        channelName = plotTitle.split('/')[2]
-        rstr = "%17s %6d"%(channelName, (self.time-datetime.now()).microseconds/1000)       
+        #print plotTitle, plotTitle.split('/')
+        channelName = plotTitle.split('/')[1]
+        rstr = "%17s %6d "%(channelName, (self.time-datetime.now()).microseconds/1000)       
         stHV, stHVerr = getMeanOverTimeFromDBarray(self.stableHVvalues)
         stID, stIDerr = getMeanOverTimeFromDBarray(self.lumiE30IvaluesD)
         stIM, stIMerr = getMeanOverTimeFromDBarray(self.lumiE30IvaluesM)
-        rstr+=" %8.1f %5.1f %6.2f %5.2f"%(stHV, stHVerr, stID, stIDerr)
+        rstr+=" %8.1f %5.1f %6.2f %5.2f "%(stHV, stHVerr, stID, stIDerr)
         if(stHV>0):
             for i in range (0,2):
                 if(self.ffunc[i]!=None): 
-                    rstr+=" %   8.1f %6d"%(self.ffunc[i].GetChisquare(), self.ffunc[i].GetNDF())
+                    rstr+=" %   8.1f %6d "%(self.ffunc[i].GetChisquare(), self.ffunc[i].GetNDF())
                     for ii in range (0,int(self.ffunc[i].GetNpar())):
-                        rstr+=" %7.3f %7.3f"%(self.ffunc[i].GetParameter(ii),self.ffunc[i].GetParError(ii))
+                        rstr+=" %7.3f %7.3f "%(self.ffunc[i].GetParameter(ii),self.ffunc[i].GetParError(ii))
 #             #if self.Iminmax[0]>=0: rstr+="%7.1f %7.1f"%(self.Iminmax[0],self.Iminmax[1])
-            rstr+=" %5d %7.1f"%(-1, self.maxDeviationOverFit(False))
-            rstr+=" %6.2f %5.2f"%(stIM, stIMerr)
-            rstr+=" %8d %6d"%(getMaxDeltaTimeBetweenPoints(self.Idata, 0, self.stableIrecN[0], self.stableIrecN[1]), self.stableIrecN[1]-self.stableIrecN[0]+1) 
+            rstr+=" %5d %7.1f "%(-1, self.maxDeviationOverFit(False))
+            rstr+=" %6.2f %5.2f "%(stIM, stIMerr)
+            rstr+=" %8d %6d "%(getMaxDeltaTimeBetweenPoints(self.Idata, 0, self.stableIrecN[0], self.stableIrecN[1]), self.stableIrecN[1]-self.stableIrecN[0]+1) 
         return rstr
                
 # ---------------------------------------------------------------------------
     ##\brief prepares canvas, defines root objects         
-    def createGraphics(self, verbouse=False):
+    def createGraphics(self, verbouse=False,fitmin=0.0,fitmax=1.5):
         selfName = self.__class__.__name__+"."+inspect.stack()[0][3]
 
         #gtitles=["HVvsT", "stableHV","IvsT", "stableIvsT", "LvsT", "stableLvsT", "stableLAvsT","IvsL", "IvsLA"]
@@ -259,8 +260,9 @@ class MEDBInfo:
                         self.canvas.GetPad(1).GetPad(ip).Update()
                     
                 self.canvas.GetPad(2).cd()                        
+                self.graph[ii].GetXaxis().SetLimits(0.0,1.5)
                 self.graph[ii].Draw(opt);
-                self.graph[ii].Fit(self.ffunc[ii-7])
+                self.graph[ii].Fit(self.ffunc[ii-7],"","",fitmin,fitmax)
                 self.canvas.GetPad(2).Modified()
                 self.canvas.GetPad(2).Update()
                 stats =  self.graph[ii].FindObject("stats")
@@ -298,9 +300,9 @@ class MEDBInfo:
         self.outFRoot = None
 # ---------------------------------------------------------------------------
     ##\brief prepares canvas, defines root objects         
-    def prepareGraphics(self, plotTitle,offset):
+    def prepareGraphics(self, plotTitle,offset,where):
         if (self.outFRoot!=None): del self.outFRoot
-        self.outFRoot = TFile(plotTitle+".root", "RECREATE")
+        self.outFRoot = TFile(where+'/'+plotTitle+".root", "RECREATE")
         
         gStyle.SetOptFit(1);             # show fit pars
         gStyle.SetOptTitle(1);           # show graph titles
@@ -336,9 +338,9 @@ class MEDBInfo:
         ftitle = ['ff','ffA']
         for i in range (0,2):
             if offset:
-                self.ffunc[i] = TF1(ftitle[i], "[0]+x*[1]", 0, 1.5);
+                self.ffunc[i] = TF1(ftitle[i], "[0]+x*[1]", 0.0, 1.5);
             else:
-                self.ffunc[i] = TF1(ftitle[i], "x*[0]", 0, 1.5);
+                self.ffunc[i] = TF1(ftitle[i], "x*[0]", 0.0, 1.5);
             self.ffunc[i].SetLineColor(self.gcolours[i+7])
 
     ##\brief type A not implemented yet
