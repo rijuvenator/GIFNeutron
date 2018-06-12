@@ -37,15 +37,12 @@ parser.add_argument('-a','--area',dest='AREA',action='store_true',
 # time
 parser.add_argument('-t','--time',dest='TIME',action='store_true',
 		default=False,help='whether or not to scale to counts/s')
-# pile-up or luminosity scaling
-parser.add_argument('-norm','--norm',dest='NORM',default='',
-		help='Scale flux to per pileup pp collision, per time at an instantaneous lumi, or per look')
-# pile-up scaling value
-parser.add_argument('-pu','--pileup',dest='PILEUP',default='1.',
-		help='Number of pileup collisions to scale flux. Defaults to 1.')
+# Normalization
+parser.add_argument('-norm','--norm',dest='NORM',default='pp',
+		help='Whether to do dN / d(pp) or dN / d(look). Defaults to dN / d(pp)')
 # luminosity scaling value
-parser.add_argument('-l','--lumi',dest='LUMI',default='10e34',
-		help='Value of instantaneous lumi to scale flux defaults to 10e34 cm-2 s-1.')
+parser.add_argument('-rl','--reflumi',dest='REFLUMI',default='1.e34',
+		help='Value of instantaneous lumi to scale to. Defaults to 1.e34 cm-2 s-1.')
 # whether or not to include MC on plots
 parser.add_argument('-mc','--mc',dest='MC',
 		default='',help='whether or not to make plots that include MC')
@@ -78,11 +75,10 @@ RECREATE = args.RECREATE
 NAME = args.NAME
 HISTNAME = args.HISTNAME
 DOROADS = args.DOROADS
-NORM = args.NORM
-PILEUP = args.PILEUP
-LUMI = args.LUMI
+REFLUMI = args.REFLUMI
 AREA = args.AREA
 TIME = args.TIME
+NORM = args.NORM
 MC = args.MC
 GEO = args.GEO
 EXTRA = args.EXTRA
@@ -95,41 +91,43 @@ DOLOG = args.DOLOG
 
 # Fill fraction
 FF = 0.61953 #0.619528619529
-SCALE = 1.
-if NORM=='look':
-	SCALE = 1.
-	SCALEMC = 1.*FF
-	yaxis = 'dN /'+(' dA' if AREA else '')+(' d(bx)')
-	yaxislumi = 'dN /'+(' dA' if AREA else '')+(' d(bx)')
-elif NORM=='pileup' or NORM=='pu':
-	SCALE = float(PILEUP)
-	SCALEMC = float(PILEUP)*FF
-	yaxis = 'dN /'+(' dA' if AREA else '')+(' d(pp)')+(' [cm^{-2}]' if AREA else '')
-	yaxislumi = 'dN /'+(' dA' if AREA else '')+(' dt')+' ['+('cm^{-2} ' if AREA else '')+'s^{-1}]'
-elif NORM=='reflumi' or NORM=='rl':
-	# d(pp)/dt = PU / (25ns/ff) = sigma_mb * L
-	SCALE = 8e8 * float(LUMI) / 1.e34
-	SCALEMC = 8e8 * float(LUMI) / 1.e34 * FF
-	yaxis = 'dN /'+(' dA' if AREA else '')+(' dt')+' ['+('cm^{-2} ' if AREA else '')+'s^{-1}]'
-	yaxislumi = 'dN /'+(' dA' if AREA else '')+(' dt')+' ['+('cm^{-2} ' if AREA else '')+'s^{-1}]'
-else:
-	raise ValueError(NORM+' is not a valid scaling')
+# convert counts/bx to counts/s
+BXtoSconv = 25.*10**(-9)
+T = 1./25 * 1.e9
 
+UNITS = ' ['+('cm^{-2} ' if AREA else '')+('s^{-1}' if TIME else '')+']'
+
+if (NORM=='pp' or NORM=='look'):
+	print 'Normalization is dN / '+('dA ' if AREA else '')+'d('+NORM+')'
+else:
+	raise ValueError(NORM+' not a valid NORM')
+
+
+# Phi, Occ, Int plots
+# dN / d(pp)
+# dN / dt = dN / d(pp) * d(pp) / dt = dN / d(pp) * ff*n(pp) / 25 ns
+# d(pp)/dt = PU / (25ns/ff) = sigma_mb * L
+if NORM=='pp':
+	SCALE = 8e8 * float(REFLUMI) / 1.e34 if TIME else 1.
+else:
+	# when norm=='look' occ, phi, and int plots are largely meaningless
+	SCALE=1.
+yaxis = 'dN /'+(' dA' if AREA else '')+(' dt' if TIME else ' d('+NORM+')')+UNITS
+
+# Lumi plots
+# dN / d(look)
+# dN / dt = dN / d(look) * 1.e9 / 25 ns
+SCALELUMI = 1. * (T if TIME else 1.)
+yaxislumi = 'dN /'+(' dA' if AREA else '')+(' dt' if TIME else ' d('+NORM+')')+UNITS
 
 print 'Fill fraction '+str(FF)
 print 'Occupancy plots : '+yaxis+' vs. digi number'
 print 'Phi plots : '+yaxis+' vs. chamber number'
 print 'Integral plots : '+yaxis+' vs. chamber number'
 print 'Lumi plots : '+yaxislumi+' vs. inst lumi'
-print 'Scaling is by '+NORM
-if NORM=='pileup' or NORM=='pu':
-	print 'pileup = '+SCALE
-	print 'FF * pileup = '+SCALEMC
-if NORM=='reflumi' or 'rl':
-	print 'Reference lumi '+LUMI
-	print 'd(pp)/dt = '+str(SCALE)
-	print 'FF * d(pp)/dt = '+str(SCALE)
-
+print 'Reference lumi '+REFLUMI
+print 'd(pp)/dt = '+str(SCALE)
+print 'd(look)/dt = '+str(SCALELUMI)
 
 #####################################################
 
@@ -457,13 +455,11 @@ HALVES = {
 TDRNAME = '8.73 fb^{-1} (13 TeV)'
 path = 'plots/'+DIR # DIR defaults to 'TEST'
 
-# convert counts/bx to counts/s
-BXtoSconv = 25.*10**(-9)
-
 # need to fix so that it only integrates wg and hs it needs to integrate
 # currently it over estimates the chamber area by a small amount (ok for now I guess?)
-#chamArea = {digi:{ring:areaHists[digi][ring].Integral() for ring in RINGLIST} for digi in PLOT.keys()}
-chamArea = {digi:{ring:CH.Chamber(CH.serialID(1, int(ring[0]), int(ring[1]), 1)).area for ring in RINGLIST} for digi in PLOT.keys()}
+# note don't use ChamberHandler.py to calculate areas -- it gets ME1/1 totally wrong
+# --> use areasHists from areas.py
+chamArea = {digi:{ring:areaHists[digi][ring].Integral() for ring in RINGLIST} for digi in PLOT.keys()}
 chamHalfArea = {digi:{half:{ring:{} for ring in RINGLIST} for half in HALVES[digi][0:2]} for digi in PLOT.keys()}
 for digi in PLOT.keys():
 	for half in HALVES[digi][0:2]:
@@ -587,22 +583,18 @@ if RECREATE:
 					INT[digi][entry.BX][half]['num_comb'].Fill(ringMap[str(entry.RING)],1.)
 					# Fill Numerator Plots (endcaps separated)
 					HISTS[ecr][digi][entry.BX][half]['num'].Fill(entry.D_POS[idigi],1.)
-					LUMI[ecr][digi][entry.BX][half]['num'].Fill(entry.LUMI,1.)
 					PHI[ecr][digi][entry.BX][half]['num'].Fill(entry.CHAM,1.)
+					LUMI[ecr][digi][entry.BX][half]['num'].Fill(entry.LUMI,1.)
 					INT[digi][entry.BX][half]['num_sep'].Fill(eringMap[ecr],1.)
 
 			# Fill Denominator Plots (endcaps combined)
 			# use this weight if denominators get pileup weight
-#			WEIGHT = 1.
-#			if NORM=='pileup' or NORM=='pu':
-#				WEIGHT = entry.PILEUP
-#			elif NORM=='lumi' or NORM=='l':
-#				WEIGHT = entry.LUMI
-#			elif NORM=='':
-#				WEIGHT==1.
-#			else:
-#				raise ValueError(NORM+' is not a valid scaling')
-			weight = entry.PILEUP
+			if NORM=='look':
+				weight=1.
+			elif NORM=='pp':
+				weight = entry.PILEUP*FF
+			else:
+				raise ValueError(NORM+' is not a valid scaling')
 			HISTS[ring][digi][entry.BX][half]['den'].Fill(0,weight)
 			PHI[ring][digi][entry.BX][half]['den'].Fill(entry.CHAM,weight)
 			LUMI[ring][digi][entry.BX][half]['den'].Fill(entry.LUMI,weight)
@@ -748,10 +740,6 @@ def makeOccupancyPlot(dataHist,digi,when,ec,ring,mc):
 		# Scale MC to an inst. lumi. or pileup, dont forget fill fraction
 		mchist.Scale(SCALE)
 		mcPlot = Plotter.Plot(mchist,legType='f',option='hist',legName='Geant4 '+mcname[0:2] if TDR else mcname)
-	# normalize to counts per sec
-#	if TIME: 
-#		dataHist.Scale(1./BXtoSconv)
-#		if mc!='': mchist.Scale(1./BXtoSconv)
 	dataHist.Scale(SCALE)
 	# normalize to area (dataHist is already a clone)
 	if AREA:
@@ -812,9 +800,6 @@ def makePhiPlot(dataHist,digi,when,ec,ring,mc):
 		mcPlot = Plotter.Plot(mchist,legType='f',option='hist',legName='Geant4 '+mcname[0:2] if TDR else mcname)
 	# Scale by time
 	dataHist.Scale(SCALE)
-#	if TIME: 
-#		dataHist.Scale(1./BXtoSconv)
-#		if mc!='': mchist.Scale(1./BXtoSconv)
 	# scale by chamber area
 	if AREA: 
 		dataHist.Scale(1./chamArea[digi][ring])
@@ -880,11 +865,8 @@ def makeIntegralPlot(dataHist,digi,when,ectype,mc):
 		# Scale MC to an inst. lumi. or pileup, dont forget fill fraction
 		mchist.Scale(SCALE)
 		mcPlot = Plotter.Plot(mchist,option='hist',legName='Geant4 '+mcname[0:2] if TDR else mcname,legType='f')
-	# Scale by time
+	# Scale
 	dataHist.Scale(SCALE)
-	#if TIME: 
-	#	dataHist.Scale(1./BXtoSconv)
-	#	if mc!='': mchist.Scale(1./BXtoSconv)
 	# Scale by area
 	if AREA:
 		intNormArea(dataHist)
@@ -935,7 +917,7 @@ def makeIntegralPlot(dataHist,digi,when,ectype,mc):
 
 def makeLuminosityPlot(dataHist,digi,when,ec,ring,DOFIT=False):
 	# Scale by time
-	if NORM!='look': dataHist.Scale(1./BXtoSconv)
+	dataHist.Scale(SCALELUMI)
 	# Scale by area
 	if AREA: dataHist.Scale(1./chamArea[digi][ring])
 	# Make occupancy plot for each digi and plot type
@@ -982,9 +964,8 @@ def makeSepLumiPlot(hist1,hist2,digi,when,ec,ring,DOFIT):
 	if AREA:
 		hist1.Scale(1./chamHalfArea[digi][HALVES[digi][0]][ring])
 		hist2.Scale(1./chamHalfArea[digi][HALVES[digi][1]][ring])
-	if NORM!='look':
-		hist1.Scale(1./BXtoSconv)
-		hist2.Scale(1./BXtoSconv)
+	hist1.Scale(SCALELUMI)
+	hist2.Scale(SCALELUMI)
 	plot1 = Plotter.Plot(hist1,legType='pe',legName='Lower half' if digi=='wire' else 'Left half',option='p')
 	plot2 = Plotter.Plot(hist2,legType='pe',legName='Upper half' if digi=='wire' else 'Right half',option='p')
 	TITLE = 'ME'+ring+(' Wire Group' if digi=='wire' else ' Comparator')+' Rate vs. Lumi'
