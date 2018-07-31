@@ -91,14 +91,15 @@ DOLOG = args.DOLOG
 
 # Fill fraction
 FF = 0.61953 #0.619528619529
-# convert counts/bx to counts/s
-BXtoSconv = 25.*10**(-9)
-T = 1./25 * 1.e9
+# look/time
+T = 1.e9/25
+# scale from wrong xs to correct xs
+XSscale = 69200./79400.
 
 UNITS = ' ['+('cm^{-2} ' if AREA else '')+('s^{-1}' if TIME else '')+']'
 
 if (NORM=='pp' or NORM=='look'):
-	print 'Normalization is dN / '+('dA ' if AREA else '')+'d('+NORM+')'
+	print 'Normalization is N / '+('A ' if AREA else '')+NORM
 else:
 	raise ValueError(NORM+' not a valid NORM')
 
@@ -108,17 +109,17 @@ else:
 # dN / dt = dN / d(pp) * d(pp) / dt = dN / d(pp) * ff*n(pp) / 25 ns
 # d(pp)/dt = PU / (25ns/ff) = sigma_mb * L
 if NORM=='pp':
-	SCALE = 8e8 * float(REFLUMI) / 1.e34 if TIME else 1.
+	SCALE = 6.92e8 * float(REFLUMI) / 1.e34 if TIME else 1.
 else:
 	# when norm=='look' occ, phi, and int plots are largely meaningless
 	SCALE=1.
-yaxis = 'dN /'+(' dA' if AREA else '')+(' dt' if TIME else ' d('+NORM+')')+UNITS
+yaxis = 'N_{hits} /'+(' A' if AREA else '')+(' t' if TIME else ' N_{'+NORM+'}')+UNITS
 
 # Lumi plots
 # dN / d(look)
 # dN / dt = dN / d(look) * 1.e9 / 25 ns
 SCALELUMI = 1. * (T if TIME else 1.)
-yaxislumi = 'dN /'+(' dA' if AREA else '')+(' dt' if TIME else ' d('+NORM+')')+UNITS
+yaxislumi = 'N_{hits} /'+(' A' if AREA else '')+(' t' if TIME else ' N_{'+NORM+'}')+UNITS
 
 print 'Fill fraction '+str(FF)
 print 'Occupancy plots : '+yaxis+' vs. digi number'
@@ -126,8 +127,8 @@ print 'Phi plots : '+yaxis+' vs. chamber number'
 print 'Integral plots : '+yaxis+' vs. chamber number'
 print 'Lumi plots : '+yaxislumi+' vs. inst lumi'
 print 'Reference lumi '+REFLUMI
-print 'd(pp)/dt = '+str(SCALE)
-print 'd(look)/dt = '+str(SCALELUMI)
+print 'N_pp/t = '+str(SCALE)
+print 'look time = '+str(SCALELUMI)
 
 #####################################################
 
@@ -592,7 +593,8 @@ if RECREATE:
 			if NORM=='look':
 				weight=1.
 			elif NORM=='pp':
-				weight = entry.PILEUP*FF
+				# extra scaling is necessary since we got the XS wrong
+				weight = entry.PILEUP*FF*XSscale
 			else:
 				raise ValueError(NORM+' is not a valid scaling')
 			HISTS[ring][digi][entry.BX][half]['den'].Fill(0,weight)
